@@ -9,7 +9,7 @@
 #include "mqtt_audioPlay.hpp"
 #include "mqtt_fileUpload.hpp"
 #include "mqtt_ttsPlay.hpp"
-//#include "mqtt_recordPlay.hpp"
+#include "mqtt_recordPlay.hpp"
 #include "mqtt_volumeSet.hpp"
 #include "mqtt_fileDelete.hpp"
 #include "mqtt_heartbeat.hpp"
@@ -26,27 +26,28 @@
 
 class ServiceManage {
 public:
-    const int DEL_SIZE = 11;
+    const int DEL_SIZE = 17;
+    const std::string DEL_STR = "data";
 
     explicit ServiceManage() {
         m_fn.insert(std::make_pair("audioPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioPlayData, asns::CAudioPlayResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ttsPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CTtsPlayData, asns::CTtsPlayResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
-        /*m_fn.insert(std::make_pair("recordPlay", [&](const json &js) -> std::string {
+        m_fn.insert(std::make_pair("recordPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CRecordPlayData, asns::CRecordPlayResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
-        }));*/
+        }));
         m_fn.insert(std::make_pair("fileUpload", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CFileUploadData, asns::CFileUploadResultData> req = js;
             std::string reStr = req.do_req();
@@ -55,7 +56,7 @@ public:
         m_fn.insert(std::make_pair("volumeSet", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CVolumeSetData, asns::CVolumeSetResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("fileDelete", [&](const json &js) -> std::string {
@@ -66,31 +67,31 @@ public:
         m_fn.insert(std::make_pair("reboot", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CRebootData, asns::CRebootResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         /*m_fn.insert(std::make_pair("planPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CPlanPlayData, asns::CPlanPlayResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), 11);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));*/
         m_fn.insert(std::make_pair("audioStop", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioStopData, asns::CAudioStopResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("audioStreamStart", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioStreamStartData, asns::CAudioStreamStartResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ptzOperate", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CPtzOperateData, asns::CPtzOperateResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find("\"null\""), DEL_SIZE);
+            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ledShowSet", [&](const json &js) -> std::string {

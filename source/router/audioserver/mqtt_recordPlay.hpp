@@ -28,21 +28,14 @@ namespace asns {
 
     class CRecordPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayData, downloadUrl, playCount, playType, storageType, timeType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayData, downloadUrl, playCount, playType, storageType,
+                                                    timeType)
 
         int do_req() {
             char command[256] = {0};
-            switch (timeType) {
-                case 0: {
-                    break;
-                }
-                case 1: {
-                    sprintf(command,
-                            "ffmpeg -y -r 30 -re -i rtmp:%s -acodec mp3 -b:a 48k -max_delay 100 -g 5 -b 700000 -f mp3 - | madplay -",
-                            downloadUrl.substr(5).c_str());
-                    break;
-                }
-            }
+            sprintf(command,
+                    "ffmpeg -y -r 30 -re -i rtmp:%s -acodec mp3 -b:a 48k -max_delay 100 -g 5 -b 700000 -f mp3 - | madplay -",
+                    downloadUrl.substr(5).c_str());
             std::cout << "command: " << command << std::endl;
             system(command);
             return 1;

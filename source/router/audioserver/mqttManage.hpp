@@ -12,17 +12,14 @@ public:
         std::cout << "------------------mqtt start----------------------" << std::endl;
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        name = cfg.business[0].deviceID;
+        name = cfg.business[0].devName;
         pwd = cfg.business[0].password;
         server = cfg.business[0].server;
         port = cfg.business[0].port;
         imei = cfg.business[0].serial;
 
-
-
-
         mosqpp::lib_init();
-        MQTT mqtt("mqtt");
+        MQTT mqtt(name.c_str());
         mqtt.publish_topic += imei;
         mqtt.username_pw_set(name.c_str(), pwd.c_str());
         int rc = mqtt.connect(server.c_str(), port, 10);
