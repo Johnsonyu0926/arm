@@ -1,0 +1,50 @@
+#pragma once
+
+#include "json.hpp"
+#include "mqtt_reTemp.hpp"
+#include "utils.h"
+#include <thread>
+
+using json = nlohmann::json;
+
+namespace asns {
+    template<typename Quest, typename Result>
+    class CReQuest;
+
+    class CMicRecordUploadResultData {
+    public:
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadResultData, uploadStatus, micRecordId)
+
+        template<typename Quest, typename Result>
+        void do_success(const CReQuest<Quest, Result> &c) {
+            system("killall -9 arecord");
+            CUtils utils;
+            std::string res = utils.get_doupload_result(c.data.requestUrl, c.data.imei);
+            std::cout << "result:" << res << std::endl;
+            json js = json::parse(res);
+            uploadStatus = js.at("uploadStatus");
+            micRecordId = js.at("micRecordId");
+        }
+
+    public:
+        int uploadStatus;
+        long micRecordId;
+    };
+
+
+    class CMicRecordUploadData {
+    public:
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
+
+        int do_req() {
+            system("arecord -f cd /tmp/record.mp3 &");
+            std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
+            return 1;
+        }
+
+    public:
+        std::string imei;
+        std::string requestUrl;
+        int recordDuration;
+    };
+}

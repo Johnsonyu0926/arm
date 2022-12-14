@@ -1,0 +1,151 @@
+openssl的版本号为：1.1.1b
+
+1、执行命令，可参照下方的config命令
+setarch linux32 ./config no-asm no-async shared no-md2 no-md4 no-mdc2 no-poly1305 no-blake2 \
+no-siphash no-sm3 no-rc2 no-rc4 no-rc5 no-idea no-aria no-bf no-cast \
+no-camellia no-chacha no-sm2 no-dso  \
+no-engine no-err no-comp no-ocsp no-cms no-ts no-srp no-cmac no-ct
+
+2、修改Makefile
+(1)注释以下行
+#CROSS_COMPILE=
+#CC=$(CROSS_COMPILE)gcc
+#CXX=$(CROSS_COMPILE)g++
+#AR=$(CROSS_COMPILE)ar
+#RANLIB=$(CROSS_COMPILE)ranlib
+
+(2)删除如下命令中的-m64选项
+CNF_CFLAGS=-pthread
+CNF_CXXFLAGS=-std=c++11 -pthread
+
+3、需要再product/router，执行make software-openssl-1.1.1b命令，进行编译
+
+4、增加romfs命令
+romfs:
+	$(STRIP) -o $(ROOTFS_LIB_DIR)/libssl.so.1.1 libssl.so.1.1
+	$(STRIP) -o $(ROOTFS_LIB_DIR)/libcrypto.so.1.1  libcrypto.so.1.1
+
+------------------------------
+不同的config命令,生成的文件对比
+
+./config no-asm no-async shared
+OPTIONS=enable-shared --cross-compile-prefix=/home/j12387/MTK_TX1800_new_toolchain/tools-chain/toolchain-mipsel_24kc_gcc-5.4.0_musl-1.1.16/bin/mipsel-openwrt-linux- no-asan no-asm no-async no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic
+CONFIGURE_ARGS=("linux-x86_64", "shared", "no-asm", "no-async", "--cross-compile-prefix=/home/j12387/MTK_TX1800_new_toolchain/tools-chain/toolchain-mipsel_24kc_gcc-5.4.0_musl-1.1.16/bin/mipsel-openwrt-linux-")
+ 662396 4月  29 20:11 libssl.so.1.1
+3029220 4月  29 20:11 libcrypto.so.1.1
+--------------------------------------------------
+
+./config no-asm no-async shared no-engine no-ecdh no-idea no-md4 no-seed no-camellia no-srp no-cast no-mdc2 no-bf no-ec_nistp_64_gcc_128 no-md2 no-rc5 no-rfc3779 no-sctp no-zlib no-zlib-dynamic no-static-engine --cross-compile-prefix=/home/j12387/MTK_TX1800_new_toolchain/tools-chain/toolchain-mipsel_24kc_gcc-5.4.0_musl-1.1.16/bin/mipsel-openwrt-linux-
+修改CONFIGURE_ARGS
+CONFIGURE_ARGS=("linux-x86_64", "shared", "no-asm", "no-async","no-md4","no-seed","no-camellia","no-ecdh","no-engine","no-idea","no-srp","no-cast","no-mdc2","no-ripemd","no-bf","--cross-compile-prefix=/home/j12387/MTK_TX1800_new_toolchain/tools-chain/toolchain-mipsel_24kc_gcc-5.4.0_musl-1.1.16/bin/mipsel-openwrt-linux-")
+ 643992 4月  29 20:33 libssl.so.1.1
+2802404 4月  29 20:33 libcrypto.so.1.1
+-----------------------------------------------------
+
+./config no-asm no-async shared no-md2 no-md4 no-mdc2 no-poly1305 no-blake2 \
+no-siphash no-sm3 no-rc2 no-rc4 no-rc5 no-idea no-aria no-bf no-cast \
+no-camellia no-chacha no-ec no-dsa no-sm2 no-dso  \
+no-engine no-err no-comp no-ocsp no-cms no-ts no-srp no-cmac no-ct
+ 550784 4月  29 20:56 libssl.so.1.1
+1903080 4月  29 20:56 libcrypto.so.1.1
+-----------------------------------------------------------------------
+
+./config no-asm no-async shared no-md2 no-md4 no-mdc2 no-poly1305 no-blake2 \
+no-siphash no-sm3 no-rc2 no-rc4 no-rc5 no-idea no-aria no-bf no-cast \
+no-camellia no-chacha no-sm2 no-dso  \
+no-engine no-err no-comp no-ocsp no-cms no-ts no-srp no-cmac no-ct
+ 578956 4月  29 20:52 libssl.so.1.1
+2335392 4月  29 20:52 libcrypto.so.1.1
+--------------------------------
+ OpenSSL 1.1.1b 26 Feb 2019
+
+ Copyright (c) 1998-2018 The OpenSSL Project
+ Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+ All rights reserved.
+
+ DESCRIPTION
+ -----------
+
+ The OpenSSL Project is a collaborative effort to develop a robust,
+ commercial-grade, fully featured, and Open Source toolkit implementing the
+ Transport Layer Security (TLS) protocols (including SSLv3) as well as a
+ full-strength general purpose cryptographic library.
+
+ OpenSSL is descended from the SSLeay library developed by Eric A. Young
+ and Tim J. Hudson.  The OpenSSL toolkit is licensed under a dual-license (the
+ OpenSSL license plus the SSLeay license), which means that you are free to
+ get and use it for commercial and non-commercial purposes as long as you
+ fulfill the conditions of both licenses.
+
+ OVERVIEW
+ --------
+
+ The OpenSSL toolkit includes:
+
+ libssl (with platform specific naming):
+     Provides the client and server-side implementations for SSLv3 and TLS.
+
+ libcrypto (with platform specific naming):
+     Provides general cryptographic and X.509 support needed by SSL/TLS but
+     not logically part of it.
+
+ openssl:
+     A command line tool that can be used for:
+        Creation of key parameters
+        Creation of X.509 certificates, CSRs and CRLs
+        Calculation of message digests
+        Encryption and decryption
+        SSL/TLS client and server tests
+        Handling of S/MIME signed or encrypted mail
+        And more...
+
+ INSTALLATION
+ ------------
+
+ See the appropriate file:
+        INSTALL         Linux, Unix, Windows, OpenVMS, ...
+        NOTES.*         INSTALL addendums for different platforms
+
+ SUPPORT
+ -------
+
+ See the OpenSSL website www.openssl.org for details on how to obtain
+ commercial technical support. Free community support is available through the
+ openssl-users email list (see
+ https://www.openssl.org/community/mailinglists.html for further details).
+
+ If you have any problems with OpenSSL then please take the following steps
+ first:
+
+    - Download the latest version from the repository
+      to see if the problem has already been addressed
+    - Configure with no-asm
+    - Remove compiler optimization flags
+
+ If you wish to report a bug then please include the following information
+ and create an issue on GitHub:
+
+    - OpenSSL version: output of 'openssl version -a'
+    - Configuration data: output of 'perl configdata.pm --dump'
+    - OS Name, Version, Hardware platform
+    - Compiler Details (name, version)
+    - Application Details (name, version)
+    - Problem Description (steps that will reproduce the problem, if known)
+    - Stack Traceback (if the application dumps core)
+
+ Just because something doesn't work the way you expect does not mean it
+ is necessarily a bug in OpenSSL. Use the openssl-users email list for this type
+ of query.
+
+ HOW TO CONTRIBUTE TO OpenSSL
+ ----------------------------
+
+ See CONTRIBUTING
+
+ LEGALITIES
+ ----------
+
+ A number of nations restrict the use or export of cryptography. If you
+ are potentially subject to such restrictions you should seek competent
+ professional legal advice before attempting to develop or distribute
+ cryptographic code.
