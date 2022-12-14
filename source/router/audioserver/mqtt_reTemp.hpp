@@ -32,8 +32,8 @@ namespace asns {
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c, const int id) {
-            result = id == 1 ? "success" : id == 2 ? "fail" : "not handled";
-            resultId = id;
+            result = id == 1 ? "success" : id == 2 ? "fail" : id == 3 ? "no file" : "not handled";
+            resultId = id == 3 ? 1 : id;
             imei = c.imei;
             topic = "TaDiao/device/report/test/" + imei;
             cmd = c.cmd;

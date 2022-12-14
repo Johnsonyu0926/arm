@@ -76,7 +76,7 @@ namespace asns {
                     return 1;
                 }
             }
-            return 0;
+            return 3;
         }
 
         bool exist(const std::string &name) {
