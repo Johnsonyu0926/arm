@@ -14,16 +14,16 @@ public:
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
             this->disconnect();
         }
-        std::cout << "rc:" << rc << std::endl;
+        //std::cout << "rc:" << rc << std::endl;
     }
 
     void on_connect_with_flags(int rc, int flags) override {
-        std::cout << "rc:" << rc << " flags " << flags << std::endl;
+        //std::cout << "rc:" << rc << " flags " << flags << std::endl;
     }
 
     //断开Mqtt连接
     void on_disconnect(int rc) override {
-        std::cout << "rc:" << rc << std::endl;
+        //std::cout << "rc:" << rc << std::endl;
     }
 
     //订阅指定topic
@@ -69,7 +69,7 @@ public:
     }
 
     void on_log(int level, const char *str) override {
-        std::cout << "level: " << level << " " << str << std::endl;
+        //std::cout << "level: " << level << " " << str << std::endl;
     }
 
     void on_error() override {
