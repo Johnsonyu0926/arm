@@ -38,7 +38,7 @@ namespace asns
             audioCfgBusiness.load();
 
             CAddCustomAudioFileBusiness addCustomAudioFileBusiness;
-            addCustomAudioFileBusiness.savePrefix = audioCfgBusiness.business[0].savePrefix;
+            addCustomAudioFileBusiness.savePrefix = audioCfgBusiness.getAudioFilePath();
             addCustomAudioFileBusiness.append(node);
 
             CFileUploadResult fileUploadResult;

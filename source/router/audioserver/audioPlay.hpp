@@ -30,11 +30,11 @@ namespace asns {
             char command[256] = {0};
             switch (playType) {
                 case 0:
-                    sprintf(command, "madplay %s%s -r &", cfg.business[0].savePrefix.c_str(),
+                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(),
                             audioName.c_str());
                     break;
                 case 1: {
-                    std::string cmd = "madplay " + cfg.business[0].savePrefix + ' ';
+                    std::string cmd = "madplay " + cfg.getAudioFilePath() + ' ';
                     for (int i = 0; i < duration; ++i) {
                         cmd += audioName + ' ';
                     }
@@ -50,7 +50,7 @@ namespace asns {
                     int s = duration % (3600 * 24) % 3600 % 60;
                     char buf[64] = {0};
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.business[0].savePrefix.c_str(),
+                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
                             audioName.c_str(), buf);
                     break;
                 }

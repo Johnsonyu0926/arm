@@ -36,18 +36,6 @@ extern DWORD total_kilo;
 using json = nlohmann::json;
 
 int CClientThread::do_req(char *buf, CSocket *pClient) {
-    /*if (strstr(buf, "Login")) {
-        cout << "do login business." << endl;
-        CLogin login = m_json;
-        m_login_status = login.do_req(pClient);
-        return 0;
-    } else {
-        if (!m_login_status) {
-            cout << "please login first!" << endl;
-            pClient->Close();
-            return -1;
-        }
-    }*/
     if (strstr(buf, "Login")) {
         cout << "do login business." << endl;
         CLogin login = m_json;

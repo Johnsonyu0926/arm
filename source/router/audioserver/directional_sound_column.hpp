@@ -158,7 +158,7 @@ namespace asns {
             char cmd[256] = {0};
             CAudioCfgBusiness cfg;
             cfg.load();
-            sprintf(cmd, "madplay %s%s -r &", cfg.business[0].savePrefix.c_str(), m_str[4].c_str());
+            sprintf(cmd, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
             std::cout << "cmd: " << cmd << std::endl;
             std::thread([&] { system(cmd); }).detach();
 
@@ -234,7 +234,7 @@ namespace asns {
             cfg.load();
             switch (std::stoi(m_str[5])) {
                 case 1: {
-                    sprintf(command, "madplay %s%s ", cfg.business[0].savePrefix.c_str(), m_str[4].c_str());
+                    sprintf(command, "madplay %s%s ", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
                     std::string cmd = command;
                     for (int i = 0; i < duration - 1; ++i) {
                         cmd += m_str[4] + ' ';
@@ -251,7 +251,7 @@ namespace asns {
                     int s = duration % (3600 * 24) % 3600 % 60;
                     char buf[64] = {0};
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.business[0].savePrefix.c_str(), m_str[4].c_str(),
+                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(),
                             buf);
                     std::cout << "cmd: " << command << std::endl;
                     system(command);
@@ -447,7 +447,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
 
-        std::string path = cfg.business[0].savePrefix + m_str[6];
+        std::string path = cfg.getAudioFilePath() + m_str[6];
         std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
         std::thread([&] {
             Server ser(8001);

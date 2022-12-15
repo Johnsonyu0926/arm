@@ -2,6 +2,8 @@
 
 #include "add_mqtt_custom_audio_file.hpp"
 #include "json.hpp"
+#include "audiocfg.hpp"
+
 /*
  * {
     "downloadUrl":"http://172.16.1.20:9999/data/voice/cd5710aa-aef4-4e86-b0a0-2e430c1a2dc9.mp3", // 音频文件下载路径
@@ -28,26 +30,32 @@ namespace asns {
             data.setName(c.data.fileName);
             data.setAudioUploadRecordId(c.data.audioUploadRecordId);
             CAddMqttCustomAudioFileBusiness business;
-            if(!business.exist(c.data.fileName)){
+            if (!business.exist(c.data.fileName)) {
                 business.business.push_back(data);
                 business.saveJson();
             }
             audioUploadRecordId = c.data.audioUploadRecordId;
         }
+
     private:
         int audioUploadRecordId;
     };
 
     class CFileUploadData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadData, downloadUrl, fileName, audioUploadRecordId, storageType)
-        int do_req(){
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
+                                                    storageType)
+
+        int do_req() {
+            CAudioCfgBusiness cfg;
             char buf[256] = {0};
-            sprintf(buf,"curl --location --request GET %s --output /mnt/audiodata/%s",downloadUrl.c_str(),fileName.c_str());
-            std::cout<< "cmd: " << buf << std::endl;
+            sprintf(buf, "curl --location --request GET %s --output %s%s", downloadUrl.c_str(),
+                    cfg.getAudioFilePath().c_str(), fileName.c_str());
+            std::cout << "cmd: " << buf << std::endl;
             system(buf);
             return 1;
         }
+
     public:
         std::string downloadUrl;
         std::string fileName;

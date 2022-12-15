@@ -9,7 +9,7 @@
 using json = nlohmann::json;
 
 namespace asns {
-    const std::string ADD_MQTT_CUSTOM_AUDIO_FILE = "/etc/config/add_mqtt_custom_audio_file.json";
+    const std::string ADD_MQTT_CUSTOM_AUDIO_FILE = "/cfg/add_mqtt_custom_audio_file.json";
 
     class CAddMqttCustomAudioFileData {
     public:
@@ -38,26 +38,36 @@ namespace asns {
 
     class CAddMqttCustomAudioFileBusiness {
     public:
+        CAddMqttCustomAudioFileBusiness() {
+            CAudioCfgBusiness business;
+            business.load();
+            filePath = business.business[0].savePrefix + ADD_MQTT_CUSTOM_AUDIO_FILE;
+        }
+
+        std::string getFilePath() const {
+            return filePath;
+        }
+
         int mqttLoad() {
-            std::ifstream i(ADD_MQTT_CUSTOM_AUDIO_FILE);
+            std::ifstream i(filePath);
             if (!i.is_open()) {
-                std::cout<<"ifstream open fail"<<std::endl;
+                std::cout << "ifstream open fail" << std::endl;
                 return 0;
             }
             json js;
             i >> js;
-            std::cout<<"mqtt load json:"<<js.dump()<<std::endl;
+            std::cout << "mqtt load json:" << js.dump() << std::endl;
             business = js;
         }
 
         void saveJson() {
-            std::ofstream o(ADD_MQTT_CUSTOM_AUDIO_FILE);
-            if(!o.is_open()){
-                std::cout<<"ofstream open fail"<<std::endl;
-                return ;
+            std::ofstream o(filePath);
+            if (!o.is_open()) {
+                std::cout << "ofstream open fail" << std::endl;
+                return;
             }
             json js = business;
-            std::cout<<"mqtt saveJson :" <<js.dump()<<std::endl;
+            std::cout << "mqtt saveJson :" << js.dump() << std::endl;
             o << js << std::endl;
         }
 
@@ -68,7 +78,7 @@ namespace asns {
                     char cmd[256];
                     CAudioCfgBusiness cfg;
                     cfg.load();
-                    sprintf(cmd, "rm %s%s", cfg.business[0].savePrefix.c_str(), name.c_str());
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
                     std::cout << cmd << std::endl;
                     system(cmd);
                     business.erase(it);
@@ -91,6 +101,7 @@ namespace asns {
 
     public:
         std::vector<CAddMqttCustomAudioFileData> business;
+        std::string filePath;
     };
 
 } // namespace asms

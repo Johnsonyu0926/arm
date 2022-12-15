@@ -73,14 +73,14 @@ namespace asns {
                     int s = playDuration % (3600 * 24) % 3600 % 60;
                     char buf[64] = {0};
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.business[0].savePrefix.c_str(),
+                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
                             fileName.c_str(), buf);
                     std::cout << "command: " << command << std::endl;
                     system(command);
                     break;
                 }
                 case 1: {
-                    std::string cmd = "madplay " + cfg.business[0].savePrefix + ' ';
+                    std::string cmd = "madplay " + cfg.getAudioFilePath() + ' ';
                     for (int i = 0; i < playCount; ++i) {
                         cmd += fileName + ' ';
                     }

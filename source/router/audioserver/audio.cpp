@@ -634,7 +634,7 @@ int main(int argc, char **argv) {
         g_plan.load();
         g_volumeSet.load();
         g_plan.CreateThread();
-        g_addAudioBusiness.savePrefix = g_audiocfg.business[0].savePrefix;
+        g_addAudioBusiness.savePrefix = g_audiocfg.getAudioFilePath();
         g_addAudioBusiness.load();
 
         cout << "begin working..." << endl;

@@ -10,7 +10,7 @@ using namespace std;
 using json = nlohmann::json;
 
 namespace asns {
-#define AUDIOCFG_FILE_NAME "/etc/config/audio.cfg"
+    const std::string AUDIOCFG_FILE_NAME = "/mnt/cfg/audio.cfg";
 
     class CAudioCfgData {
     public:
@@ -43,6 +43,7 @@ namespace asns {
             o << std::setw(4) << j << std::endl;
         }
 
+
         int load() {
             std::ifstream i(AUDIOCFG_FILE_NAME);
             if (!i) {
@@ -61,6 +62,12 @@ namespace asns {
             cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
             cout << "count:" << business.size() << endl;
             return 0;
+        }
+
+        std::string getAudioFilePath() {
+            this->load();
+            std::string res = business[0].savePrefix + "/audiodata/";
+            return res;
         }
     };
 

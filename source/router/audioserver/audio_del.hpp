@@ -39,7 +39,7 @@ namespace asns
                 CAudioCfgBusiness cfg;
                 cfg.load();
                 CUtils utils;
-                v.size = utils.get_size(cfg.business[0].savePrefix.c_str(), audios.business[i].filename);
+                v.size = utils.get_size(cfg.getAudioFilePath().c_str(), audios.business[i].filename);
                 v.audioId = audios.business[i].customAudioID;
                 data.push_back(v);
             }
@@ -63,7 +63,7 @@ namespace asns
                     CAudioCfgBusiness cfg;
                     cfg.load();
 
-                    sprintf(cmd, "rm %s%s", cfg.business[0].savePrefix.c_str(), name.c_str());
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
                     std::cout << cmd << std::endl;
                     system(cmd);
                     audios.business.erase(it);
@@ -81,7 +81,7 @@ namespace asns
                     CAudioCfgBusiness cfg;
                     cfg.load();
 
-                    sprintf(cmd, "rm %s%s", cfg.business[0].savePrefix.c_str(), name.c_str());
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
                     system(cmd);
                     bussines.business.erase(it);
                     bussines.saveJson();

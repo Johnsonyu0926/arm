@@ -26,8 +26,8 @@
 
 class ServiceManage {
 public:
-    const int DEL_SIZE = 17;
-    const std::string DEL_STR = "data";
+    const int DEL_SIZE = 21;
+    const std::string DEL_STR = "\"data\"";
 
     explicit ServiceManage() {
         m_fn.insert(std::make_pair("audioPlay", [&](const json &js) -> std::string {

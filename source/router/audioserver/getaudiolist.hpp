@@ -54,7 +54,7 @@ namespace asns
 				CAudioCfgBusiness cfg;
 				cfg.load();
 				CUtils utils;
-				v.size = utils.get_size(cfg.business[0].savePrefix.c_str(), audios.business[i].filename);
+				v.size = utils.get_size(cfg.getAudioFilePath().c_str(), audios.business[i].filename);
 				v.audioId = audios.business[i].customAudioID;
 				data.push_back(v);
 			}
@@ -70,7 +70,7 @@ namespace asns
 				CAudioCfgBusiness cfg;
 				cfg.load();
 				CUtils utils;
-				v.size = utils.get_size(cfg.business[0].savePrefix.c_str(), it.getName().c_str());
+				v.size = utils.get_size(cfg.getAudioFilePath().c_str(), it.getName().c_str());
 				v.audioId = 0;
 				data.push_back(v);
 			}
