@@ -11,12 +11,15 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CMicRecordUploadResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CMicRecordUploadResultData, uploadStatus, micRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadResultData, uploadStatus, micRecordId)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             system("killall -9 arecord");
             CUtils utils;
             std::string res = utils.get_doupload_result(c.data.requestUrl, c.data.imei);
@@ -39,7 +42,7 @@ namespace asns {
 
     class CMicRecordUploadData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CMicRecordUploadData, imei, requestUrl, recordDuration)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
 
         int do_req() {
             system("arecord -f cd /tmp/record.mp3 &");
