@@ -96,8 +96,8 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            cout << "addjust the config volume:" << volume << endl;
-            addj(volume);
+            //cout << "addjust the config volume:" << volume << endl;
+            //addj(volume);
             return 1;
         }
 

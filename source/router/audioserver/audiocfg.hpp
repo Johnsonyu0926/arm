@@ -59,8 +59,8 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
-            cout << "count:" << business.size() << endl;
+            //cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
+            //cout << "count:" << business.size() << endl;
             return 0;
         }
 
