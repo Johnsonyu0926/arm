@@ -28,12 +28,32 @@ namespace asns {
     template<typename T>
     class CResult {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CResult, result, resultId, imei, topic, cmd, publishId, data)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CResult, result, resultId, imei, topic, cmd, publishId, data)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c, const int id) {
-            result = id == 1 ? "success" : id == 2 ? "fail" : id == 3 ? "no file" : "not handled";
-            resultId = id == 3 ? 1 : id;
+            switch (id) {
+                case 4:
+                    result = "Insufficient disk space";
+                    resultId = 1;
+                    break;
+                case 3:
+                    result = "no file";
+                    resultId = 1;
+                    break;
+                case 2:
+                    result = "fail";
+                    resultId = id;
+                    break;
+                case 1:
+                    result = "success";
+                    resultId = id;
+                    break;
+                default:
+                    result = "fail";
+                    resultId = id;
+                    break;
+            }
             imei = c.imei;
             topic = "TaDiao/device/report/test/" + imei;
             cmd = c.cmd;
@@ -54,7 +74,7 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CReQuest, publishId, cmd, imei, operatorId, data)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CReQuest, publishId, cmd, imei, operatorId, data)
 
         std::string do_fail_success(const int id) {
             CResult<Result> res;
