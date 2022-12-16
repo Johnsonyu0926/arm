@@ -28,18 +28,18 @@ public:
 
     //订阅指定topic
     void on_publish(int mid) override {
-        std::cout << "mid:" << mid << std::endl;
+        //std::cout << "mid:" << mid << std::endl;
     }
 
     //订阅主题接收到消息
     void on_message(const mosquitto_message *message) override {
         bool res = false;
+        std::string str = static_cast<char *>(message->payload);
+        json js = json::parse(str);
+        std::cout << message->topic << " " << js.dump() << std::endl;
         //检查主题是否与订阅匹配。
         mosqpp::topic_matches_sub(request_topic.c_str(), message->topic, &res);
         if (res) {
-            std::string str = static_cast<char *>(message->payload);
-            json js = json::parse(str);
-            std::cout << message->topic << " " << js.dump() << std::endl;
             std::string reStr = m_serviceManage.m_fn[js["cmd"]](js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
         }
