@@ -9,13 +9,13 @@ using json = nlohmann::json;
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
-
+    template<typename T>
+    class CResult;
     class CLedShowSetResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CLedShowSetResultData, ledShowRecordId)
-
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetResultData, ledShowRecordId)
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             ledShowRecordId = c.data.ledShowRecordId;
         }
 
@@ -26,7 +26,7 @@ namespace asns {
 
     class CLedShowSetData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
 
         int do_req() {
             rs::set_send_dir();

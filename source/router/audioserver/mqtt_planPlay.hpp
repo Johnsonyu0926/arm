@@ -5,13 +5,14 @@
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
-
+    template<typename T>
+    class CResult;
     class CPlanPlayResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPlanPlayResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayResultData, null)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest <Quest, Result> &c) {}
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
         std::nullptr_t null;
@@ -19,7 +20,7 @@ namespace asns {
 
     class CPlanPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
                                                     playStatus, playType, storageType, timeType)
 
         int do_req() {

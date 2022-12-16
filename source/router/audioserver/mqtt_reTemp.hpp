@@ -28,7 +28,7 @@ namespace asns {
     template<typename T>
     class CResult {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CResult, result, resultId, imei, topic, cmd, publishId, data)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CResult, result, resultId, imei, topic, cmd, publishId, data)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c, const int id) {
@@ -58,7 +58,7 @@ namespace asns {
             topic = "TaDiao/device/report/test/" + imei;
             cmd = c.cmd;
             publishId = c.publishId;
-            this->data.template do_success<Quest, Result>(c);
+            this->data.template do_success<Quest, Result, T>(c, *this);
         }
 
     public:
@@ -74,7 +74,7 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CReQuest, publishId, cmd, imei, operatorId, data)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CReQuest, publishId, cmd, imei, operatorId, data)
 
         std::string do_fail_success(const int id) {
             CResult<Result> res;

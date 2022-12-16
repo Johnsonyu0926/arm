@@ -30,7 +30,7 @@
 namespace asns {
     class CBootData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CBootData, sdcardSpace, flashSpace, iotVersion, version, volume, v5, v12, v24,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CBootData, sdcardSpace, flashSpace, iotVersion, version, volume, v5, v12, v24,
                                        volt, storageType, imei, topic, cmd, hardwareModelId, hardwareVersion, ipAddress)
 
 

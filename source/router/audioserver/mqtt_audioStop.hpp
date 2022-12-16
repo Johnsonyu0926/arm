@@ -6,13 +6,14 @@
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
-
+    template<typename T>
+    class CResult;
     class CAudioStopResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStopResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopResultData, null)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {}
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
         std::nullptr_t null;
@@ -20,7 +21,7 @@ namespace asns {
 
     class CAudioStopData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStopData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopData, null)
 
         int do_req() {
             system("killall -9 madplay");
