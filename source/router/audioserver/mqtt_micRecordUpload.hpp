@@ -13,7 +13,7 @@ namespace asns {
 
     class CMicRecordUploadResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadResultData, uploadStatus, micRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CMicRecordUploadResultData, uploadStatus, micRecordId)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {
@@ -39,7 +39,7 @@ namespace asns {
 
     class CMicRecordUploadData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CMicRecordUploadData, imei, requestUrl, recordDuration)
 
         int do_req() {
             system("arecord -f cd /tmp/record.mp3 &");

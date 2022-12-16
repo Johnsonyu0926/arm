@@ -20,7 +20,7 @@
 namespace asns {
     class CHeartBeatData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CHeartBeatData, cmd, volume, imei, playStatus, sdcardSpace, flashSpace,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CHeartBeatData, cmd, volume, imei, playStatus, sdcardSpace, flashSpace,
                                        storageType, v5, v12, v24)
 
         int do_success() {

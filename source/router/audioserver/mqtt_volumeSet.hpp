@@ -13,7 +13,7 @@ namespace asns {
 
     class CVolumeSetResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetResultData, null
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVolumeSetResultData, null
         );
 
         template<typename Quest, typename Result>
@@ -25,7 +25,7 @@ namespace asns {
 
     class CVolumeSetData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetData, volume
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVolumeSetData, volume
         )
 
         int do_req() {

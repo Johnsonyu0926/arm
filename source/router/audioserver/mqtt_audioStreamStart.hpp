@@ -11,7 +11,7 @@ namespace asns {
 
     class CAudioStreamStartResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStreamStartResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {}
@@ -22,7 +22,7 @@ namespace asns {
 
     class CAudioStreamStartData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartData, streamPath, roomId, priority, volume)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStreamStartData, streamPath, roomId, priority, volume)
 
         int do_req() {
             std::cout << "volume:" << volume << std::endl;

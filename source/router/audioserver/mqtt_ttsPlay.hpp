@@ -18,7 +18,7 @@ namespace asns {
 
     class CTtsPlayResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CTtsPlayResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CTtsPlayResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {}
@@ -29,7 +29,7 @@ namespace asns {
 
     class CTtsPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CTtsPlayData, content, playCount, playDuration, playStatus, playType, priority,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CTtsPlayData, content, playCount, playDuration, playStatus, playType, priority,
                                        timeType)
 
         int do_req() {

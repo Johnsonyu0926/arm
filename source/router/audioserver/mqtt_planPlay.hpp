@@ -8,7 +8,7 @@ namespace asns {
 
     class CPlanPlayResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPlanPlayResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest <Quest, Result> &c) {}
@@ -19,7 +19,7 @@ namespace asns {
 
     class CPlanPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
                                                     playStatus, playType, storageType, timeType)
 
         int do_req() {

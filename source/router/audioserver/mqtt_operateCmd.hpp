@@ -12,7 +12,7 @@ namespace asns {
 
     class CPtzOperateResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPtzOperateResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {}
@@ -24,7 +24,7 @@ namespace asns {
 
     class CPtzOperateData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateData, operateCmd)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPtzOperateData, operateCmd)
 
         int do_req() {
             rs::set_send_dir();

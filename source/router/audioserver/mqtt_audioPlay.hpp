@@ -40,7 +40,7 @@ namespace asns {
 
     class CAudioPlayResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioPlayResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {}
@@ -52,7 +52,7 @@ namespace asns {
 
     class CAudioPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayData, fileName, audioUploadRecordId, playCount,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioPlayData, fileName, audioUploadRecordId, playCount,
                                                     playDuration,
                                                     playStatus, playType, storageType, timeType
         )

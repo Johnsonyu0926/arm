@@ -9,7 +9,7 @@ namespace asns {
 
     class CAudioStopResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopResultData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStopResultData, null)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {}
@@ -20,7 +20,7 @@ namespace asns {
 
     class CAudioStopData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopData, null)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStopData, null)
 
         int do_req() {
             system("killall -9 madplay");

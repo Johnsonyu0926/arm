@@ -21,7 +21,7 @@ namespace asns {
 
     class CFileDeleteResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileDeleteResultData, audioUploadRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileDeleteResultData, audioUploadRecordId)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {
@@ -34,7 +34,7 @@ namespace asns {
 
     class CFileDeleteData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileDeleteData, fileName, audioUploadRecordId, storageType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileDeleteData, fileName, audioUploadRecordId, storageType)
 
         int do_req() {
             CAddMqttCustomAudioFileBusiness business;

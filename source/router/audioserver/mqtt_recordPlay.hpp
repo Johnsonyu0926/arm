@@ -17,7 +17,7 @@ namespace asns {
     class CReQuest;
 
     class CRecordPlayResultData {
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayResultData, null);
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CRecordPlayResultData, null);
 
     public:
         template<typename Quest, typename Result>
@@ -29,7 +29,7 @@ namespace asns {
 
     class CRecordPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayData, downloadUrl, playCount, playType, storageType,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CRecordPlayData, downloadUrl, playCount, playType, storageType,
                                                     timeType)
 
         int do_req() {

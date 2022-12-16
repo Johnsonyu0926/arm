@@ -12,7 +12,7 @@ namespace asns {
 
     class CLedShowSetResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetResultData, ledShowRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CLedShowSetResultData, ledShowRecordId)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {
@@ -26,7 +26,7 @@ namespace asns {
 
     class CLedShowSetData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
 
         int do_req() {
             rs::set_send_dir();
