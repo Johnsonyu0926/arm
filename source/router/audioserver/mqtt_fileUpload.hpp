@@ -21,19 +21,24 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CFileUploadResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUploadResultData, audioUploadRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadResultData, audioUploadRecordId)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {
-            CAddMqttCustomAudioFileData data;
-            data.setName(c.data.fileName);
-            data.setAudioUploadRecordId(c.data.audioUploadRecordId);
-            CAddMqttCustomAudioFileBusiness business;
-            if (!business.exist(c.data.fileName)) {
-                business.business.push_back(data);
-                business.saveJson();
+        template<typename Quest, typename Result, typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            if (r.resultId == 1) {
+                CAddMqttCustomAudioFileData data;
+                data.setName(c.data.fileName);
+                data.setAudioUploadRecordId(c.data.audioUploadRecordId);
+                CAddMqttCustomAudioFileBusiness business;
+                if (!business.exist(c.data.fileName)) {
+                    business.business.push_back(data);
+                    business.saveJson();
+                }
             }
             audioUploadRecordId = c.data.audioUploadRecordId;
         }
@@ -44,19 +49,20 @@ namespace asns {
 
     class CFileUploadData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
-                                       storageType, fileSize)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
+                                                    storageType, fileSize)
 
         int do_req() {
             CUtils utils;
             CAudioCfgBusiness cfg;
             unsigned long long availableDisk = utils.get_available_Disk(cfg.getAudioFilePath());
             std::cout << "disk size:" << availableDisk << "kb" << std::endl;
-            int size = std::atoll(fileSize.c_str());
-            if (size != 0 && size < (availableDisk - 500)) {
-                return 4;
+            if (!fileSize.empty()) {
+                int size = std::atoll(fileSize.c_str());
+                if (size != 0 && size < (availableDisk - 500)) {
+                    return 4;
+                }
             }
-
             char buf[256] = {0};
             sprintf(buf, "curl --location --request GET %s --output %s%s", downloadUrl.c_str(),
                     cfg.getAudioFilePath().c_str(), fileName.c_str());
@@ -70,6 +76,6 @@ namespace asns {
         std::string fileName;
         int audioUploadRecordId;
         int storageType;
-        std::string fileSize;
+        std::string fileSize{""};
     };
 }
