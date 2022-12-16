@@ -21,9 +21,14 @@ namespace asns {
             CUtils utils;
             std::string res = utils.get_doupload_result(c.data.requestUrl, c.data.imei);
             std::cout << "result:" << res << std::endl;
-            json js = json::parse(res);
-            uploadStatus = js.at("uploadStatus");
-            micRecordId = js.at("micRecordId");
+            if (res.empty() || res.find("error") != std::string::npos) {
+                uploadStatus = 0;
+                micRecordId = 0;
+            } else if (res.find("uploadStatus") != std::string::npos) {
+                json js = json::parse(res);
+                uploadStatus = js.at("uploadStatus");
+                micRecordId = js.at("micRecordId");
+            }
         }
 
     public:
