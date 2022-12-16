@@ -1,4 +1,5 @@
 #pragma once
+
 #include "volume.hpp"
 
 #include "json.hpp"
@@ -11,22 +12,25 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CVolumeSetResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVolumeSetResultData, null
-        );
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetResultData, volume);
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {}
+        template<typename Quest, typename Result, typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            volume = c.data.volume;
+        }
 
     private:
-        std::nullptr_t null;
+        std::string volume;
     };
 
     class CVolumeSetData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVolumeSetData, volume
-        )
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetData, volume)
 
         int do_req() {
             int volume = std::stoi(this->volume);
