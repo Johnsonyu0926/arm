@@ -3,6 +3,7 @@
 #include "mqtt.hpp"
 #include <thread>
 #include "audiocfg.hpp"
+#include "volume.hpp"
 
 class MqttManage {
 public:
@@ -17,6 +18,11 @@ public:
         server = cfg.business[0].server;
         port = cfg.business[0].port;
         imei = cfg.business[0].serial;
+
+        CVolumeSet volumeSet;
+        volumeSet.setVolume(3);
+        volumeSet.addj(3);
+        volumeSet.saveToJson();
 
         mosqpp::lib_init();
         MQTT mqtt(name.c_str());
