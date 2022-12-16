@@ -3,6 +3,7 @@
 #include "add_mqtt_custom_audio_file.hpp"
 #include "json.hpp"
 #include "audiocfg.hpp"
+#include "utils.h"
 
 /*
  * {
@@ -22,7 +23,7 @@ namespace asns {
 
     class CFileUploadResultData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadResultData, audioUploadRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUploadResultData, audioUploadRecordId)
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c) {
@@ -43,11 +44,19 @@ namespace asns {
 
     class CFileUploadData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
-                                                    storageType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
+                                       storageType, fileSize)
 
         int do_req() {
+            CUtils utils;
             CAudioCfgBusiness cfg;
+            unsigned long long availableDisk = utils.get_available_Disk(cfg.getAudioFilePath());
+            std::cout << "disk size:" << availableDisk << "kb" << std::endl;
+            int size = std::atoll(fileSize.c_str());
+            if (size != 0 && size < (availableDisk - 500)) {
+                return 4;
+            }
+
             char buf[256] = {0};
             sprintf(buf, "curl --location --request GET %s --output %s%s", downloadUrl.c_str(),
                     cfg.getAudioFilePath().c_str(), fileName.c_str());
@@ -61,5 +70,6 @@ namespace asns {
         std::string fileName;
         int audioUploadRecordId;
         int storageType;
+        std::string fileSize;
     };
 }

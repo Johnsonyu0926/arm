@@ -6,6 +6,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <sys/statfs.h>
+#include <string>
+#include <stdio.h>
+
 #ifndef __CUTILS_H__
 #define __CUTILS_H__
 
@@ -14,6 +18,22 @@ private:
     char m_lan[1024];
 
 public:
+
+    unsigned long long get_available_Disk(const std::string &path) {
+        struct statfs diskInfo;
+        statfs(path.c_str(), &diskInfo);
+
+        unsigned long long block_size = diskInfo.f_bsize;                       //每个block里包含的字节数
+        unsigned long long total_size = block_size * diskInfo.f_blocks;         //总的字节数，f_blocks为block的数目
+        unsigned long long free_disk = diskInfo.f_bfree * block_size;           //剩余空间的大小
+        unsigned long long available_disk = diskInfo.f_bavail * block_size;     //可用空间大小
+        return (available_disk >> 10);                                         // 返回可用大小 kb
+        /*printf("Total_size = %llu B = %llu KB = %llu MB = %llu GB\n", total_size, total_size >> 10, total_size >> 20,
+               total_size >> 30);
+        printf("Disk_free = %llu MB = %llu GB\nDisk_available = %llu MB = %llu GB\n",
+               free_disk >> 20, free_disk >> 30, available_disk >> 20, available_disk >> 30);*/
+    }
+
     /* 1, process exist.
      * 0, not exist
      */
