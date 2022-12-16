@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Singleton.hpp"
+#include "json.hpp"
+
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
@@ -21,6 +24,8 @@ namespace asns {
 
         int do_req() {
             system("killall -9 madplay");
+            system("killall -9 ffmpeg");
+            Singleton::getInstance().setStatus(0);
             return 1;
         }
 

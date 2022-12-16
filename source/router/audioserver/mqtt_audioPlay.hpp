@@ -1,9 +1,9 @@
 #pragma once
 
 #include "json.hpp"
-#include "mqtt_reTemp.hpp"
 #include "audiocfg.hpp"
 #include "add_mqtt_custom_audio_file.hpp"
+#include "Singleton.hpp"
 
 using json = nlohmann::json;
 
@@ -77,6 +77,7 @@ namespace asns {
                             fileName.c_str(), buf);
                     std::cout << "command: " << command << std::endl;
                     system(command);
+                    Singleton::getInstance().setStatus(1);
                     break;
                 }
                 case 1: {
@@ -87,6 +88,7 @@ namespace asns {
                     cmd += "&";
                     std::cout << "cmd: " << cmd << std::endl;
                     system(cmd.c_str());
+                    Singleton::getInstance().setStatus(1);
                     break;
                 }
             }

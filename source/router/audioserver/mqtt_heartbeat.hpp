@@ -2,7 +2,7 @@
 
 #include "audiocfg.hpp"
 #include "volume.hpp"
-
+#include "Singleton.hpp"
 #include "json.hpp"
 /**
  * {
@@ -32,7 +32,7 @@ namespace asns {
             cmd = "hello";
             volume = volumeSet.getVolume();
             imei = cfg.business[0].serial;
-            playStatus = 0;
+            playStatus = Singleton::getInstance().getStatus();
             sdcardSpace = "7684500";
             flashSpace = "7684500";
             storageType = 1;

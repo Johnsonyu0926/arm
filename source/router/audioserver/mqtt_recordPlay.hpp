@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.hpp"
+#include "Singleton.hpp"
 
 /**
  * {
@@ -37,6 +38,7 @@ namespace asns {
                     "ffmpeg -y -r 30 -re -i rtmp:%s -acodec mp3 -b:a 48k -max_delay 100 -g 5 -b 700000 -f mp3 - | madplay -",
                     downloadUrl.substr(5).c_str());
             std::cout << "command: " << command << std::endl;
+            Singleton::getInstance().setStatus(1);
             system(command);
             return 1;
         }
