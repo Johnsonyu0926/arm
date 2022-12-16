@@ -34,9 +34,9 @@ namespace asns {
                             audioName.c_str());
                     break;
                 case 1: {
-                    std::string cmd = "madplay " + cfg.getAudioFilePath() + ' ';
+                    std::string cmd = "madplay ";
                     for (int i = 0; i < duration; ++i) {
-                        cmd += audioName + ' ';
+                        cmd += cfg.getAudioFilePath() + audioName + ' ';
                     }
                     cmd += "&";
                     std::cout << "cmd: " << cmd << std::endl;

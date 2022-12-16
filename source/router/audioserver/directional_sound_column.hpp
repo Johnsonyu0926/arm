@@ -30,13 +30,16 @@ extern asns::CVolumeSet g_volumeSet;
 
 class DeviceBaseInfo {
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, address, ip, gateway, netmask, storageType, volume, relayMode,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, address, ip, gateway,version, netmask, storageType, volume, relayMode,
                                    relayStatus, playStatus, coreVersion)
 
     int do_success() {
         address = "01";
         CUtils util;
         ip = util.get_lan_addr();
+        asns::CAudioCfgBusiness cfg;
+        cfg.load();
+        version = cfg.business[0].codeVersion;
         gateway = util.get_ros_gateway();
         netmask = util.get_ros_netmask();
         storageType = "1";
@@ -51,6 +54,7 @@ public:
 private:
     std::string address;
     std::string ip;
+    std::string version;
     std::string gateway;
     std::string netmask;
     std::string storageType;
@@ -234,10 +238,9 @@ namespace asns {
             cfg.load();
             switch (std::stoi(m_str[5])) {
                 case 1: {
-                    sprintf(command, "madplay %s%s ", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-                    std::string cmd = command;
-                    for (int i = 0; i < duration - 1; ++i) {
-                        cmd += m_str[4] + ' ';
+                    std::string cmd = "madplay ";
+                    for (int i = 0; i < duration; ++i) {
+                        cmd += cfg.getAudioFilePath() + m_str[4] + ' ';
                     }
                     cmd += "&";
                     std::cout << "cmd: " << cmd << std::endl;

@@ -277,10 +277,9 @@ namespace rs {
             cfg.load();
             switch (std::stoi(m_str[5])) {
                 case 1: {
-                    sprintf(command, "madplay %s%s ", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-                    std::string cmd = command;
-                    for (int i = 0; i < duration - 1; ++i) {
-                        cmd += m_str[4] + ' ';
+                    std::string cmd = "madplay ";
+                    for (int i = 0; i < duration; ++i) {
+                        cmd += cfg.getAudioFilePath() + m_str[4] + ' ';
                     }
                     cmd += "&";
                     std::cout << "cmd: " << cmd << std::endl;
