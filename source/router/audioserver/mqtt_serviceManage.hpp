@@ -56,7 +56,6 @@ public:
         m_fn.insert(std::make_pair("volumeSet", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CVolumeSetData, asns::CVolumeSetResultData> req = js;
             std::string reStr = req.do_req();
-            reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("fileDelete", [&](const json &js) -> std::string {
