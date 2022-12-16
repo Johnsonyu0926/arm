@@ -52,8 +52,9 @@ namespace asns {
 
     class CAudioPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayData, fileName, audioUploadRecordId, playCount, playDuration,
-                                       playStatus, playType, storageType, timeType
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayData, fileName, audioUploadRecordId, playCount,
+                                                    playDuration,
+                                                    playStatus, playType, storageType, timeType
         )
 
         int do_req() {
@@ -81,7 +82,7 @@ namespace asns {
                     break;
                 }
                 case 1: {
-                    std::string cmd = "madplay " + cfg.getAudioFilePath() + ' ';
+                    std::string cmd = "madplay " + cfg.getAudioFilePath();
                     for (int i = 0; i < playCount; ++i) {
                         cmd += fileName + ' ';
                     }
