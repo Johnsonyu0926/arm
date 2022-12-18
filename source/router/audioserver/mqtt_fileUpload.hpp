@@ -59,7 +59,7 @@ namespace asns {
             std::cout << "disk size:" << availableDisk << "kb" << std::endl;
             if (!fileSize.empty()) {
                 int size = std::atoll(fileSize.c_str());
-                if (size != 0 && size < (availableDisk - 500)) {
+                if (size != 0 && size > (availableDisk - 500)) {
                     return 4;
                 }
             }
