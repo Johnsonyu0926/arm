@@ -5,16 +5,19 @@
 #include "Singleton.hpp"
 #include <iostream>
 #include <thread>
+
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
+
     template<typename T>
     class CResult;
+
     class CAudioStreamStartResultData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartResultData, null)
 
-        template<typename Quest, typename Result,typename T>
+        template<typename Quest, typename Result, typename T>
         void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
@@ -34,14 +37,13 @@ namespace asns {
                 std::string streamUrl = streamPath + roomId;
                 char buf[256] = {0};
                 sprintf(buf,
-                        "ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay -",
+                        "ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &",
                         streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
-                std::thread([&] {
-                    Singleton::getInstance().setStatus(1);
-                    system(buf);
-                    Singleton::getInstance().setStatus(0);
-                }).detach();
+
+                Singleton::getInstance().setStatus(1);
+                system(buf);
+                Singleton::getInstance().setStatus(0);
 
             } else {
                 std::string streamUrl = streamPath + roomId;
@@ -50,12 +52,9 @@ namespace asns {
                         "ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &",
                         streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
-
-                std::thread([&] {
-                    Singleton::getInstance().setStatus(1);
-                    system(buf);
-                    Singleton::getInstance().setStatus(0);
-                }).join();
+                Singleton::getInstance().setStatus(1);
+                system(buf);
+                Singleton::getInstance().setStatus(0);
             }
             return 1;
         }
