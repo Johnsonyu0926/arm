@@ -99,7 +99,8 @@ public:
                 "curl --location --request POST '%s' \\\n"
                 "--form 'FormDataUploadFile=@\"/tmp/record.mp3\"' \\\n"
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
-        get_addr_by_cmd(cmd);
+        std::cout << "cmd:" << cmd << std::endl;
+        get_doupload_by_cmd(cmd);
         return m_lan;
     }
 
