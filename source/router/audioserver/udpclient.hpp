@@ -34,7 +34,7 @@ public:
         mreq.imr_multiaddr.s_addr = inet_addr(m_ip.c_str());
         mreq.imr_interface.s_addr = htons(m_nPort);
         setsockopt(socket.m_hSocket, IPPROTO_TP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
-        std::cout << "IP：" << m_ip << "port: " << m_nPort << " " << str << std::endl;
+        std::cout << "IP:" << m_ip << "port:" << m_nPort << " " << str << std::endl;
         return socket.SendTo(str.c_str(), str.length(), m_ip.c_str(), m_nPort);
     }
 
