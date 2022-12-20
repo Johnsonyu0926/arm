@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <termios.h>
 
+#include "audiocfg.hpp"
+
 void set_send_dir() {
     system("echo 1 > /sys/class/gpio/gpio3/value");
     printf("set send dir! gpio is 1\n");
@@ -27,7 +29,9 @@ static int g_tty = 1; //ttyUSB1 as default.
 static int _uart_open(void) {
     int iFd = -1;
     struct termios opt;
-    int iBdVal = 9600;
+    asns::CAudioCfgBusiness cfg;
+    cfg.load();
+    int iBdVal = cfg.business[0].iBdVal;
 
     system("echo 3 > /sys/class/gpio/export");
     system("echo out > /sys/class/gpio/gpio3/direction");

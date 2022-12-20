@@ -16,7 +16,7 @@ public:
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
             this->disconnect();
         }
-        std::cout << "rc:" << rc << std::endl;
+        //std::cout << "rc:" << rc << std::endl;
     }
 
     void on_connect_with_flags(int rc, int flags) override {

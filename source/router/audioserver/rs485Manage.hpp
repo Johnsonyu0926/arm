@@ -343,13 +343,13 @@ namespace rs {
                 std::cout << cm << std::endl;
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.netmask=%s", netMask.c_str());
+                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);
@@ -381,11 +381,11 @@ namespace rs {
                 system(cm);
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);
@@ -554,7 +554,9 @@ namespace rs {
     static int _uart_open(void) {
         int iFd = -1;
         struct termios opt;
-        int iBdVal = 115200;
+        asns::CAudioCfgBusiness cfg;
+        cfg.load();
+        int iBdVal = cfg.business[0].iBdVal;
 
         system("stty -F /dev/ttyS1 9600");
         system("echo 3 > /sys/class/gpio/export");
