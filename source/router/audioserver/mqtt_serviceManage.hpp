@@ -17,7 +17,7 @@
 #include "mqtt_reboot.hpp"
 #include "mqtt_heartbeat.hpp"
 #include "mqtt_audioStop.hpp"
-//#include "mqtt_planPlay.hpp"
+#include "mqtt_planPlay.hpp"
 #include "mqtt_audioStreamStart.hpp"
 #include "mqtt_operateCmd.hpp"
 #include "mqtt_ledShowSet.hpp"
@@ -69,12 +69,12 @@ public:
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
-        /*m_fn.insert(std::make_pair("planPlay", [&](const json &js) -> std::string {
+        m_fn.insert(std::make_pair("audioStreamTest", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CPlanPlayData, asns::CPlanPlayResultData> req = js;
             std::string reStr = req.do_req();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
-        }));*/
+        }));
         m_fn.insert(std::make_pair("audioStop", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioStopData, asns::CAudioStopResultData> req = js;
             std::string reStr = req.do_req();
