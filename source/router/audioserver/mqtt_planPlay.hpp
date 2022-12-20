@@ -29,13 +29,7 @@ namespace asns {
         }
 
     private:
-        std::string fileName;
-        std::string content;
-        int audioSubTaskId;
-        int playDuration;
-        int playStatus;
-        int playType;
-        int storageType;
-        int timeType;
+        std::string cmd;
+        std::string command;
     };
 }
