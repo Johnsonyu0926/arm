@@ -14,6 +14,7 @@ namespace asns {
 
     class CAudioCfgData {
     public:
+        int iBdVal;
         int serverType;
         string codeVersion;
         string server;
@@ -26,7 +27,7 @@ namespace asns {
         string savePrefix;
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, serverType, codeVersion, server, port, deviceID, password, serial,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal,serverType, codeVersion, server, port, deviceID, password, serial,
                                        subSerial,
                                        devName, savePrefix)
     };
