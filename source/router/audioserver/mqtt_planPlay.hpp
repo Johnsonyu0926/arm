@@ -20,11 +20,11 @@ namespace asns {
 
     class CPlanPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
-                                                    playStatus, playType, storageType, timeType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, cmd, command)
 
         int do_req() {
-
+            std::cout << "command:" << command << std::endl;
+            system(command.c_str());
             return 1;
         }
 
