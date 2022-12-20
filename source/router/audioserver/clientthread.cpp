@@ -230,7 +230,10 @@ int CClientThread::do_str_req(CSocket *pClient) {
             break;
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
-            asns::RemoteFileUpgrade(m_str, pClient);
+            CUtils utils;
+            if(!utils.is_ros_platform()){
+                asns::RemoteFileUpgrade(m_str, pClient);
+            }
             break;
         default:
             std::cout << "switch F4" << std::endl;
