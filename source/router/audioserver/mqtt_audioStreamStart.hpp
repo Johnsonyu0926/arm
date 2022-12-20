@@ -36,9 +36,8 @@ namespace asns {
 
                 std::string streamUrl = streamPath + roomId;
                 char buf[256] = {0};
-                sprintf(buf,
-                        "ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &",
-                        streamUrl.c_str());
+               // ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &
+              sprintf(buf,"ffmpeg -r 20 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 32k -max_delay 1000000 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f s16le - | madplay - &",streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
 
                 Singleton::getInstance().setStatus(1);
@@ -49,7 +48,7 @@ namespace asns {
                 std::string streamUrl = streamPath + roomId;
                 char buf[256] = {0};
                 sprintf(buf,
-                        "ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &",
+                        "ffmpeg -r 20 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 32k -max_delay 1000000 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f s16le - | madplay - &",
                         streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
                 Singleton::getInstance().setStatus(1);
