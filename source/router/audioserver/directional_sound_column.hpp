@@ -281,8 +281,6 @@ namespace asns {
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
             return SendFast("F6", pClient);
-        } else if (m_str[5].compare("Aa123456") == 0) {
-            return SendFast("F7", pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -306,13 +304,13 @@ namespace asns {
                 std::cout << cm << std::endl;
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.netmask=%s", netMask.c_str());
+                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);
@@ -326,8 +324,6 @@ namespace asns {
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
             return SendFast("F6", pClient);
-        } else if (m_str[5].compare("Aa123456") == 0) {
-            return SendFast("F7", pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -344,11 +340,11 @@ namespace asns {
                 system(cm);
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);
@@ -360,7 +356,7 @@ namespace asns {
     int UpdatePwd(const std::vector<std::string> &m_str, CSocket *pClient) {
         CAudioCfgBusiness cfg;
         cfg.load();
-        if (m_str[5].length() < 8) {
+        if (m_str[6].length() < 8) {
             return SendFast("F25", pClient);
         } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
             return SendFast("F6", pClient);
@@ -415,20 +411,23 @@ namespace asns {
         fs.seekg(0, std::ios::end);
         end = fs.tellg();
         int file_size = end - begin;
+        fs.seekg(0,std::ios::beg);
         std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " 8002";
         pClient->Send(res.c_str(), res.length());
-
-        Server ser(8000);
-        ser.bind();
-        ser.listen();
-        int connfd = ser.accept();
-        char buf[1024] = {0};
-        while (!fs.eof()) {
-            fs.read(buf, sizeof(buf));
-            int len = fs.gcount();
-            ser.write(connfd, buf, len);
-        }
-        fs.close();
+        std::thread([&]{
+            Server ser(8002);
+            ser.bind();
+            ser.listen();
+            int connfd = ser.accept();
+            char buf[1024] = {0};
+            while (!fs.eof()) {
+                fs.read(buf, sizeof(buf));
+                int len = fs.gcount();
+                ser.write(connfd, buf, len);
+            }
+            fs.close();
+            SendTrue(pClient);
+        }).detach();
     }
 
     int AudioFileUpload(const std::vector<std::string> &m_str, CSocket *pClient) {
@@ -451,7 +450,7 @@ namespace asns {
         cfg.load();
 
         std::string path = cfg.getAudioFilePath() + m_str[6];
-        std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
+        std::fstream fs(path, std::fstream::out | std::fstream::binary);
         std::thread([&] {
             Server ser(8001);
             ser.bind();
@@ -468,6 +467,7 @@ namespace asns {
                 }
             }
             fs.close();
+            SendTrue(pClient);
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8001";
         pClient->Send(res.c_str(), res.length());
@@ -476,7 +476,7 @@ namespace asns {
 
     int RemoteFileUpgrade(const std::vector<std::string> &m_str, CSocket *pClient) {
         std::thread([&] {
-            std::fstream fs("/mnt/temp", std::fstream::out | std::fstream::binary | std::fstream::trunc);
+            std::fstream fs("/temp/audioserver", std::fstream::out | std::fstream::binary);
             Server ser(8000);
             ser.bind();
             ser.listen();
@@ -493,8 +493,9 @@ namespace asns {
             }
             fs.close();
             system("rm /mnt/audioserver");
-            system("mv /mnt/temp /mnt/audioserver");
-            system("chmod +x audioserver");
+            system("mv /temp/audioserver /mnt/audioserver");
+            system("chmod +x /mnt/audioserver");
+            SendTrue(pClient);
             system("reboot");
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8000";

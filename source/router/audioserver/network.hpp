@@ -55,13 +55,13 @@ namespace asns {
                 std::cout << cm << std::endl;
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.netmask=%s", netMask.c_str());
+                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);

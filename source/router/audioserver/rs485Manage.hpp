@@ -318,8 +318,6 @@ namespace rs {
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
             return SendFast("F6");
-        } else if (m_str[5].compare("Aa123456") == 0) {
-            return SendFast("F7");
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -363,8 +361,6 @@ namespace rs {
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
             return SendFast("F6");
-        } else if (m_str[5].compare("Aa123456") == 0) {
-            return SendFast("F7");
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
