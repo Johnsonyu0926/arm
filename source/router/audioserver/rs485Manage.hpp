@@ -273,10 +273,11 @@ namespace rs {
             cfg.business[0].password = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
-			clean(cfg.business[0].savePrefix.c_str());
+		//	clean(cfg.business[0].savePrefix.c_str());
+			utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
-			ros_restore_allcfg();
+			utils.ros_restore_allcfg();
 			system("reboot");
 			
         } else {
@@ -287,8 +288,7 @@ namespace rs {
             cfg.business[0].password = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
-			//clean(cfg.business[0].savePrefix.c_str());
-			utils.clean_audio_server_file();
+			utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
 
