@@ -11,6 +11,8 @@ public:
 
     //连接Mqtt服务器
     void on_connect(int rc) override {
+		std::cout << "on_connect in mqtt , rc = " << rc << std::endl;
+
         if (MOSQ_ERR_ERRNO == rc) {
             std::cerr << "mqtt connect err:" << mosqpp::strerror(rc) << std::endl;
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
@@ -20,6 +22,7 @@ public:
     }
 
     void on_connect_with_flags(int rc, int flags) override {
+		std::cout << "on connect with flags return rc :" << rc << ", flags:" << flags << std::endl;
         //std::cout << "rc:" << rc << " flags " << flags << std::endl;
     }
 
@@ -44,7 +47,9 @@ public:
         if (res) {
             std::string reStr = m_serviceManage.m_fn[js["cmd"]](js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
-        }
+        } else {
+			std::cout << "request_topic:" <<request_topic << ", message topic:" << message->topic << " , not match." << std::endl;
+		}
     }
 
     //订阅回调函数
@@ -96,8 +101,8 @@ public:
     }
 
 public:
-    std::string request_topic = "IOT/intranet/client/request/prod/";
-    std::string publish_topic = "IOT/intranet/server/report/prod/";
+    std::string request_topic = "IOT/intranet/client/request/";
+    std::string publish_topic = "IOT/intranet/server/report/";
 public:
     ServiceManage m_serviceManage;
 };

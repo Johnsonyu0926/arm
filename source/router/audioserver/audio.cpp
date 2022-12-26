@@ -643,7 +643,9 @@ int main(int argc, char **argv) {
 
         NET_EBASE_Fini();
     } else {
-        while (true);
+        while (true) { 
+			sleep(1);
+		}
     }
     // 1.test stream
 

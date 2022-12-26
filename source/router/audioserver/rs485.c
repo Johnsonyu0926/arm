@@ -52,6 +52,9 @@ static int _uart_open(void) {
     cfsetospeed(&opt, iBdVal);
 
     tcsetattr(iFd, TCSANOW, &opt);
+	char cmd[64];
+	sprintf(cmd,"stty -F /dev/ttyS%d %d", g_tty, iBdVal);
+	system(cmd);
 
     return iFd;
 }

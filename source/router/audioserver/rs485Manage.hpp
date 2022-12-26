@@ -243,20 +243,60 @@ namespace rs {
         rs::_uart_write(str.c_str(), str.length());
     }
 
+	int restore_network() {
+			char uci[128] = {0};
+			sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
+			system(uci);
+			sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
+			system(uci);
+			sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
+			system(uci);
+			sprintf(uci, "uci commit network");
+			system(uci);
+			sprintf(uci, "/etc/init.d/network reload");
+			system(uci);
+
+	}
+	int clean(const char* prefix) {
+		char cmd[128];
+		sprintf(cmd,"rm %s/audiodata/*", prefix);
+		system(cmd);
+		sprintf(cmd,"rm %s/cfg/*.json", prefix);
+		system(cmd);
+	}
+
     int Restore() {
         CUtils utils;
         if (utils.is_ros_platform()) {
-            system("cm default");
             asns::CAudioCfgBusiness cfg;
             cfg.load();
             cfg.business[0].password = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
+			clean(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
-            return SendTrue();
+            SendTrue();
+			ros_restore_allcfg();
+			system("reboot");
+			
         } else {
-            return SendFast("F35");
+            //return SendFast("F35");
+			//bugfix shidongxue .2022.12.20 
+			asns::CAudioCfgBusiness cfg;
+            cfg.load();
+            cfg.business[0].password = "Aa123456";
+            cfg.business[0].server = "192.168.1.90";
+            cfg.business[0].port = 7681;
+			//clean(cfg.business[0].savePrefix.c_str());
+			utils.clean_audio_server_file();
+            cfg.saveToJson();
+            SendTrue();
+
+			//network restore must be the last action!
+			utils.openwrt_restore_network();
+			cout<<"restore success!\n"<<endl;
         }
+		return 1;
     }
 
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str) {
@@ -554,7 +594,9 @@ namespace rs {
         cfg.load();
         int iBdVal = cfg.business[0].iBdVal;
 
-        system("stty -F /dev/ttyS1 9600");
+		char cmd[64];
+		sprintf(cmd,"stty -F /dev/ttyS%d %d", g_tty, iBdVal);
+		system(cmd);
         system("echo 3 > /sys/class/gpio/export");
         system("echo out > /sys/class/gpio/gpio3/direction");
 

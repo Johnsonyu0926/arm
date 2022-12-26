@@ -207,14 +207,17 @@ namespace asns {
     int Restore(CSocket *pClient) {
         CUtils utils;
         if (utils.is_ros_platform()) {
-            system("cm default");
             CAudioCfgBusiness cfg;
             cfg.load();
             cfg.business[0].password = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
             cfg.saveToJson();
-            return SendTrue(pClient);
+            SendTrue(pClient);
+            system("cm default");
+			cout<<"restore ros platform config success. rebooting system now..."<<endl;
+			system("reboot");
+			return 1;
         } else {
             return SendFast("F35", pClient);
         }

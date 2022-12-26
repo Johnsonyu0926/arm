@@ -164,6 +164,33 @@ public:
         close(fd);
         return st.st_size / (1024 * 1024); // MB
     }
+
+
+	int clean_audio_server_file(const char* prefix) {
+		char cmd[128];
+		sprintf(cmd,"rm %s/audiodata/*", prefix);
+		system(cmd);
+		sprintf(cmd,"rm %s/cfg/*.json", prefix);
+		system(cmd);
+	}
+
+	int openwrt_restore_network() {
+			char uci[128] = {0};
+			sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
+			system(uci);
+			sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
+			system(uci);
+			sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
+			system(uci);
+			sprintf(uci, "uci commit network");
+			system(uci);
+			sprintf(uci, "/etc/init.d/network reload");
+			system(uci);
+	}
+
+	int ros_restore_allcfg() {
+		system("cm default");
+	}
 };
 
 #endif
