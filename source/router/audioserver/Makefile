@@ -108,7 +108,7 @@ $(BIND_OBJS):
 	make;
 
 romfs:
-	${STRIP} -o $(ROOTFS_DIR)/usr/bin/audioserver $(TARGET)  
+	${STRIP} -o $(ROOTFS_DIR)/sbin/audioserver $(TARGET)  
 	mkdir -p $(ROOTFS_DIR)/usr/lib
 	cp ./mipsel-openwrt-linux/lib/dynamic/*.so $(ROOTFS_DIR)/usr/lib
 	cp ./lib/*.so $(ROOTFS_DIR)/usr/lib
