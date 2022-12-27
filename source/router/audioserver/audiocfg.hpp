@@ -25,12 +25,11 @@ namespace asns {
         string subSerial;
         string devName;
         string savePrefix;
-        string env;
 
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal,serverType, codeVersion, server, port, deviceID, password, serial,
                                        subSerial,
-                                       devName, savePrefix, env)
+                                       devName, savePrefix)
     };
 
     class CAudioCfgBusiness {

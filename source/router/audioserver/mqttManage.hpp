@@ -2,7 +2,7 @@
 
 #include "mqtt.hpp"
 #include <thread>
-#include "audiocfg.hpp"
+#include "mqttcfg.hpp"
 #include "volume.hpp"
 
 class MqttManage {
@@ -11,30 +11,32 @@ public:
 
     void start() {
         std::cout << "------------------mqtt start----------------------" << std::endl;
-        asns::CAudioCfgBusiness cfg;
+        asns::CMqttCfgBusiness cfg;
         cfg.load();
-        name = cfg.business[0].devName;
+        name = cfg.business[0].name;
         pwd = cfg.business[0].password;
         server = cfg.business[0].server;
         port = cfg.business[0].port;
-        imei = cfg.business[0].serial;
-		env = cfg.business[0].env;
+        imei = cfg.business[0].imei;
+        env = cfg.business[0].env;
 
 
-        std::cout << "env:" << env << "imei:" << imei << std::endl;
+        std::cout << "env:" << env << " imei:" << imei << std::endl;
         CVolumeSet volumeSet;
         volumeSet.setVolume(3);
         volumeSet.addj(3);
         volumeSet.saveToJson();
 
         mosqpp::lib_init();
-		std::cout << "mosqpp lib init. "<<std::endl;
+        std::cout << "mosqpp lib init. " << std::endl;
 
         MQTT mqtt;
+        mqtt.publish_topic += env;
+        mqtt.publish_topic += "/";
         mqtt.publish_topic += imei;
         mqtt.username_pw_set(name.c_str(), pwd.c_str());
 
-		std::cout << "begin connectting mqtt server :" << server << ", port:" << port << std::endl;
+        std::cout << "begin connectting mqtt server :" << server << ", port:" << port << std::endl;
 
         int rc = mqtt.connect(server.c_str(), port, 10);
         if (MOSQ_ERR_ERRNO == rc) {
@@ -45,6 +47,7 @@ public:
             }).detach();
             std::string reStr = mqtt.m_serviceManage.boot();
             mqtt.publish(nullptr, mqtt.publish_topic.c_str(), reStr.length(), reStr.c_str());
+            std::cout << "publish_topic:" << mqtt.publish_topic << std::endl;
             //订阅主题
             mqtt.request_topic += env;
             mqtt.request_topic += "/";
