@@ -276,7 +276,7 @@ namespace rs {
 			clean(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
-			ros_restore_allcfg();
+            utils.ros_restore_allcfg();
 			system("reboot");
 			
         } else {
@@ -288,7 +288,7 @@ namespace rs {
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
 			//clean(cfg.business[0].savePrefix.c_str());
-			utils.clean_audio_server_file();
+			utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
 
@@ -507,6 +507,7 @@ namespace rs {
     int AudioFileUpload(const std::vector<std::string> &m_str) {
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
+        std::transform(suffix.begin(),suffix.end(),suffix.begin(),::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast("F21");
