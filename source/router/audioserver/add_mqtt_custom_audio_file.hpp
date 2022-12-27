@@ -71,7 +71,7 @@ namespace asns {
             o << js << std::endl;
         }
 
-        int deleteData(std::string &name) {
+        int deleteData(const std::string &name) {
             mqttLoad();
             for (auto it = business.begin(); it != business.end(); ++it) {
                 if (it->getName() == name) {
