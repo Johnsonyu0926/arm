@@ -30,16 +30,6 @@ namespace asns {
 
         template<typename Quest, typename Result, typename T>
         void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
-            if (r.resultId == 1) {
-                CAddMqttCustomAudioFileData data;
-                data.setName(c.data.fileName);
-                data.setAudioUploadRecordId(c.data.audioUploadRecordId);
-                CAddMqttCustomAudioFileBusiness business;
-                if (!business.exist(c.data.fileName)) {
-                    business.business.push_back(data);
-                    business.saveJson();
-                }
-            }
             audioUploadRecordId = c.data.audioUploadRecordId;
         }
 
@@ -63,12 +53,24 @@ namespace asns {
                     return 4;
                 }
             }
-            char buf[256] = {0};
-            sprintf(buf, "curl --location --request GET %s --output %s%s", downloadUrl.c_str(),
-                    cfg.getAudioFilePath().c_str(), fileName.c_str());
-            std::cout << "cmd: " << buf << std::endl;
-            system(buf);
-            return 1;
+            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
+                                                      fileName.c_str());
+            std::cout << "res:-----" << res << std::endl;
+            if (res.find("error") != std::string::npos) {
+                CAddMqttCustomAudioFileBusiness business;
+                business.deleteData(fileName);
+                return 3;
+            } else {
+                CAddMqttCustomAudioFileData data;
+                data.setName(fileName);
+                data.setAudioUploadRecordId(audioUploadRecordId);
+                CAddMqttCustomAudioFileBusiness business;
+                if (!business.exist(fileName)) {
+                    business.business.push_back(data);
+                    business.saveJson();
+                }
+                return 1;
+            }
         }
 
     public:
