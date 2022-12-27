@@ -7,6 +7,7 @@
 #include "talk.h"
 #include "login.hpp"
 #include "file_recv.hpp"
+#include "epoll.hpp"
 #include "utils.h"
 
 #include <thread>
@@ -30,7 +31,8 @@ extern asns::CVolumeSet g_volumeSet;
 
 class DeviceBaseInfo {
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, address, ip, gateway,version, netmask, storageType, volume, relayMode,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, address, ip, gateway, version, netmask, storageType, volume,
+                                   relayMode,
                                    relayStatus, playStatus, coreVersion)
 
     int do_success() {
@@ -215,9 +217,9 @@ namespace asns {
             cfg.saveToJson();
             SendTrue(pClient);
             system("cm default");
-			cout<<"restore ros platform config success. rebooting system now..."<<endl;
-			system("reboot");
-			return 1;
+            cout << "restore ros platform config success. rebooting system now..." << endl;
+            system("reboot");
+            return 1;
         } else {
             return SendFast("F35", pClient);
         }
@@ -414,33 +416,59 @@ namespace asns {
         fs.seekg(0, std::ios::end);
         end = fs.tellg();
         int file_size = end - begin;
-        fs.seekg(0,std::ios::beg);
+        fs.seekg(0, std::ios::beg);
+
         std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " 8002";
         pClient->Send(res.c_str(), res.length());
-        std::thread([&]{
-            Server ser(8002);
-            ser.bind();
-            ser.listen();
-            int connfd = ser.accept();
-            char buf[1024] = {0};
-            while (!fs.eof()) {
-                fs.read(buf, sizeof(buf));
-                int len = fs.gcount();
-                ser.write(connfd, buf, len);
+        std::thread([&] {
+            Server server(8002);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+            while (true) {
+                int num = epoll.wait(30);
+                if (num == 0) {
+                    std::cout << "timeout" << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (flag == false) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::thread([&] {
+                            char buf[1024] = {0};
+                            while (!fs.eof()) {
+                                fs.read(buf, sizeof(buf));
+                                server.write(cur_fd, buf, fs.gcount());
+                            }
+                            fs.close();
+                            SendTrue(pClient);
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
+                }
             }
-            fs.close();
-            SendTrue(pClient);
         }).detach();
     }
 
-    int AudioFileUpload(const std::vector<std::string> &m_str, CSocket *pClient) {
+    int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast("F21", pClient);
         }
-        if (suffix.compare("mp3") != 0 && suffix.compare("MP3") != 0) {
+        if (suffix.compare("mp3") != 0) {
             return SendFast("F27", pClient);
         }
         CAddColumnCustomAudioFileData node;
@@ -451,55 +479,102 @@ namespace asns {
 
         CAudioCfgBusiness cfg;
         cfg.load();
-
         std::string path = cfg.getAudioFilePath() + m_str[6];
-        std::fstream fs(path, std::fstream::out | std::fstream::binary);
         std::thread([&] {
-            Server ser(8001);
-            ser.bind();
-            ser.listen();
-            int connfd = ser.accept();
-            int file_size = std::stod(m_str[4]);
-            char buf[1024] = {0};
+            Server server(8001);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+
             while (true) {
-                int len = ser.read(connfd, buf, sizeof(buf));
-                if (len > 0) {
-                    fs.write(buf, len);
-                    file_size -= len;
-                    if (file_size <= 0)break;
+                int num = epoll.wait(30 * 1000);
+                if (num == 0) {
+                    std::cout << "timeout..." << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (!flag) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::fstream fs(path, std::fstream::out | std::fstream::binary);
+                        std::thread([&] {
+                            int file_size = std::atoi(m_str[4].c_str());
+                            char buf[1024] = {0};
+                            while (true) {
+                                int len = server.read(cur_fd, buf, sizeof(buf));
+                                if (len > 0) {
+                                    fs.write(buf, len);
+                                    file_size -= len;
+                                    if (file_size <= 0)break;
+                                }
+                            }
+                            fs.close();
+                            SendTrue(pClient);
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
                 }
             }
-            fs.close();
-            SendTrue(pClient);
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8001";
         pClient->Send(res.c_str(), res.length());
         return 1;
     }
 
-    int RemoteFileUpgrade(const std::vector<std::string> &m_str, CSocket *pClient) {
+    int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         std::thread([&] {
-            std::fstream fs("/temp/audioserver", std::fstream::out | std::fstream::binary);
-            Server ser(8000);
-            ser.bind();
-            ser.listen();
-            int connfd = ser.accept();
-            char buf[1024] = {0};
-            int file_size = std::stod(m_str[4]);
+            Server server(8000);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+
             while (true) {
-                int len = ser.read(connfd, buf, sizeof(buf));
-                if (len > 0) {
-                    fs.write(buf, len);
-                    file_size -= len;
-                    if (file_size <= 0)break;
+                int num = epoll.wait(30 * 1000);
+                if (num == 0) {
+                    std::cout << "timeout" << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (!flag) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::fstream fs(" /tmp/audioserver", std::fstream::out | std::fstream::binary);
+                        std::thread([&] {
+                            int file_size = std::atoi(m_str[4].c_str());
+                            char buf[1024] = {0};
+                            while (true) {
+                                int len = server.read(cur_fd, buf, sizeof(buf));
+                                if (len > 0) {
+                                    fs.write(buf, len);
+                                    file_size -= len;
+                                    if (file_size <= 0)break;
+                                }
+                            }
+                            fs.close();
+                            SendTrue(pClient);
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
                 }
             }
-            fs.close();
-            system("rm /mnt/audioserver");
-            system("mv /temp/audioserver /mnt/audioserver");
-            system("chmod +x /mnt/audioserver");
-            SendTrue(pClient);
-            system("reboot");
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8000";
         pClient->Send(res.c_str(), res.length());
