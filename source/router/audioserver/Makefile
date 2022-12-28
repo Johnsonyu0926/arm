@@ -114,4 +114,3 @@ romfs:
 	cp ./lib/*.so $(ROOTFS_DIR)/usr/lib
 	cp ./lib/libmos* -a $(ROOTFS_DIR)/usr/lib
 	cp ./mips_r3000/*.so $(ROOTFS_DIR)/usr/lib
-	cp audio.cfg $(ROOTFS_DIR)/etc/config
