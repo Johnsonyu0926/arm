@@ -9,10 +9,10 @@ include ../../config/unix/Make.defines
 
 #INCLUDE_OPTIONS = -I./../h -I ../../h -I. -I/usr/local/include/mysql 
 #INCLUDE_OPTIONS = -I./../h -I ../../h -I. -I/usr/local/ssl/include 
-INCLUDE_OPTIONS = -I./../h -I../../h -I. -I../../../thirdpart/openssl/include
-
-CFLAGS += -I ./include -I./include/HPR -I./include/ezviz/ezDevSDK
-LDFLAGS += -L ./mipsel-openwrt-linux/lib/dynamic -L ./mips_r3000/ -L ../../../thirdpart/openssl
+CFLAGS += -I./../h -I../../h -I. -I../../../thirdpart/openssl/include  -I../../../thirdpart/mosquitto/lib/cpp
+CFLAGS += -I../../../thirdpart/mosquitto/include
+CFLAGS += -I ./include -I./include/HPR -I./include/ezviz/ezDevSDK 
+LDFLAGS += -L ./mipsel-openwrt-linux/lib/dynamic -L ./mips_r3000/ -L ../../../thirdpart/openssl 
 LDFLAGS += -L ./lib -lHCEBase -lhpr -lezDevSDK_boot -lezDevSDK_Common_Module -lez_model -lmicrokernel -lezDevSDK_talk
 LDFLAGS += -lez_model -lezDevSDK_sub
 LDFLAGS += -lezDevSDK_alarm -lezDevSDK_base_func -lezDevSDK_boot -lezDevSDK_cloud
@@ -108,9 +108,9 @@ $(BIND_OBJS):
 	make;
 
 romfs:
-	${STRIP} -o $(ROOTFS_DIR)/usr/bin/audioserver $(TARGET)  
+	${STRIP} -o $(ROOTFS_DIR)/sbin/audioserver $(TARGET)  
 	mkdir -p $(ROOTFS_DIR)/usr/lib
 	cp ./mipsel-openwrt-linux/lib/dynamic/*.so $(ROOTFS_DIR)/usr/lib
 	cp ./lib/*.so $(ROOTFS_DIR)/usr/lib
+	cp ./lib/libmos* -a $(ROOTFS_DIR)/usr/lib
 	cp ./mips_r3000/*.so $(ROOTFS_DIR)/usr/lib
-	cp audio.cfg $(ROOTFS_DIR)/etc/config
