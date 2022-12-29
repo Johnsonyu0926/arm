@@ -533,7 +533,23 @@ For example:\n\
 #include "rs485Manage.hpp"
 #include <thread>
 
+#define AUDIO_DATA_DIR "/audiodata"
+#define AUDIO_CFG_DIR	"/cfg"
 
+int prepare_work_dir(string prefix)
+{
+	string audio_data_dir = prefix + AUDIO_DATA_DIR;
+	char cmd[256] = {0};
+	snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_data_dir.c_str());
+	system(cmd);
+	cout<<"exec cmd:"<<cmd<<endl;
+
+	string audio_cfg_dir = prefix + AUDIO_CFG_DIR;
+	memset(cmd, 0, sizeof(cmd));
+	snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_cfg_dir.c_str());
+	system(cmd);
+	cout<<"exec cmd:"<<cmd<<endl;
+}
 int main(int argc, char **argv) {
     int op;
     printf("start audio program...\n");
@@ -590,6 +606,9 @@ int main(int argc, char **argv) {
 
     CAudioCfgBusiness cfg;
     cfg.load();
+
+	prepare_work_dir(cfg.business[0].savePrefix);
+
     if (cfg.business[0].serverType == 2) {
         MqttManage mqttManage;
         mqttManage.start();

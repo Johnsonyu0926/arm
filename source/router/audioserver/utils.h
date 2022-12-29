@@ -64,21 +64,21 @@ public:
 
     char *get_ros_addr() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 ipaddress|tail -1");
+        strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_gateway() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 gateway|tail -1");
+        strcpy(cmd, "cm get_val WAN1 gateway|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_netmask() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 ipmask|tail -1");
+        strcpy(cmd, "cm get_val WAN1 ipmask|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
