@@ -185,7 +185,8 @@ int CClientThread::do_str_req(CSocket *pClient) {
             std::cout << "闪灯开关" << std::endl;
             break;
         case FILEUPLOAD:
-            std::cout << "文件上传" << std::endl;
+            std::cout << "fileUpload" << std::endl;
+            asns::FileUpload(m_str, pClient);
             break;
         case RESTORE:
             std::cout << "Restore" << std::endl;
@@ -231,7 +232,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
             CUtils utils;
-            if(!utils.is_ros_platform()){
+            if (!utils.is_ros_platform()) {
                 asns::RemoteFileUpgrade(m_str, pClient);
             }
             break;
