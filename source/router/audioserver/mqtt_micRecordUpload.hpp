@@ -27,9 +27,7 @@ namespace asns {
                 uploadStatus = 0;
                 micRecordId = 0;
             } else if (res.find("uploadStatus") != std::string::npos) {
-                if (res.find_last_of('w') != std::string::npos) {
-                    res.erase(res.find_last_of('w'));
-                }
+                res = res.substr(res.find_first_of('{'), res.find_last_of('}') - res.find_first_of('{') + 1);
                 json js = json::parse(res);
                 uploadStatus = js.at("uploadStatus");
                 micRecordId = js.at("micRecordId");
