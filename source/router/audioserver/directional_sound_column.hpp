@@ -42,8 +42,8 @@ public:
         asns::CAudioCfgBusiness cfg;
         cfg.load();
         version = cfg.business[0].codeVersion;
-        gateway = util.get_ros_gateway();
-        netmask = util.get_ros_netmask();
+        gateway = util.get_lan_gateway();
+        netmask = util.get_lan_netmask();
         storageType = "1";
         g_volumeSet.load();
         volume = std::to_string(g_volumeSet.getVolume());
@@ -113,12 +113,14 @@ namespace asns {
 
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
+        std::cout << "return: " << res << std::endl;
         return pClient->Send(res.c_str(), res.length());
     }
 
     int SendFast(const char *err_code, CSocket *pClient) {
         char buf[64] = {0};
         sprintf(buf, "%s %s", "01", err_code);
+        std::cout << "return: " << buf << std::endl;
         pClient->Send(buf, sizeof(buf));
         return 0;
     }
@@ -134,8 +136,8 @@ namespace asns {
     int Login(const std::vector<std::string> &m_str, CSocket *pClient) {
         CAudioCfgBusiness cfg;
         cfg.load();
-        std::cout << m_str[4] << " " << cfg.business[0].password << " " << m_str[5] << std::endl;
-        if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].password) {
+        std::cout << m_str[4] << " " << cfg.business[0].serverPassword << " " << m_str[5] << std::endl;
+        if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].serverPassword) {
             std::cout << "return login ok" << std::endl;
             return SendTrue(pClient);
         } else {
@@ -208,10 +210,10 @@ namespace asns {
 
     int Restore(CSocket *pClient) {
         CUtils utils;
+        CAudioCfgBusiness cfg;
+        cfg.load();
         if (utils.is_ros_platform()) {
-            CAudioCfgBusiness cfg;
-            cfg.load();
-            cfg.business[0].password = "Aa123456";
+            cfg.business[0].serverPassword = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
             cfg.saveToJson();
@@ -221,7 +223,16 @@ namespace asns {
             system("reboot");
             return 1;
         } else {
-            return SendFast("F35", pClient);
+            cfg.business[0].serverPassword = "Aa123456";
+            cfg.business[0].server = "192.168.1.90";
+            cfg.business[0].port = 7681;
+            //clean(cfg.business[0].savePrefix.c_str());
+            utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
+            cfg.saveToJson();
+            SendTrue(pClient);
+            //network restore must be the last action!
+            utils.openwrt_restore_network();
+            cout << "restore success!\n" << endl;
         }
     }
 
@@ -233,7 +244,7 @@ namespace asns {
             return SendFast("F21", pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             return SendFast("F22", pClient);
-        } else if (busines.isNameEmpty(name)) {
+        } else if (!busines.isNameEmpty(name)) {
             //音频文件查询不存在
             return SendFast("F23", pClient);
         } else {
@@ -242,6 +253,12 @@ namespace asns {
             CAudioCfgBusiness cfg;
             cfg.load();
             switch (std::stoi(m_str[5])) {
+                case 0: {
+                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
+                    std::cout << "cmd: " << command << std::endl;
+                    system(command);
+                    break;
+                }
                 case 1: {
                     std::string cmd = "madplay ";
                     for (int i = 0; i < duration; ++i) {
@@ -284,7 +301,7 @@ namespace asns {
     int NetworkSet(const std::vector<std::string> &m_str, CSocket *pClient) {
         CAudioCfgBusiness cfg;
         cfg.load();
-        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6", pClient);
         } else {
             CUtils utils;
@@ -292,6 +309,7 @@ namespace asns {
             const std::string &ipAddress = m_str[6];
             const std::string &netMask = m_str[8];
             if (utils.is_ros_platform()) {
+                SendTrue(pClient);
                 char cm[128] = {0};
                 sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
                 std::cout << cm << std::endl;
@@ -317,17 +335,17 @@ namespace asns {
                 system(uci);
                 sprintf(uci, "uci commit network");
                 system(uci);
-                sprintf(uci, "/etc/init.d/network reload");
+                sprintf(uci, "/etc/init.d/network reload &");
+                SendTrue(pClient);
                 system(uci);
             }
-            return SendTrue(pClient);
         }
     }
 
     int TCPNetworkSet(const std::vector<std::string> &m_str, CSocket *pClient) {
         CAudioCfgBusiness cfg;
         cfg.load();
-        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6", pClient);
         } else {
             CUtils utils;
@@ -363,10 +381,10 @@ namespace asns {
         cfg.load();
         if (m_str[6].length() < 8) {
             return SendFast("F25", pClient);
-        } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6", pClient);
         } else {
-            cfg.business[0].password = m_str[6];
+            cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
             CUtils utils;
             if (utils.is_ros_platform()) {
@@ -458,6 +476,10 @@ namespace asns {
                 }
             }
         }).detach();
+    }
+
+    int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+
     }
 
     int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
