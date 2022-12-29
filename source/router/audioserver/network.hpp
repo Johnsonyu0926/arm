@@ -39,6 +39,11 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char cm[128] = {0};
+                CNetworkSetResult res;
+                res.do_success();
+                json j = res;
+                std::string s = j.dump();
+                pClient->Send(s.c_str(), s.length());
                 sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
                 std::cout << cm << std::endl;
                 system(cm);
@@ -64,13 +69,13 @@ namespace asns {
                 sprintf(uci, "uci commit network");
                 system(uci);
                 sprintf(uci, "/etc/init.d/network reload");
+                CNetworkSetResult res;
+                res.do_success();
+                json j = res;
+                std::string s = j.dump();
+                pClient->Send(s.c_str(), s.length());
                 system(uci);
             }
-            CNetworkSetResult res;
-            res.do_success();
-            json j = res;
-            std::string s = j.dump();
-            pClient->Send(s.c_str(), s.length());
             return 1;
         }
     };
