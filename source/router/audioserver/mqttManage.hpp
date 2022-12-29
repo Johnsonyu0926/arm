@@ -2,7 +2,7 @@
 
 #include "mqtt.hpp"
 #include <thread>
-#include "mqttcfg.hpp"
+#include "audiocfg.hpp"
 #include "volume.hpp"
 
 class MqttManage {
@@ -11,13 +11,13 @@ public:
 
     void start() {
         std::cout << "------------------mqtt start----------------------" << std::endl;
-        asns::CMqttCfgBusiness cfg;
+        asns::CAudioCfgBusiness cfg;
         cfg.load();
-        name = cfg.business[0].name;
+        name = cfg.business[0].devName;
         pwd = cfg.business[0].password;
         server = cfg.business[0].server;
         port = cfg.business[0].port;
-        imei = cfg.business[0].imei;
+        imei = cfg.business[0].serial;
         env = cfg.business[0].env;
 
 

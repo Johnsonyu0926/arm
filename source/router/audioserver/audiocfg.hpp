@@ -21,15 +21,19 @@ namespace asns {
         int port;
         string deviceID;
         string password;
+        string serverPassword;
         string serial;
         string subSerial;
         string devName;
         string savePrefix;
+        string env;
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal,serverType, codeVersion, server, port, deviceID, password, serial,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal, serverType, codeVersion, server, port, deviceID, password,
+                                       serverPassword,
+                                       serial,
                                        subSerial,
-                                       devName, savePrefix)
+                                       devName, savePrefix, env)
     };
 
     class CAudioCfgBusiness {

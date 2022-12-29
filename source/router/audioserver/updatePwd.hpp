@@ -34,7 +34,7 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CAudioCfgBusiness cfg;
             cfg.load();
-            if (oldPassword != cfg.business[0].password) {
+            if (oldPassword != cfg.business[0].serverPassword) {
                 CUpdateResult updateResult;
                 updateResult.do_fail();
                 json resp = updateResult;
@@ -48,7 +48,7 @@ namespace asns {
                     sprintf(buf, "cm set_val sys password %s", password.c_str());
                     system(buf);
                 }
-                cfg.business[0].password = password;
+                cfg.business[0].serverPassword = password;
                 cfg.saveToJson();
                 CUpdateResult updateResult;
                 updateResult.do_souccess();
