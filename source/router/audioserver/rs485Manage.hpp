@@ -22,6 +22,7 @@
 #include "login.hpp"
 #include "file_recv.hpp"
 #include "utils.h"
+#include "epoll.hpp"
 
 extern int g_playing_priority;
 static int g_irs485 = -1;
@@ -37,8 +38,8 @@ public:
         address = "01";
         CUtils util;
         ip = util.get_lan_addr();
-        gateway = util.get_ros_gateway();
-        netmask = util.get_ros_netmask();
+        gateway = util.get_lan_gateway();
+        netmask = util.get_lan_netmask();
         storageType = "1";
         g_volumeSet.load();
         volume = std::to_string(g_volumeSet.getVolume());
@@ -171,8 +172,8 @@ namespace rs {
     int Login(const std::vector<std::string> &m_str) {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        std::cout << m_str[4] << " " << cfg.business[0].password << " " << m_str[5] << std::endl;
-        if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].password) {
+        std::cout << m_str[4] << " " << cfg.business[0].serverPassword << " " << m_str[5] << std::endl;
+        if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].serverPassword) {
             std::cout << "return login ok" << std::endl;
             return SendTrue();
         } else {
@@ -243,60 +244,61 @@ namespace rs {
         rs::_uart_write(str.c_str(), str.length());
     }
 
-	int restore_network() {
-			char uci[128] = {0};
-			sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
-			system(uci);
-			sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
-			system(uci);
-			sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
-			system(uci);
-			sprintf(uci, "uci commit network");
-			system(uci);
-			sprintf(uci, "/etc/init.d/network reload");
-			system(uci);
+    int restore_network() {
+        char uci[128] = {0};
+        sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
+        system(uci);
+        sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
+        system(uci);
+        sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
+        system(uci);
+        sprintf(uci, "uci commit network");
+        system(uci);
+        sprintf(uci, "/etc/init.d/network reload");
+        system(uci);
 
-	}
-	int clean(const char* prefix) {
-		char cmd[128];
-		sprintf(cmd,"rm %s/audiodata/*", prefix);
-		system(cmd);
-		sprintf(cmd,"rm %s/cfg/*.json", prefix);
-		system(cmd);
-	}
+    }
+
+    int clean(const char *prefix) {
+        char cmd[128];
+        sprintf(cmd, "rm %s/audiodata/*", prefix);
+        system(cmd);
+        sprintf(cmd, "rm %s/cfg/*.json", prefix);
+        system(cmd);
+    }
 
     int Restore() {
         CUtils utils;
         if (utils.is_ros_platform()) {
             asns::CAudioCfgBusiness cfg;
             cfg.load();
-            cfg.business[0].password = "Aa123456";
+            cfg.business[0].serverPassword = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
-			clean(cfg.business[0].savePrefix.c_str());
+            clean(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
             utils.ros_restore_allcfg();
-			system("reboot");
-			
+            system("reboot");
+
         } else {
             //return SendFast("F35");
-			//bugfix shidongxue .2022.12.20 
-			asns::CAudioCfgBusiness cfg;
+            //bugfix shidongxue .2022.12.20
+            asns::CAudioCfgBusiness cfg;
             cfg.load();
-            cfg.business[0].password = "Aa123456";
+            cfg.business[0].serverPassword = "Aa123456";
             cfg.business[0].server = "192.168.1.90";
             cfg.business[0].port = 7681;
-			//clean(cfg.business[0].savePrefix.c_str());
-			utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
+            //clean(cfg.business[0].savePrefix.c_str());
+            utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
             cfg.saveToJson();
             SendTrue();
 
-			//network restore must be the last action!
-			utils.openwrt_restore_network();
-			cout<<"restore success!\n"<<endl;
+            //network restore must be the last action!
+            utils.openwrt_restore_network();
+            cout << "restore success!\n" << endl;
         }
-		return 1;
+        return 1;
     }
 
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str) {
@@ -307,7 +309,7 @@ namespace rs {
             return SendFast("F21");
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             return SendFast("F22");
-        } else if (busines.isNameEmpty(name)) {
+        } else if (!busines.isNameEmpty(name)) {
             //音频文件查询不存在
             return SendFast("F23");
         } else {
@@ -316,6 +318,12 @@ namespace rs {
             asns::CAudioCfgBusiness cfg;
             cfg.load();
             switch (std::stoi(m_str[5])) {
+                case 0: {
+                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
+                    std::cout << "cmd: " << command << std::endl;
+                    system(command);
+                    break;
+                }
                 case 1: {
                     std::string cmd = "madplay ";
                     for (int i = 0; i < duration; ++i) {
@@ -356,7 +364,7 @@ namespace rs {
     int NetworkSet(const std::vector<std::string> &m_str) {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6");
         } else {
             CUtils utils;
@@ -399,7 +407,7 @@ namespace rs {
     int TCPNetworkSet(const std::vector<std::string> &m_str) {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6");
         } else {
             CUtils utils;
@@ -435,10 +443,10 @@ namespace rs {
         cfg.load();
         if (m_str[5].length() < 8) {
             return SendFast("F25");
-        } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].password) {
+        } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
             return SendFast("F6");
         } else {
-            cfg.business[0].password = m_str[6];
+            cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
             CUtils utils;
             if (utils.is_ros_platform()) {
@@ -488,26 +496,54 @@ namespace rs {
         fs.seekg(0, std::ios::end);
         end = fs.tellg();
         int file_size = end - begin;
+        fs.seekg(0, std::ios::beg);
+
         std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " 8002";
         rs::_uart_write(res.c_str(), res.length());
-
-        Server ser(8000);
-        ser.bind();
-        ser.listen();
-        int connfd = ser.accept();
-        char buf[1024] = {0};
-        while (!fs.eof()) {
-            fs.read(buf, sizeof(buf));
-            int len = fs.gcount();
-            ser.write(connfd, buf, len);
-        }
-        fs.close();
+        std::thread([&] {
+            Server server(8002);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+            while (true) {
+                int num = epoll.wait(30);
+                if (num == 0) {
+                    std::cout << "timeout" << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (flag == false) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::thread([&] {
+                            char buf[1024] = {0};
+                            while (!fs.eof()) {
+                                fs.read(buf, sizeof(buf));
+                                server.write(cur_fd, buf, fs.gcount());
+                            }
+                            fs.close();
+                            SendTrue();
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
+                }
+            }
+        }).detach();
     }
 
-    int AudioFileUpload(const std::vector<std::string> &m_str) {
+    int AudioFileUpload(std::vector<std::string> &m_str) {
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
-        std::transform(suffix.begin(),suffix.end(),suffix.begin(),::tolower);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast("F21");
@@ -515,61 +551,110 @@ namespace rs {
         if (suffix.compare("mp3") != 0) {
             return SendFast("F27");
         }
-        asns::CAddColumnCustomAudioFileData node;
+        CAddColumnCustomAudioFileData node;
         node.setName(name);
-        asns::CAddColumnCustomAudioFileBusiness busines;
-        busines.business.push_back(node);
-        busines.saveJson();
+        CAddColumnCustomAudioFileBusiness business;
+        business.business.push_back(node);
+        business.saveJson();
 
-        asns::CAudioCfgBusiness cfg;
+        CAudioCfgBusiness cfg;
         cfg.load();
-
         std::string path = cfg.getAudioFilePath() + m_str[6];
-        std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
         std::thread([&] {
-            Server ser(8001);
-            ser.bind();
-            ser.listen();
-            int connfd = ser.accept();
-            int file_size = std::stod(m_str[4]);
-            char buf[1024] = {0};
+            Server server(8001);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+
             while (true) {
-                int len = ser.read(connfd, buf, sizeof(buf));
-                if (len > 0) {
-                    fs.write(buf, len);
-                    file_size -= len;
-                    if (file_size <= 0)break;
+                int num = epoll.wait(30 * 1000);
+                if (num == 0) {
+                    std::cout << "timeout..." << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (!flag) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::fstream fs(path, std::fstream::out | std::fstream::binary);
+                        std::thread([&] {
+                            int file_size = std::atoi(m_str[4].c_str());
+                            char buf[1024] = {0};
+                            while (true) {
+                                int len = server.read(cur_fd, buf, sizeof(buf));
+                                if (len > 0) {
+                                    fs.write(buf, len);
+                                    file_size -= len;
+                                    if (file_size <= 0)break;
+                                }
+                            }
+                            fs.close();
+                            SendTrue();
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
                 }
             }
-            fs.close();
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8001";
         rs::_uart_write(res.c_str(), res.length());
         return 1;
     }
 
-    int RemoteFileUpgrade(const std::vector<std::string> &m_str) {
+    int RemoteFileUpgrade(std::vector<std::string> &m_str) {
         std::thread([&] {
-            std::fstream fs("/mnt/temp", std::fstream::out | std::fstream::binary | std::fstream::trunc);
-            Server ser(8000);
-            ser.bind();
-            ser.listen();
-            int connfd = ser.accept();
-            char buf[1024] = {0};
-            int file_size = std::stod(m_str[4]);
+            Server server(8000);
+            server.bind();
+            server.listen();
+            Epoll epoll;
+            epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+
             while (true) {
-                int len = ser.read(connfd, buf, sizeof(buf));
-                if (len > 0) {
-                    fs.write(buf, len);
-                    file_size -= len;
-                    if (file_size <= 0)break;
+                int num = epoll.wait(30 * 1000);
+                if (num == 0) {
+                    std::cout << "timeout" << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (!flag) {
+                            std::cout << "可能连接达到上限了,拒绝连接" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::fstream fs(" /tmp/audioserver", std::fstream::out | std::fstream::binary);
+                        std::thread([&] {
+                            int file_size = std::atoi(m_str[4].c_str());
+                            char buf[1024] = {0};
+                            while (true) {
+                                int len = server.read(cur_fd, buf, sizeof(buf));
+                                if (len > 0) {
+                                    fs.write(buf, len);
+                                    file_size -= len;
+                                    if (file_size <= 0)break;
+                                }
+                            }
+                            fs.close();
+                            SendTrue();
+                        }).join();
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
                 }
             }
-            fs.close();
-            system("rm /mnt/audioserver");
-            system("mv /mnt/temp /mnt/audioserver");
-            system("chmod +x audioserver");
-            system("reboot");
         }).detach();
         std::string res = "01 E1 " + m_str[5] + " 8000";
         rs::_uart_write(res.c_str(), res.length());
@@ -595,9 +680,9 @@ namespace rs {
         cfg.load();
         int iBdVal = cfg.business[0].iBdVal;
 
-		char cmd[64];
-		sprintf(cmd,"stty -F /dev/ttyS%d %d", g_tty, iBdVal);
-		system(cmd);
+        char cmd[64];
+        sprintf(cmd, "stty -F /dev/ttyS%d %d", g_tty, iBdVal);
+        system(cmd);
         system("echo 3 > /sys/class/gpio/export");
         system("echo out > /sys/class/gpio/gpio3/direction");
 
