@@ -2,6 +2,7 @@
 #include <chrono>
 #include "mosquittopp.h"
 #include "mqtt_serviceManage.hpp"
+#include "audiocfg.hpp"
 
 class MQTT : public mosqpp::mosquittopp {
 public:
@@ -11,29 +12,29 @@ public:
 
     //连接Mqtt服务器
     void on_connect(int rc) override {
-		std::cout << "on_connect in mqtt , rc = " << rc << std::endl;
-
+        std::cout << "on_connect in mqtt , rc = " << rc << std::endl;
         if (MOSQ_ERR_ERRNO == rc) {
             std::cerr << "mqtt connect err:" << mosqpp::strerror(rc) << std::endl;
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
             this->disconnect();
+        } else if (MOSQ_ERR_SUCCESS == rc) {
+            subscribe(nullptr, request_topic.c_str());
+            std::cout << "Subscribe to:" << request_topic << std::endl;
         }
-        //std::cout << "rc:" << rc << std::endl;
     }
 
     void on_connect_with_flags(int rc, int flags) override {
-		std::cout << "on connect with flags return rc :" << rc << ", flags:" << flags << std::endl;
-        //std::cout << "rc:" << rc << " flags " << flags << std::endl;
+        std::cout << "on connect with flags return rc :" << rc << ", flags:" << flags << std::endl;
     }
 
     //断开Mqtt连接
     void on_disconnect(int rc) override {
-        //std::cout << "rc:" << rc << std::endl;
+        std::cout << "rc:" << rc << std::endl;
     }
 
     //订阅指定topic
     void on_publish(int mid) override {
-        //std::cout << "mid:" << mid << std::endl;
+        std::cout << "mid:" << mid << std::endl;
     }
 
     //订阅主题接收到消息
@@ -48,8 +49,9 @@ public:
             std::string reStr = m_serviceManage.m_fn[js["cmd"]](js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
         } else {
-			std::cout << "request_topic:" <<request_topic << ", message topic:" << message->topic << " , not match." << std::endl;
-		}
+            std::cout << "request_topic:" << request_topic << ", message topic:" << message->topic << " , not match."
+                      << std::endl;
+        }
     }
 
     //订阅回调函数
@@ -76,7 +78,7 @@ public:
     }
 
     void on_log(int level, const char *str) override {
-        //std::cout << "level: " << level << " " << str << std::endl;
+        std::cout << "level: " << level << " " << str << std::endl;
     }
 
     void on_error() override {
