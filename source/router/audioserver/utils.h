@@ -66,6 +66,7 @@ public:
         char cmd[64] = {0};
         strcpy(cmd, "cm get_val VLAN1 ipaddress|tail -1");
         get_addr_by_cmd(cmd);
+        return m_lan;
     }
 
     char *get_ros_gateway() {
@@ -79,6 +80,28 @@ public:
         char cmd[64] = {0};
         strcpy(cmd, "cm get_val VLAN1 ipmask|tail -1");
         get_addr_by_cmd(cmd);
+        return m_lan;
+    }
+
+    char *get_lan_gateway() {
+        char cmd[64] = {0};
+        strcpy(cmd, "uci get network.lan.gateway");
+        get_addr_by_cmd(cmd);
+        if (strlen(m_lan) == 0) {
+            get_ros_gateway();
+        }
+        printf("gateway = %s\n", m_lan);
+        return m_lan;
+    }
+
+    char *get_lan_netmask() {
+        char cmd[64] = {};
+        strcpy(cmd, "uci get network.lan.netmask");
+        get_addr_by_cmd(cmd);
+        if (strlen(m_lan) == 0) {
+            get_ros_netmask();
+        }
+        printf("netmask = %s\n", m_lan);
         return m_lan;
     }
 
@@ -127,6 +150,7 @@ public:
     }
 
     char *get_addr_by_cmd(char *cmd) {
+        memset(m_lan, 0, sizeof m_lan);
         FILE *fp;
         fp = popen(cmd, "r");
         if (fp) {

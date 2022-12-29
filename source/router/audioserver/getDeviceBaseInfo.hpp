@@ -70,11 +70,11 @@ namespace asns {
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;
             data.hardwareVersion = "4.2.1";
-            data.password = cfg.business[0].password;
+            data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = util.get_ros_netmask();
+            data.netmask = util.get_lan_netmask();
             data.address = "01";
-            data.gateway = util.get_ros_gateway();
+            data.gateway = util.get_lan_gateway();
             data.userName = "admin";
             data.imei = "869298057534588";
             data.functionVersion = "COMMON";
