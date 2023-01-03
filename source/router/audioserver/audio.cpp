@@ -258,7 +258,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
     }
 }
 
-void CALLBACK KeyValueLoadFunc(HPR_INT32dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32dwLen,HPR_VOIDPTR pUserData)
+void CALLBACK KeyValueLoadFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32 dwLen,HPR_VOIDPTR pUserData)
 {
     // g_mlock.Lock();
     //  printf("size111111111111111111111:[%s]\r\n", dev_id[dwHandle]);
@@ -279,7 +279,7 @@ void CALLBACK KeyValueLoadFunc(HPR_INT32dwHandle,EBaseIoTKeyValueType dwKeyValue
     // g_mlock.Unlock();
 }
 
-void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32dwLen,HPR_VOIDPTR pUserData)
+void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32 dwLen,HPR_VOIDPTR pUserData)
 {
     // g_mlock.Lock();
     if (dwKeyValueType == KEYVALUE_DEVICE_ID)
