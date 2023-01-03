@@ -183,126 +183,112 @@ char resp_start_voice_talk[] = "";
 
 HPR_INT32 g_dwHandle = -1;
 
-void CALLBACK
-FuncClientSession(HPR_INT32
-dwHandle,
-enumEBaseDataType dwType, HPR_UINT32
-dwLen,
-HPR_VOIDPTR pData, HPR_VOIDPTR
-pUserData)
+void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HPR_UINT32 dwLen, HPR_VOIDPTR pData, HPR_VOIDPTR pUserData)
 {
-// printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
-if (dwType == DATATYPE_IOT)
-{
-g_dwHandle = dwHandle;
+		// printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
+		if (dwType == DATATYPE_IOT)
+		{
+				g_dwHandle = dwHandle;
 
-LPNET_EBASE_SERVER_DATA pTemp = (LPNET_EBASE_SERVER_DATA) pData;
+				LPNET_EBASE_SERVER_DATA pTemp = (LPNET_EBASE_SERVER_DATA) pData;
 
-LPNET_IOT_SERVER_COMMAND cmd = (LPNET_IOT_SERVER_COMMAND)(pTemp->pCmdIdentify);
-// printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
-// printf("resource id:%s\n", cmd->byResourceID);
-// printf("resource type:%s\n", cmd->byResourceType);
-// printf("identifier:%s\n", cmd->byIdentifier);
+				LPNET_IOT_SERVER_COMMAND cmd = (LPNET_IOT_SERVER_COMMAND)(pTemp->pCmdIdentify);
+				// printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
+				// printf("resource id:%s\n", cmd->byResourceID);
+				// printf("resource type:%s\n", cmd->byResourceType);
+				// printf("identifier:%s\n", cmd->byIdentifier);
 
-memset(identifier,
-0, sizeof(identifier));
-strncpy(identifier,
-(char *)cmd->byIdentifier, sizeof(identifier));
+				memset(identifier,
+								0, sizeof(identifier));
+				strncpy(identifier,
+								(char *)cmd->byIdentifier, sizeof(identifier));
 
-// printf("module:%s\n", cmd->byModule);
-// printf("method:%s\n", cmd->byMethod);
-// printf("msg type:%s\n", cmd->byMsgType);
+				// printf("module:%s\n", cmd->byModule);
+				// printf("method:%s\n", cmd->byMethod);
+				// printf("msg type:%s\n", cmd->byMsgType);
 
-client_cmd.
-dwSize = sizeof(client_cmd);
-client_cmd.
-wModuleType = cmd->wModuleType;
-client_cmd.
-wMethod = cmd->wMethod;
-client_cmd.
-wBusinessType = cmd->wBusinessType;
-memcpy(client_cmd
-.byResourceID, cmd->byResourceID, sizeof(client_cmd.byResourceID));
-memcpy(client_cmd
-.byResourceType, cmd->byResourceType, sizeof(client_cmd.byResourceType));
-memcpy(client_cmd
-.byIdentifier, cmd->byIdentifier, sizeof(client_cmd.byIdentifier));
-memcpy(client_cmd
-.byModule, cmd->byModule, sizeof(client_cmd.byModule));
-memcpy(client_cmd
-.byMethod, cmd->byMethod, sizeof(client_cmd.byMethod));
-memcpy(client_cmd
-.byMsgType, cmd->byMsgType, sizeof(client_cmd.byMsgType));
-memcpy(client_cmd
-.byDomainID, cmd->byDomainID, sizeof(client_cmd.byDomainID));
-client_cmd.
-dwmMulIndex = cmd->dwmMulIndex;
+				client_cmd.
+						dwSize = sizeof(client_cmd);
+				client_cmd.
+						wModuleType = cmd->wModuleType;
+				client_cmd.
+						wMethod = cmd->wMethod;
+				client_cmd.
+						wBusinessType = cmd->wBusinessType;
+				memcpy(client_cmd.byResourceID, cmd->byResourceID, sizeof(client_cmd.byResourceID));
+				memcpy(client_cmd.byResourceType, cmd->byResourceType, sizeof(client_cmd.byResourceType));
+				memcpy(client_cmd.byIdentifier, cmd->byIdentifier, sizeof(client_cmd.byIdentifier));
+				memcpy(client_cmd.byModule, cmd->byModule, sizeof(client_cmd.byModule));
+				memcpy(client_cmd.byMethod, cmd->byMethod, sizeof(client_cmd.byMethod));
+				memcpy(client_cmd.byMsgType, cmd->byMsgType, sizeof(client_cmd.byMsgType));
+				memcpy(client_cmd.byDomainID, cmd->byDomainID, sizeof(client_cmd.byDomainID));
+				client_cmd.
+						dwmMulIndex = cmd->dwmMulIndex;
 
-struData.
-dwSize = sizeof(NET_EBASE_CLIENT_DATA);
-struData.
-dwDataType = DATATYPE_IOT;
-if (
-strcmp(identifier,
-"GetVoiceTalkChannelList") == 0)
-{
-struData.
-pBodyData = (HPR_VOIDPTR)(channel_resp);
-}
-else if (
-strcmp(identifier,
-"GetCustomAudioCfg") == 0)
-{
-struData.
-pBodyData = (HPR_VOIDPTR)(resp_get_audio);
-}
-else if (
-strcmp(identifier,
-"AddBroadcastPlan") == 0)
-{
-struData.
-pBodyData = (HPR_VOIDPTR)(resp_add_broadcast_plan);
-printf("broadcast plan json:%s\n", (char *)pTemp->pDodyData);
-g_plan.parseRequest((char *)pTemp->pDodyData);
-}
-else if (
-strcmp(identifier,
-"AddCustomAudioFile") == 0)
-{
-printf("json:%s\n", (char *)pTemp->pDodyData);
-g_addAudioBusiness.add((char *)pTemp->pDodyData);
-struData.
-pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
-}
-else
-{
-struData.
-pBodyData = (HPR_VOIDPTR)(resp);
-}
-struData.
-dwBodyLen = strlen(resp);
-struData.
-dwSequence = pTemp->dwSequence;
-struData.
-pCommandType = &client_cmd;
+				struData.
+						dwSize = sizeof(NET_EBASE_CLIENT_DATA);
+				struData.
+						dwDataType = DATATYPE_IOT;
+				if (
+								strcmp(identifier,
+										"GetVoiceTalkChannelList") == 0)
+				{
+						struData.
+								pBodyData = (HPR_VOIDPTR)(channel_resp);
+				}
+				else if (
+								strcmp(identifier,
+										"GetCustomAudioCfg") == 0)
+				{
+						struData.
+								pBodyData = (HPR_VOIDPTR)(resp_get_audio);
+				}
+				else if (
+								strcmp(identifier,
+										"AddBroadcastPlan") == 0)
+				{
+						struData.
+								pBodyData = (HPR_VOIDPTR)(resp_add_broadcast_plan);
+						printf("broadcast plan json:%s\n", (char *)pTemp->pDodyData);
+						g_plan.parseRequest((char *)pTemp->pDodyData);
+				}
+				else if (
+								strcmp(identifier,
+										"AddCustomAudioFile") == 0)
+				{
+						printf("json:%s\n", (char *)pTemp->pDodyData);
+						g_addAudioBusiness.add((char *)pTemp->pDodyData);
+						struData.
+								pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
+				}
+				else 
+				{
+						struData.
+								pBodyData = (HPR_VOIDPTR)(resp);
+						printf("resp = %s\n", resp);
+				}
+				struData.
+						dwBodyLen = strlen(resp);
+				struData.
+						dwSequence = pTemp->dwSequence;
+				struData.
+						pCommandType = &client_cmd;
 
-// printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
+				// printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
 
-state_machine = dwType;
-}
-else if (dwType == DATETYPE_EXPECTION)
-{
-g_bException = HPR_TRUE;
-}
-else if (dwType == DATATYPE_IOT_KERNEL_READY)
-{
-// printf("KERNEL READY!\n");
-g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
-g_ctalk.
+				state_machine = dwType;
+		}
+		else if (dwType == DATETYPE_EXPECTION)
+		{
+				g_bException = HPR_TRUE;
+		}
+		else if (dwType == DATATYPE_IOT_KERNEL_READY)
+		{
+				// printf("KERNEL READY!\n");
+				g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
+				g_ctalk.init();
 
-init();
-
-}
+		}
 }
 
 void CALLBACK
@@ -405,13 +391,13 @@ HPR_BOOL init_otap_reg_info(NET_EBASE_IOT_REGINFO *pRegInfo) {
 
 int do_state_machine() {
     if (state_machine == DATATYPE_IOT) {
-        // printf("state machine is IOT. sending response..., identifier=%s\n", identifier);
+         printf("state machine is IOT. sending response..., identifier=%s\n", identifier);
         if (NET_EBASE_Reponse(g_dwHandle, &struData)) {
-            // printf("Send iot data to server sucess\r\n");
+             printf("Send iot data to server sucess\r\n");
         } else {
 
             HPR_UINT32 dwError = NET_EBASE_GetLastError();
-            // printf("Send iot data to server failed ,error:%d\r\n", dwError);
+             printf("Send iot data to server failed ,error:%d\r\n", dwError);
         }
         state_machine = -1;
     }
