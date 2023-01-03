@@ -118,6 +118,8 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         // g_ctalk.initMp3();
         g_bStop = 0;
         g_ctalk.do_fork();
+
+		g_playing_priority  = param->priority;
         // printf("ezdevsdk talk on start talk msg type is incoming , len:%d,\n", msg->len);
     }
     break;
