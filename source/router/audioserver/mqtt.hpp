@@ -46,7 +46,7 @@ public:
         //检查主题是否与订阅匹配。
         mosqpp::topic_matches_sub(request_topic.c_str(), message->topic, &res);
         if (res) {
-            std::string reStr = m_serviceManage.m_fn[js["cmd"]](js);
+            std::string reStr = ServiceManage::instance().getHandler(js["cmd"].get<std::string>())(js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
         } else {
             std::cout << "request_topic:" << request_topic << ", message topic:" << message->topic << " , not match."
@@ -86,7 +86,7 @@ public:
     }
 
     void heartBeat() {
-        std::string reStr = m_serviceManage.heartBeat();
+        std::string reStr = ServiceManage::instance().heartBeat();
         this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
     }
 
@@ -105,6 +105,4 @@ public:
 public:
     std::string request_topic = "IOT/intranet/client/request/";
     std::string publish_topic = "IOT/intranet/server/report/";
-public:
-    ServiceManage m_serviceManage;
 };

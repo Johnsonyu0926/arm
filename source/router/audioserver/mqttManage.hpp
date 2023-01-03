@@ -45,7 +45,7 @@ public:
             std::thread([&] {
                 while (true) mqtt.StartTimer(10);
             }).detach();
-            std::string reStr = mqtt.m_serviceManage.boot();
+            std::string reStr = ServiceManage::instance().boot();
             mqtt.publish(nullptr, mqtt.publish_topic.c_str(), reStr.length(), reStr.c_str());
             std::cout << "publish_topic:" << mqtt.publish_topic << std::endl;
             //订阅主题

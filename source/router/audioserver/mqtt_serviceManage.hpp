@@ -28,7 +28,50 @@ class ServiceManage {
 public:
     const int DEL_SIZE = 21;
     const std::string DEL_STR = "\"data\"";
+    using msgHandler = std::function<std::string(const json &)>;
 
+    static ServiceManage &instance() {
+        static ServiceManage serviceManage;
+        return serviceManage;
+    }
+
+    msgHandler getHandler(std::string str) {
+        auto it = m_fn.find(str);
+        if (it != m_fn.end()) {
+            //如果找到了消息id对应的处理函数就把函数返回
+            return m_fn[str];
+        } else {
+            //没找到就返回一个空操作的处理函数
+            return [=](const json &js) -> std::string {
+                json res;
+                res["result"] = "no such cmd";
+                res["resultId"] = 2;
+                res["imei"] = js["imei"];
+                res["topic"] = "TaDiao/device/report/test/" + js["imei"].get<std::string>();
+                res["cmd"] = js["cmd"];
+                res["publishId"] = js["publishId"];
+                return res.dump();
+            };
+        }
+    }
+
+    std::string heartBeat() {
+        asns::CHeartBeatData heartBeat;
+        heartBeat.do_success();
+        json js = heartBeat;
+        return js.dump();
+    }
+
+    std::string boot() {
+        asns::CBootData bootData;
+        bootData.do_success();
+        json js = bootData;
+        return js.dump();
+    }
+
+    ~ServiceManage() = default;
+
+private:
     explicit ServiceManage() {
         m_fn.insert(std::make_pair("audioPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioPlayData, asns::CAudioPlayResultData> req = js;
@@ -105,22 +148,6 @@ public:
         }));
     }
 
-    std::string heartBeat() {
-        asns::CHeartBeatData heartBeat;
-        heartBeat.do_success();
-        json js = heartBeat;
-        return js.dump();
-    }
-
-    std::string boot() {
-        asns::CBootData bootData;
-        bootData.do_success();
-        json js = bootData;
-        return js.dump();
-    }
-
-    virtual ~ServiceManage() {}
-
 public:
-    std::map<std::string, std::function<std::string(const json &js)>> m_fn;
+    std::unordered_map<std::string, std::function<std::string(const json &js)>> m_fn;
 };
