@@ -385,6 +385,16 @@ namespace asns
 				{
 					int id = Operation.customAudioID.at(i);
 					cout << "playing audio id:" << id << endl;
+					if(g_playing_priority < Operation.audioLevel) {
+						cout << "skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel<<endl;
+						continue;
+					} else { 
+						//playing it.
+						if (g_playing_priority != NON_PLAY_PRIORITY) {
+							cout << "stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority<<endl;
+								system("killall -9 madplay");
+						}
+					}
 					g_playing_priority = Operation.audioLevel;
 					g_addAudioBusiness.play(id, TimeRange.endTime);
 					g_playing_priority = NON_PLAY_PRIORITY;
