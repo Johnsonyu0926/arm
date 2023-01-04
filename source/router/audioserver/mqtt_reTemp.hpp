@@ -39,7 +39,7 @@ namespace asns {
                     break;
                 case 3:
                     result = "no file";
-                    resultId = 1;
+                    resultId = 2;
                     break;
                 case 2:
                     result = "fail";

@@ -37,11 +37,17 @@ public:
         mqtt.username_pw_set(name.c_str(), pwd.c_str());
 
         std::cout << "begin connectting mqtt server :" << server << ", port:" << port << std::endl;
-
-        int rc = mqtt.connect(server.c_str(), port, 10);
-        if (MOSQ_ERR_ERRNO == rc) {
-            std::cerr << "mqtt connect error: " << mosqpp::strerror(rc) << std::endl;
-        } else if (MOSQ_ERR_SUCCESS == rc) {
+        int rc;
+        while (true) {
+            rc = mqtt.connect(server.c_str(), port, 10);
+            if (MOSQ_ERR_ERRNO == rc) {
+                std::cerr << "mqtt connect error: " << mosqpp::strerror(rc) << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(10));
+            } else if (MOSQ_ERR_SUCCESS == rc) {
+                break;
+            }
+        }
+        if (MOSQ_ERR_SUCCESS == rc) {
             std::thread([&] {
                 while (true) mqtt.StartTimer(10);
             }).detach();
