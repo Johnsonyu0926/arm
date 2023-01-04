@@ -68,7 +68,7 @@ namespace asns {
                 system(uci);
                 sprintf(uci, "uci commit network");
                 system(uci);
-                sprintf(uci, "/etc/init.d/network reload");
+                sprintf(uci, "/etc/init.d/network reload &");
                 CNetworkSetResult res;
                 res.do_success();
                 json j = res;
