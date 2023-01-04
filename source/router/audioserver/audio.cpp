@@ -233,8 +233,8 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
             g_addAudioBusiness.add((char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
         } else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {
-			
             printf("json:%s\n", (char *)pTemp->pDodyData);
+            g_addAudioBusiness.add((char *)pTemp->pDodyData);
 		}
         else
         {
@@ -295,12 +295,12 @@ void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValu
     // printf("master key is got:%s\n", master_key);
 }
 
-// if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
-//{
-//   WriteKeValueXML(dev_id[dwHandle], strlen(dev_id[dwHandle]), master_key[dwHandle], strlen(master_key[dwHandle]), dwHandle);
-//}
-// printf("size222222222222222222222:[%s]\r\n", dev_id[dwHandle]);
-// g_mlock.Unlock();
+    // if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
+    //{
+    //   WriteKeValueXML(dev_id[dwHandle], strlen(dev_id[dwHandle]), master_key[dwHandle], strlen(master_key[dwHandle]), dwHandle);
+    //}
+    // printf("size222222222222222222222:[%s]\r\n", dev_id[dwHandle]);
+    // g_mlock.Unlock();
 }
 
 HPR_BOOL init_otap_reg_info(NET_EBASE_IOT_REGINFO *pRegInfo) {
@@ -336,7 +336,6 @@ int do_state_machine() {
         if (NET_EBASE_Reponse(g_dwHandle, &struData)) {
              printf("Send iot data to server sucess\r\n");
         } else {
-
             HPR_UINT32 dwError = NET_EBASE_GetLastError();
             printf("Send iot data to server failed ,error:%d\r\n", dwError);
         }
@@ -400,9 +399,9 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
             HPR_UINT32 dwError = NET_EBASE_GetLastError();
             // cout << "connect to iot server by iot client failed... dwError:" << dwError << endl;
             HPR_Sleep(1000);
-        }
-        else
-        {
+        } else if (strcmp(identifier, "")){
+
+        } else {
 
             HPR_UINT32 dwErrorCode = 0x00100006;
             NET_EBASE_OTAP_ERROR_INFO struErrorInfo = {0};
@@ -480,8 +479,7 @@ int main(int argc, char **argv) {
         Usage();
     }
 
-    while (
-            (op = getopt(argc, argv, "p:d:v")) != EOF) {
+    while ((op = getopt(argc, argv, "p:d:v")) != EOF) {
         switch (op) {
             case 'd':
                 g_nDebugMode = atoi(optarg);
@@ -508,8 +506,7 @@ int main(int argc, char **argv) {
         printf("failed to load audio cfg.\n");
         return -1;
     }
-    sprintf(resp, RESP_FMT, g_audiocfg.business[0].deviceID, g_audiocfg.business[0].deviceID,
-            g_audiocfg.business[0].deviceID);
+    sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
 
     CSUdpClient udpClient("239.255.255.235", 5099);
     asns::CLoginResult loginRes;
