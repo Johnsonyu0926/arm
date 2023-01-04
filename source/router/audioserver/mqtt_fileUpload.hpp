@@ -57,8 +57,6 @@ namespace asns {
                                                       fileName.c_str());
             std::cout << "res:-----" << res << std::endl;
             if (res.find("error") != std::string::npos) {
-                CAddMqttCustomAudioFileBusiness business;
-                business.deleteData(fileName);
                 return 3;
             } else {
                 CAddMqttCustomAudioFileData data;
