@@ -664,11 +664,16 @@ namespace asns
 
 		int parseRequest(string data)
 		{
-			if (g_playing_priority != NON_PLAY_PRIORITY)
+			//Begin modified by shidongxue . fix bug.2023.1.4
+			/*if (g_playing_priority != NON_PLAY_PRIORITY)
 			{ // the plan is playing...
 				cout << "parseRequest for plan...the plan is plaing now, stop plan play first." << endl;
 				system("killall -9 madplay");
 			}
+			*/ 
+			
+			//end modified by shidongxue . fix bug.2023.1.4
+
 			cout << data << endl;
 			pthread_mutex_lock(&g_ThreadsPlanLock);
 			json j = json::parse(data, nullptr, false);
