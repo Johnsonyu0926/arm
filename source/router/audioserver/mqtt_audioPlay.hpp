@@ -4,6 +4,7 @@
 #include "audiocfg.hpp"
 #include "add_mqtt_custom_audio_file.hpp"
 #include "Singleton.hpp"
+#include "utils.h"
 
 using json = nlohmann::json;
 
@@ -45,7 +46,7 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayResultData, null)
 
-        template<typename Quest, typename Result,typename T>
+        template<typename Quest, typename Result, typename T>
         void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     public:
@@ -56,47 +57,53 @@ namespace asns {
     class CAudioPlayData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayData, fileName, audioUploadRecordId, playCount,
-                                       playDuration,
-                                       playStatus, playType, storageType, timeType
+                                                    playDuration,
+                                                    playStatus, playType, storageType, timeType
         )
 
         int do_req() {
-            CAddMqttCustomAudioFileBusiness business;
-            if (!business.exist(fileName)) {
-                return 0;
-            }
             CAudioCfgBusiness cfg;
             cfg.load();
-
-            switch (timeType) {
-                case 0: {
-                    char command[256] = {0};
-                    int d = playDuration / (3600 * 24);
-                    int t = playDuration % (3600 * 24) / 3600;
-                    int m = playDuration % (3600 * 24) % 3600 / 60;
-                    int s = playDuration % (3600 * 24) % 3600 % 60;
-                    char buf[64] = {0};
-                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
-                            fileName.c_str(), buf);
-                    std::cout << "command: " << command << std::endl;
-                    system(command);
-                    Singleton::getInstance().setStatus(1);
-                    break;
-                }
-                case 1: {
-                    std::string cmd = "madplay ";
-                    for (int i = 0; i < playCount; ++i) {
-                        cmd += cfg.getAudioFilePath() + fileName + ' ';
+            CUtils utils;
+            CAddMqttCustomAudioFileBusiness business;
+            if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName) == false) {
+                business.deleteData(fileName);
+                return 3;
+            } else if (business.exist(fileName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName)) {
+                return 3;
+            } else if(business.exist(fileName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName) == false){
+                return 3;
+            }else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
+                switch (timeType) {
+                    case 0: {
+                        char command[256] = {0};
+                        int d = playDuration / (3600 * 24);
+                        int t = playDuration % (3600 * 24) / 3600;
+                        int m = playDuration % (3600 * 24) % 3600 / 60;
+                        int s = playDuration % (3600 * 24) % 3600 % 60;
+                        char buf[64] = {0};
+                        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
+                        sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
+                                fileName.c_str(), buf);
+                        std::cout << "command: " << command << std::endl;
+                        system(command);
+                        Singleton::getInstance().setStatus(1);
+                        break;
                     }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
-                    Singleton::getInstance().setStatus(1);
-                    break;
+                    case 1: {
+                        std::string cmd = "madplay ";
+                        for (int i = 0; i < playCount; ++i) {
+                            cmd += cfg.getAudioFilePath() + fileName + ' ';
+                        }
+                        cmd += "&";
+                        std::cout << "cmd: " << cmd << std::endl;
+                        system(cmd.c_str());
+                        Singleton::getInstance().setStatus(1);
+                        break;
+                    }
                 }
+                return 1;
             }
-            return 1;
         }
 
     public:
