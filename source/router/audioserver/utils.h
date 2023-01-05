@@ -9,6 +9,8 @@
 #include <sys/statfs.h>
 #include <string>
 #include <stdio.h>
+#include <dirent.h>
+#include <cstring>
 
 #ifndef __CUTILS_H__
 #define __CUTILS_H__
@@ -18,6 +20,29 @@ private:
     char m_lan[1024];
 
 public:
+    void get_dir_file_names(std::string &path, std::vector <std::string> &files) {
+        DIR *pDir;
+        dirent *ptr;
+        if (!(pDir = opendir(path.c_str()))) return;
+        while ((ptr = readdir(pDir)) != 0) {
+            if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+                files.push_back(ptr->d_name);
+            }
+        }
+        closedir(pDir);
+    }
+
+    bool find_dir_file_exists(std::string path, std::string &name) {
+        std::vector <std::string> files_name;
+        get_dir_file_names(path, files_name);
+        for (auto iter = files_name.cbegin(); iter != files_name.cend(); ++iter) {
+            std::cout << "fileList: " << *iter << " ";
+            if (name == *iter) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     unsigned long long get_available_Disk(const std::string &path) {
         struct statfs diskInfo;
