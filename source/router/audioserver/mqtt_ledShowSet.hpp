@@ -30,12 +30,14 @@ namespace asns {
 
         int do_req() {
             rs::set_send_dir();
-            rs::_uart_write(ledCommand.c_str(), ledCommand.length());
+            json js =ledCommand;
+            std::string str = js.dump();
+            rs::_uart_write(str.c_str(), str.length());
             return 1;
         }
 
     public:
-        std::string ledCommand;
+        std::vector<std::string> ledCommand;
         std::string showContent;
         long ledShowRecordId;
     };
