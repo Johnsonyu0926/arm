@@ -26,7 +26,7 @@
 #include "record.hpp"
 #include "ptzOperate.hpp"
 #include "directional_sound_column.hpp"
-
+#include "relaySet.hpp"
 #include "audio_del.hpp"
 
 using namespace asns;
@@ -75,10 +75,10 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         std::cout << "TtsPlay cmd" << std::endl;
         CTtsPlay ttsPlay = m_json;
         ttsPlay.do_req(pClient);
-/*    } else if (strstr(buf, "FileUpload")) {
+    } else if (strstr(buf, "FileUpload")) {
         std::cout << "FileUpload cmd" << std::endl;
         CFileUpload fileUpload = m_json;
-        fileUpload.do_req(pClient);*/
+        fileUpload.do_req(pClient);
     } else if (strstr(buf, "AudioStop")) {
         std::cout << "AudioStop cmd" << std::endl;
         CAudioStop audioStop = m_json;
@@ -114,6 +114,9 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
     } else if (strstr(buf, "PtzOperate")) {
         CPtzOperate res = m_json;
         res.do_req();
+    } else if (strstr(buf, "RelaySet")) {
+        CRelaySet res = m_json;
+        res.do_req(pClient);
     } else {
         cout << "unsupport command:" << buf << endl;
         CUnsupportBusiness business = m_json;
