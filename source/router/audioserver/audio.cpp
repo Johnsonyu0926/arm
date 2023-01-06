@@ -18,6 +18,7 @@
 #include "udpclient.hpp"
 #include "login.hpp"
 
+#include "hkVolume.hpp"
 // #include "login.hpp"
 
 using namespace asns;
@@ -234,7 +235,11 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
             struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
         } else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {
             printf("json:%s\n", (char *)pTemp->pDodyData);
-            g_addAudioBusiness.add((char *)pTemp->pDodyData);
+            CHKVolume v;
+            v.parse((char *)pTemp->pDodyData);
+            char res[64] = {0};
+            sprintf(res,resp_add_custom_audio_file,"success");
+            struData.pBodyData = (HPR_VOIDPTR)(res);
 		}
         else
         {
@@ -578,7 +583,7 @@ int main(int argc, char **argv) {
 
         NET_EBASE_Fini();
     } else {
-        while (true) { 
+        while (true) {
 			sleep(1);
 		}
     }
