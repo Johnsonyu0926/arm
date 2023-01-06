@@ -141,15 +141,28 @@ public:
         return m_lan;
     }
 
-    char *get_doupload_result(const std::string url, const std::string &imei) {
+   std::string get_doupload_result(const std::string url, const std::string &imei) {
         char cmd[1024] = {0};
         sprintf(cmd,
                 "curl --location --request POST '%s' \\\n"
                 "--form 'FormDataUploadFile=@\"/tmp/record.mp3\"' \\\n"
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
         std::cout << "cmd:" << cmd << std::endl;
-        get_doupload_by_cmd(cmd);
-        return m_lan;
+        return get_by_cmd_res(cmd);
+    }
+
+    std::string get_by_cmd_res(char *cmd) {
+        FILE *fp = nullptr;
+        char buf[1024];
+        std::string res;
+        if ((fp = popen(cmd, "r")) != nullptr) {
+            while (fgets(buf, sizeof(buf), fp) != nullptr) {
+                res += buf;
+            }
+            pclose(fp);
+            fp = nullptr;
+        }
+        return res;
     }
 
     char *get_doupload_by_cmd(char *cmd) {
