@@ -36,7 +36,7 @@ public:
         std::vector <std::string> files_name;
         get_dir_file_names(path, files_name);
         for (auto iter = files_name.cbegin(); iter != files_name.cend(); ++iter) {
-            std::cout << "fileList: " << *iter << " ";
+            std::cout << *iter << " ";
             if (name == *iter) {
                 return true;
             }

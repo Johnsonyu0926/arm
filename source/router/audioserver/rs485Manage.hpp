@@ -706,6 +706,17 @@ namespace rs {
         return iFd;
     }
 
+    int _uart_work(const char *buf, int len) {
+        int fd = rs::_uart_open();
+        if (fd < 0) {
+            printf("failed to open ttyS%d to read write.\n", g_tty);
+            return 2;
+        }
+        g_irs485 = fd;
+        rs::set_send_dir();
+        _uart_write(buf, len);
+        return 1;
+    }
 
     static int _uart_read(char *pcBuf, int iBufLen) {
         int iFd = g_irs485, iLen = 0;

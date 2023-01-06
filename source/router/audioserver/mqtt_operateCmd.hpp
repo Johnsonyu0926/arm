@@ -30,9 +30,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateData, operateCmd)
 
         int do_req() {
-            rs::set_send_dir();
-            rs::_uart_write(operateCmd.c_str(), operateCmd.length());
-            return 1;
+            return rs::_uart_work(operateCmd.c_str(), operateCmd.length());
         }
 
     public:
