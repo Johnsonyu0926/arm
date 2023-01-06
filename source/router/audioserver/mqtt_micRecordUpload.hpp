@@ -45,6 +45,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
 
         int do_req() {
+            system("killall -9 arecord");
             system("arecord -f cd /tmp/record.mp3 &");
             std::thread([&] {
                 std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
