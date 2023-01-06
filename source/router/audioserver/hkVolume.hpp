@@ -3,6 +3,7 @@
 #include <iostream>
 #include "volume.hpp"
 #include "json.hpp"
+#include "utils.h"
 
 using json = nlohmann::json;
 
@@ -33,7 +34,8 @@ namespace asns {
 
         bool volumeSet(const int volume) {
             char buf[64] = {0};
-            if (false) {
+            CUtils utils;
+            if (utils.is_ros_platform()) {
                 sprintf(buf, "amixer set PCM playback %d", vo_ros[volume]);
             } else {
                 sprintf(buf, "amixer set Headphone Playback %d", vo[volume]);
