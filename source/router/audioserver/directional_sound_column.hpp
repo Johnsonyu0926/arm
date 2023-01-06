@@ -436,10 +436,10 @@ namespace asns {
         int file_size = end - begin;
         fs.seekg(0, std::ios::beg);
 
-        std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " 8002";
+        std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " 50003";
         pClient->Send(res.c_str(), res.length());
         std::thread([&] {
-            Server server(8002);
+            Server server(50003);
             server.bind();
             server.listen();
             Epoll epoll;
@@ -503,7 +503,7 @@ namespace asns {
         cfg.load();
         std::string path = cfg.getAudioFilePath() + m_str[6];
         std::thread([&] {
-            Server server(8001);
+            Server server(50002);
             server.bind();
             server.listen();
             Epoll epoll;
@@ -547,14 +547,14 @@ namespace asns {
                 }
             }
         }).detach();
-        std::string res = "01 E1 " + m_str[5] + " 8001";
+        std::string res = "01 E1 " + m_str[5] + " 50002";
         pClient->Send(res.c_str(), res.length());
         return 1;
     }
 
     int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         std::thread([&] {
-            Server server(8000);
+            Server server(50001);
             server.bind();
             server.listen();
             Epoll epoll;
@@ -591,6 +591,7 @@ namespace asns {
                             }
                             fs.close();
                             SendTrue(pClient);
+                            system("webs -U /tmp/audioserver");
                         }).join();
                     } else {
                         std::cout << "..." << std::endl;
@@ -598,7 +599,7 @@ namespace asns {
                 }
             }
         }).detach();
-        std::string res = "01 E1 " + m_str[5] + " 8000";
+        std::string res = "01 E1 " + m_str[5] + " 50001";
         pClient->Send(res.c_str(), res.length());
         return 1;
     }

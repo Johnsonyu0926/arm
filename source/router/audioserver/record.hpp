@@ -25,8 +25,8 @@ namespace asns {
             cmd = "record";
             resultId = 1;
             msg = "record success",
-                    data.length = len;
-            data.port = 8000;
+            data.length = len;
+            data.port = 50004;
         }
 
     private:
@@ -46,7 +46,6 @@ namespace asns {
             std::thread([&] {
                 std::this_thread::sleep_for(std::chrono::seconds(seconds));
                 system("killall -9 arecord");
-
                 std::streampos begin, end;
                 begin = fs.tellg();
                 fs.seekg(0, std::ios::end);
@@ -57,7 +56,7 @@ namespace asns {
                 std::string res = js.dump();
                 pClient->Send(res.c_str(), res.length());
             }).detach();
-            Server ser(8000);
+            Server ser(50004);
             ser.bind();
             ser.listen();
             int connfd = ser.accept();
