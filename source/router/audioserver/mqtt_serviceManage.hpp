@@ -22,6 +22,7 @@
 #include "mqtt_operateCmd.hpp"
 #include "mqtt_ledShowSet.hpp"
 #include "mqtt_micRecordUpload.hpp"
+#include "mqtt_gpioSet.hpp"
 #include "audiocfg.hpp"
 
 class ServiceManage {
@@ -143,6 +144,11 @@ private:
         }));
         m_fn.insert(std::make_pair("micRecordUpload", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CMicRecordUploadData, asns::CMicRecordUploadResultData> req = js;
+            std::string reStr = req.do_req();
+            return reStr;
+        }));
+        m_fn.insert(std::make_pair("gpioSet", [&](const json &js) -> std::string {
+            asns::CReQuest<asns::CGpioSet, asns::CGpioSetResultData> req = js;
             std::string reStr = req.do_req();
             return reStr;
         }));
