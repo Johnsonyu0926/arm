@@ -52,9 +52,9 @@ static int _uart_open(void) {
     cfsetospeed(&opt, iBdVal);
 
     tcsetattr(iFd, TCSANOW, &opt);
-	char cmd[64];
-	sprintf(cmd,"stty -F /dev/ttyS%d %d", g_tty, iBdVal);
-	system(cmd);
+    char cmd[64];
+    sprintf(cmd, "stty -F /dev/ttyS%d %d", g_tty, iBdVal);
+    system(cmd);
 
     return iFd;
 }
@@ -122,6 +122,18 @@ static int _uart_read(char *pcBuf, int iBufLen) {
 
     }
     return iLen;
+}
+
+int _uart_work(const char *buf, int len) {
+    int fd = _uart_open();
+    if (fd < 0) {
+        printf("failed to open ttyS%d to read write.\n", g_tty);
+        return 2;
+    }
+    g_irs485 = fd;
+    set_send_dir();
+    _uart_write(buf, len);
+    return 1;
 }
 
 int handle_receive(char *buf, int len) {
