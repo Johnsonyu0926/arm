@@ -20,6 +20,19 @@ private:
     char m_lan[1024];
 
 public:
+
+    size_t get_file_size(std::string &path) {
+        int fd = open(path.c_str(), O_RDWR);
+        if (fd < 0) {
+            printf("open fail %s!\n", path.c_str());
+            return -1;
+        }
+        struct stat st;
+        fstat(fd, &st);
+        close(fd);
+        return st.st_size;
+    }
+
     void get_dir_file_names(std::string &path, std::vector <std::string> &files) {
         DIR *pDir;
         dirent *ptr;
@@ -89,21 +102,21 @@ public:
 
     char *get_ros_addr() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
+        strcpy(cmd, "cm get_val VLAN1 ipaddress|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_gateway() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 gateway|tail -1");
+        strcpy(cmd, "cm get_val VLAN1 gateway|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_netmask() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 ipmask|tail -1");
+        strcpy(cmd, "cm get_val VLAN1 ipmask|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
@@ -141,7 +154,7 @@ public:
         return m_lan;
     }
 
-   std::string get_doupload_result(const std::string url, const std::string &imei) {
+    std::string get_doupload_result(const std::string url, const std::string &imei) {
         char cmd[1024] = {0};
         sprintf(cmd,
                 "curl --location --request POST '%s' \\\n"
@@ -183,6 +196,7 @@ public:
     char *get_upload_result(const std::string &url, const std::string &path, const std::string &name) {
         char cmd[1024] = {0};
         sprintf(cmd, "curl --location --request GET %s -f --output %s%s 2>&1", url.c_str(), path.c_str(), name.c_str());
+        std::cout << cmd << std::endl;
         get_doupload_by_cmd(cmd);
         return m_lan;
     }
@@ -220,7 +234,7 @@ public:
     float get_size(const char *prefix, const char *filename) {
 
         char full[256];
-        sprintf(full, "%s/%s", prefix, filename);
+        sprintf(full, "%s%s", prefix, filename);
 
         printf("full name:%s\n", full);
         int fd = open(full, O_RDWR);
@@ -232,7 +246,8 @@ public:
         struct stat st;
         fstat(fd, &st);
         close(fd);
-        return st.st_size / (1024 * 1024); // MB
+        std::cout << filename << "size: " << round(st.st_size / (1024.0 * 1024.0) * 100) / 100 << std::endl;
+        return round(st.st_size / (1024.0 * 1024.0) * 100) / 100; // MB
     }
 
 
