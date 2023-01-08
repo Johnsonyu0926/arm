@@ -77,7 +77,7 @@ namespace asns {
             data.relayStatus = 1;
             data.hardwareReleaseTime = "2022.12.09";
             data.spiFreeSpace = 9752500;
-            data.flashFreeSpace = 1305000;
+            data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = "4.2.1";
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
