@@ -49,7 +49,7 @@ public:
         volume = std::to_string(g_volumeSet.getVolume());
         relayMode = "2";
         relayStatus = "1";
-        playStatus = g_playing_priority == NON_PLAY_PRIORITY ? "0" : "1";
+        playStatus = std::to_string(util.get_process_status("madplay"));
         coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
     }
 
@@ -72,7 +72,8 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseState, relayStatus, volume, storageType)
 
     int do_success() {
-        relayStatus = g_playing_priority == NON_PLAY_PRIORITY ? "0" : "1";
+        CUtils utils;
+        relayStatus = std::to_string(utils.get_process_status("madplay"));
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         storageType = "1";
@@ -245,7 +246,6 @@ namespace asns {
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             return SendFast("F22", pClient);
         } else if (!busines.isNameEmpty(name)) {
-            //音频文件查询不存在
             return SendFast("F23", pClient);
         } else {
             char command[256] = {0};
@@ -493,12 +493,8 @@ namespace asns {
         if (suffix.compare("mp3") != 0) {
             return SendFast("F27", pClient);
         }
-        CAddColumnCustomAudioFileData node;
-        node.setName(name);
-        CAddColumnCustomAudioFileBusiness business;
-        business.business.push_back(node);
-        business.saveJson();
-
+        std::string temp = name + suffix;
+        CUtils utils;
         CAudioCfgBusiness cfg;
         cfg.load();
         std::string path = cfg.getAudioFilePath() + m_str[6];
@@ -539,6 +535,13 @@ namespace asns {
                                 }
                             }
                             fs.close();
+                            CAddColumnCustomAudioFileData node;
+                            node.type = 32;
+                            node.setName(temp);
+                            node.size = utils.get_file_size(path);
+                            CAddColumnCustomAudioFileBusiness business;
+                            business.business.push_back(node);
+                            business.saveJson();
                             SendTrue(pClient);
                         }).join();
                     } else {
