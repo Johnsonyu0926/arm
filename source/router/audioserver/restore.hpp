@@ -99,34 +99,28 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CUtils utils;
-            if (utils.is_ros_platform()) {
-                system("cm default");
-                CAudioCfgBusiness cfg;
-                cfg.load();
-                cfg.business[0].serverPassword = "Aa123456";
-                cfg.business[0].server = "192.168.1.90";
-                cfg.business[0].port = 7681;
-                cfg.saveToJson();
-                CVolumeSet volumeSet;
-                volumeSet.setVolume(3);
-                volumeSet.saveToJson();
-            } else {
-                CAudioCfgBusiness cfg;
-                cfg.load();
-                cfg.business[0].serverPassword = "Aa123456";
-                cfg.business[0].server = "192.168.1.90";
-                cfg.business[0].port = 7681;
-                cfg.saveToJson();
-                CVolumeSet volumeSet;
-                volumeSet.setVolume(3);
-                volumeSet.saveToJson();
-            }
-
             CRestoreResult restoreResult;
-            restoreResult.do_success();
-            json js = restoreResult;
-            std::string str = js.dump();
-            pClient->Send(str.c_str(), str.length());
+            CAudioCfgBusiness cfg;
+            cfg.load();
+            if (utils.is_ros_platform()) {
+                cfg.business[0].serverPassword = "Aa123456";
+                cfg.business[0].server = "192.168.1.90";
+                cfg.business[0].port = 7681;
+                cfg.saveToJson();
+                system("cm default");
+                system("reboot");
+            } else {
+                cfg.business[0].serverPassword = "Aa123456";
+                cfg.business[0].server = "192.168.1.90";
+                cfg.business[0].port = 7681;
+                cfg.saveToJson();
+                utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
+                restoreResult.do_success();
+                json js = restoreResult;
+                std::string str = js.dump();
+                pClient->Send(str.c_str(), str.length());
+                utils.openwrt_restore_network();
+            }
         }
 
     private:
