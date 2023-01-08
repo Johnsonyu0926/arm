@@ -4,6 +4,7 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
+
 extern asns::CVolumeSet g_volumeSet;
 namespace asns {
 
@@ -62,7 +63,7 @@ namespace asns {
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = 0;
+            data.playStatus = util.get_process_status("madplay");
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
             data.relayStatus = 1;
