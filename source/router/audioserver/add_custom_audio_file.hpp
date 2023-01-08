@@ -153,6 +153,16 @@ namespace asns {
             return 0;
         }
 
+        int exist(std::string &name) {
+            load();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->customAudioName == name) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
         int append(CAddCustomAudioFileData node) {
             business.push_back(node);
             download(node);
@@ -175,7 +185,7 @@ namespace asns {
                     (char *) node.getFilePath(),
                     savePrefix.c_str(),
                     (char *) node.getFileName());
-            DS_TRACE("exec download command:" << cmd);
+            DS_TRACE("NLOHMANN_DEFINE_TYPE_INTRUSIVE:" << cmd);
             system(cmd);
             return 0;
         }
@@ -205,6 +215,25 @@ namespace asns {
                 CAddCustomAudioFileData data = business.at(i);
                 if (data.getCustomAudioID() == id) {
                     data.play(savePrefix, endtime);
+                }
+            }
+            return 0;
+        }
+
+        int deleteAudio(std::string name) {
+            this->load();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->customAudioName == name) {
+                    char cmd[256];
+                    CAudioCfgBusiness cfg;
+                    cfg.load();
+
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
+                    std::cout << cmd << std::endl;
+                    system(cmd);
+                    business.erase(it);
+                    this->saveToJson();
+                    return 1;
                 }
             }
             return 0;

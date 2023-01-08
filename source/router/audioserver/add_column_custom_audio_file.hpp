@@ -13,9 +13,9 @@ namespace asns {
 
     class CAddColumnCustomAudioFileData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddColumnCustomAudioFileData, fileName)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddColumnCustomAudioFileData, type, fileName, size)
 
-        int setName(const std::string &name) {
+        void setName(const std::string &name) {
             fileName = name;
         }
 
@@ -23,8 +23,10 @@ namespace asns {
             return fileName;
         }
 
-    private:
+    public:
+        int type;
         std::string fileName;
+        int size;
     };
 
     class CAddColumnCustomAudioFileBusiness {
@@ -89,6 +91,28 @@ namespace asns {
                 }
             }
             return 0;
+        }
+
+        int deleteAudio(std::string name) {
+            this->Columnload();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->getName() == name) {
+                    char cmd[256];
+                    CAudioCfgBusiness cfg;
+                    cfg.load();
+
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
+                    system(cmd);
+                    business.erase(it);
+                    this->saveJson();
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        void getAudioList(){
+
         }
 
     public:
