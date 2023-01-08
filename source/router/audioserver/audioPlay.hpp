@@ -2,6 +2,8 @@
 
 #include "json.hpp"
 #include "audiocfg.hpp"
+#include "utils.h"
+#include "add_custom_audio_file.hpp"
 
 namespace asns {
     class CAudioPlayResult {
@@ -14,10 +16,17 @@ namespace asns {
             msg = "触发播放成功";
         }
 
+        int do_fail(std::string str) {
+            cmd = "AudioPlay";
+            resultId = 2;
+            msg = str;
+        }
+
     private:
         std::string cmd;
         int resultId;
         std::string msg;
+
     };
 
     class CAudioPlay {
@@ -27,39 +36,48 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CAudioCfgBusiness cfg;
             cfg.load();
-            char command[256] = {0};
-            switch (playType) {
-                case 0:
-                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(),
-                            audioName.c_str());
-                    break;
-                case 1: {
-                    std::string cmd = "madplay ";
-                    for (int i = 0; i < duration; ++i) {
-                        cmd += cfg.getAudioFilePath() + audioName + ' ';
-                    }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
-                    break;
-                }
-                case 2: {
-                    int d = duration / (3600 * 24);
-                    int t = duration % (3600 * 24) / 3600;
-                    int m = duration % (3600 * 24) % 3600 / 60;
-                    int s = duration % (3600 * 24) % 3600 % 60;
-                    char buf[64] = {0};
-                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
-                            audioName.c_str(), buf);
-                    break;
-                }
-            }
-            std::cout << "command: " << command << std::endl;
-            system(command);
-
+            CUtils utils;
             CAudioPlayResult audioPlayResult;
-            audioPlayResult.do_success();
+            CAddCustomAudioFileBusiness business;
+            if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
+                audioPlayResult.do_fail("no file");
+            } else if (business.exist(audioName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
+                audioPlayResult.do_fail("no file");
+            } else if (business.exist(audioName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
+                audioPlayResult.do_fail("no file");
+            } else if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
+                char command[256] = {0};
+                switch (playType) {
+                    case 0:
+                        sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(),
+                                audioName.c_str());
+                        break;
+                    case 1: {
+                        std::string cmd = "madplay ";
+                        for (int i = 0; i < duration; ++i) {
+                            cmd += cfg.getAudioFilePath() + audioName + ' ';
+                        }
+                        cmd += "&";
+                        std::cout << "cmd: " << cmd << std::endl;
+                        system(cmd.c_str());
+                        break;
+                    }
+                    case 2: {
+                        int d = duration / (3600 * 24);
+                        int t = duration % (3600 * 24) / 3600;
+                        int m = duration % (3600 * 24) % 3600 / 60;
+                        int s = duration % (3600 * 24) % 3600 % 60;
+                        char buf[64] = {0};
+                        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
+                        sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
+                                audioName.c_str(), buf);
+                        break;
+                    }
+                }
+                std::cout << "command: " << command << std::endl;
+                system(command);
+            }
+
             json js = audioPlayResult;
             std::string str = js.dump();
             pClient->Send(str.c_str(), str.length());
