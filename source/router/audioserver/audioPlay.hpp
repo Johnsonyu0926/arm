@@ -36,14 +36,23 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CAudioCfgBusiness cfg;
             cfg.load();
-            CUtils utils;
             CAudioPlayResult audioPlayResult;
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                audioPlayResult.do_fail("Existing playback task");
+                json js = audioPlayResult;
+                std::string str = js.dump();
+                pClient->Send(str.c_str(), str.length());
+                return 1;
+            }
             CAddCustomAudioFileBusiness business;
             if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
                 audioPlayResult.do_fail("no file");
-            } else if (business.exist(audioName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
+            } else if (business.exist(audioName) == false &&
+                       utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
                 audioPlayResult.do_fail("no file");
-            } else if (business.exist(audioName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
+            } else if (business.exist(audioName) == false &&
+                       utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
                 audioPlayResult.do_fail("no file");
             } else if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
                 char command[256] = {0};
@@ -53,6 +62,10 @@ namespace asns {
                                 audioName.c_str());
                         break;
                     case 1: {
+                        if(duration < 1){
+                            audioPlayResult.do_fail("parameter cannot be less than 1");
+                            break;
+                        }
                         std::string cmd = "madplay ";
                         for (int i = 0; i < duration; ++i) {
                             cmd += cfg.getAudioFilePath() + audioName + ' ';
@@ -63,6 +76,10 @@ namespace asns {
                         break;
                     }
                     case 2: {
+                        if(duration < 1){
+                            audioPlayResult.do_fail("parameter cannot be less than 1");
+                            break;
+                        }
                         int d = duration / (3600 * 24);
                         int t = duration % (3600 * 24) / 3600;
                         int m = duration % (3600 * 24) % 3600 / 60;

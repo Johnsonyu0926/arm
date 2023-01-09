@@ -82,6 +82,9 @@ namespace asns {
             } else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
                 switch (timeType) {
                     case 0: {
+                        if(playDuration < 1){
+                            return 2;
+                        }
                         char command[256] = {0};
                         int d = playDuration / (3600 * 24);
                         int t = playDuration % (3600 * 24) / 3600;
@@ -97,6 +100,9 @@ namespace asns {
                         break;
                     }
                     case 1: {
+                        if(playDuration < 1){
+                            return 2;
+                        }
                         std::string cmd = "madplay ";
                         for (int i = 0; i < playCount; ++i) {
                             cmd += cfg.getAudioFilePath() + fileName + ' ';
