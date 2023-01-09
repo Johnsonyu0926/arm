@@ -12,13 +12,13 @@ namespace asns {
         int do_souccess() {
             cmd = "UpdatePwd";
             resultId = 1;
-            msg = "密码重置成功";
+            msg = "update password success";
         }
 
         int do_fail() {
             cmd = "UpdatePwd";
             resultId = 2;
-            msg = "密码重置失败";
+            msg = "update password fail";
         }
 
     private:

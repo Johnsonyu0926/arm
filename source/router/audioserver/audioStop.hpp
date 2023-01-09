@@ -10,7 +10,7 @@ namespace asns {
         int do_success() {
             cmd = "AudioStop";
             resultId = 1;
-            msg = "停止播放成功";
+            msg = "stop play success";
         }
 
     private:

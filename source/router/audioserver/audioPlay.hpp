@@ -13,7 +13,7 @@ namespace asns {
         int do_success() {
             cmd = "AudioPlay";
             resultId = 1;
-            msg = "触发播放成功";
+            msg = "play success";
         }
 
         int do_fail(std::string str) {

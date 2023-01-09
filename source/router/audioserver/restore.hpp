@@ -54,7 +54,7 @@ namespace asns {
 
             cmd = "Restore";
             resultId = 1;
-            msg = "恢复出厂设置成功";
+            msg = "restore success";
 
             data.codeVersion = "2.1.01";
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";

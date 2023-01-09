@@ -54,7 +54,7 @@ namespace asns {
 
             cmd = "GetDeviceBaseInfo";
             resultId = 1;
-            msg = "查询设备信息成功";
+            msg = "Obtaining information successfully";
             data.codeVersion = "2.1.01";
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
             data.relayMode = 2;
