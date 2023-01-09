@@ -22,13 +22,14 @@ public:
         setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, (const void *) &opt, sizeof(opt));
     }
 
-    uint16_t bind() {
-        for (server_addr_.sin_port = htons(port_); port_ < 60000; ++port_) {
+    int bind() {
+        for (int port = port_; port < 60000; ++port) {
+            server_addr_.sin_port = htons(port);
             if (::bind(fd_, (struct sockaddr *) &server_addr_, sizeof server_addr_) >= 0) {
-                printf("bind success %d", port_);
-                return port_;
+                printf("bind success %d\n", port);
+                return port;
             } else {
-                printf("bind error port: %d", port_);
+                printf("bind error port: %d\n", port);
             }
         }
         return -1;
@@ -66,8 +67,12 @@ public:
         return fd_;
     }
 
+    void closeFd() {
+        close(fd_);
+    }
+
 private:
     int fd_;
-    uint16_t port_;
+    int port_;
     struct sockaddr_in server_addr_;
 };
