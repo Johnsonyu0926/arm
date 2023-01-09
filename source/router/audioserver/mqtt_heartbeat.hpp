@@ -4,6 +4,7 @@
 #include "volume.hpp"
 #include "Singleton.hpp"
 #include "json.hpp"
+#include "utils.h"
 /**
  * {
         "cmd":"hello",
@@ -28,11 +29,11 @@ namespace asns {
             cfg.load();
             CVolumeSet volumeSet;
             volumeSet.load();
-
+            CUtils utils;
             cmd = "hello";
             volume = volumeSet.getVolume();
             imei = cfg.business[0].serial;
-            playStatus = Singleton::getInstance().getStatus();
+            playStatus = utils.get_process_status("madplay");
             sdcardSpace = "7684500";
             flashSpace = "7684500";
             storageType = 1;
