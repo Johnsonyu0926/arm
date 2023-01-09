@@ -36,6 +36,10 @@ namespace asns {
                                                      timeType)
 
         int do_req() {
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                return 5;
+            }
             char buf[256] = {0};
             std::string fileName = "/tmp/record.mp3";
             sprintf(buf, "curl --location --request GET %s --output %s", downloadUrl.c_str(), fileName.c_str());

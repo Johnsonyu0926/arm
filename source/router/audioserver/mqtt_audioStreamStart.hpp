@@ -30,6 +30,10 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartData, streamPath, roomId, priority, volume)
 
         int do_req() {
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                return 5;
+            }
             CAudioCfgBusiness cfg;
             cfg.load();
             std::cout << "volume:" << volume << std::endl;

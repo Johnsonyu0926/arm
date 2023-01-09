@@ -46,6 +46,10 @@ namespace asns {
 
         int do_req() {
             system("killall -9 arecord");
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                return 5;
+            }
             system("arecord -f cd /tmp/record.mp3 &");
             std::thread([&] {
                 std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
