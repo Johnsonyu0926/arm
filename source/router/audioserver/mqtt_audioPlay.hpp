@@ -62,18 +62,24 @@ namespace asns {
         )
 
         int do_req() {
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                return 5;
+            }
             CAudioCfgBusiness cfg;
             cfg.load();
-            CUtils utils;
+
             CAddMqttCustomAudioFileBusiness business;
-            if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName) == false) {
+            if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName) == false) {
                 business.deleteData(fileName);
                 return 3;
-            } else if (business.exist(fileName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName)) {
+            } else if (business.exist(fileName) == false &&
+                       utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
                 return 3;
-            } else if(business.exist(fileName) == false && utils.find_dir_file_exists(cfg.getAudioFilePath(),fileName) == false){
+            } else if (business.exist(fileName) == false &&
+                       utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName) == false) {
                 return 3;
-            }else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
+            } else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
                 switch (timeType) {
                     case 0: {
                         char command[256] = {0};

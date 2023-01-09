@@ -33,6 +33,10 @@ namespace asns {
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c, const int id) {
             switch (id) {
+                case 5:
+                    result = "playing";
+                    resultId = 2;
+                    break;
                 case 4:
                     result = "Insufficient disk space";
                     resultId = 1;
