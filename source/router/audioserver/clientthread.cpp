@@ -28,7 +28,7 @@
 #include "directional_sound_column.hpp"
 #include "relaySet.hpp"
 #include "audio_del.hpp"
-
+#include "micRecord.hpp"
 using namespace asns;
 
 extern DWORD total_kilo;
@@ -95,18 +95,18 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         std::cout << "UpdatePwd cmd" << std::endl;
         CUpdate update = m_json;
         update.do_req(pClient);
-    } else if (strstr(buf, "record")) {
+    }/* else if (strstr(buf, "record")) {
         std::cout << "record cmd" << std::endl;
         CRecord recod = m_json;
         recod.do_req(pClient);
+    }*/
+    //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
+    else if (strstr(buf, "MicRecord")) {
+        std::cout << "MicRecord cmd" << std::endl;
+        CMicRecord res = m_json;
+        res.do_req(pClient);
     }
-        //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
-        /*else if (strstr(buf, "MicRecord")) {
-            std::cout << "MicRecord cmd" << std::endl;
-            CRecord recod = m_json;
-            recod.do_req(pClient);
-        }*/
-        //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
+    //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
     else if (strstr(buf, "AudioDelete")) {
         cout << "AudioDelete command." << endl;
         CDeleteAudio res = m_json;
@@ -208,7 +208,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
             break;
         case RECORD:
             std::cout << "Record" << std::endl;
-            //asns::Record(m_str, pClient);
+            asns::Record(m_str, pClient);
             break;
         case REMOTEUPGRADE:
             std::cout << "远程升级" << std::endl;
@@ -235,9 +235,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
             CUtils utils;
-            if (!utils.is_ros_platform()) {
-                asns::RemoteFileUpgrade(m_str, pClient);
-            }
+            asns::RemoteFileUpgrade(m_str, pClient);
             break;
         default:
             std::cout << "switch F4" << std::endl;

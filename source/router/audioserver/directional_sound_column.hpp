@@ -118,11 +118,10 @@ namespace asns {
         return pClient->Send(res.c_str(), res.length());
     }
 
-    int SendFast(const char *err_code, CSocket *pClient) {
-        char buf[64] = {0};
-        sprintf(buf, "%s %s", "01", err_code);
+    int SendFast(const std::string err_code, CSocket *pClient) {
+        std::string buf = "01 " + err_code;
         std::cout << "return: " << buf << std::endl;
-        pClient->Send(buf, sizeof(buf));
+        pClient->Send(buf.c_str(), buf.length());
         return 0;
     }
 
@@ -161,7 +160,7 @@ namespace asns {
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast("F21", pClient);
-        } else if (!busines.isNameEmpty(name)) {
+        } else if (!busines.isNameEmpty(m_str[4])) {
             //音频文件查询不存在
             return SendFast("F23", pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
@@ -253,7 +252,7 @@ namespace asns {
             return SendFast("F21", pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             return SendFast("F22", pClient);
-        } else if (!busines.isNameEmpty(name)) {
+        } else if (!busines.isNameEmpty(m_str[4])) {
             return SendFast("F23", pClient);
         } else {
             char command[256] = {0};
@@ -421,18 +420,29 @@ namespace asns {
 
     // AA 05 01 13 5 http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload BB EF
     int Record(const std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        std::string imei = "11111";
+        if (utils.get_process_status("madplay")) {
+            return SendFast("F22", pClient);
+        }
         int time = std::stod(m_str[4]);
         if (time > 30 || time < 0) {
             return SendFast("F5", pClient);
         }
-        char buf[128] = {0};
-        sprintf(buf, "arecord -d %d -f cd /tmp/record.mp3 &", time);
-        system(buf);
-        // std::cout << "killall -9 arecord" << std::endl;
-
-        std::string res = m_str[5] + " " + "8000";
-        pClient->Send(res.c_str(), res.length());
-        return 1;
+        system("arecord -f cd /tmp/record.mp3 &");
+        std::thread([&] {
+            std::this_thread::sleep_for(std::chrono::seconds(time));
+            system("killall -9 arecord");
+        }).join();
+        std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
+        std::cout << "result:" << res << std::endl;
+        if (res.empty() || res.find("error") != std::string::npos) {
+            return SendFast("F5", pClient);
+        } else if (res.find("true") != std::string::npos) {
+            return SendTrue(pClient);
+        } else {
+            return SendFast("F5", pClient);
+        }
     }
 
     int RecordBegin(const std::vector<std::string> &m_str, CSocket *pClient) {
@@ -490,7 +500,36 @@ namespace asns {
     }
 
     int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
-
+        std::string name = m_str[5].substr(0, m_str[5].find_first_of('.'));
+        std::string suffix = m_str[5].substr(m_str[5].find_first_of('.') + 1);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
+        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+            //音频文件名校验失败
+            return SendFast("F21", pClient);
+        }
+        if (suffix.compare("mp3") != 0) {
+            return SendFast("F27", pClient);
+        }
+        std::string temp = name + "." + suffix;
+        CUtils utils;
+        CAudioCfgBusiness cfg;
+        cfg.load();
+        std::string path = cfg.getAudioFilePath() + temp;
+        std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
+        std::cout << "res:-----" << res << std::endl;
+        if (res.find("error") != std::string::npos) {
+            return SendFast("F5", pClient);
+        } else {
+            CAddColumnCustomAudioFileData node;
+            node.type = 32;
+            node.setName(temp);
+            node.size = utils.get_file_size(path);
+            CAddColumnCustomAudioFileBusiness business;
+            business.business.push_back(node);
+            business.saveJson();
+            SendTrue(pClient);
+            return 1;
+        }
     }
 
     int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
@@ -576,8 +615,10 @@ namespace asns {
         server.listen();
         Epoll epoll;
         epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
+        pClient->Send(res.c_str(), res.length());
         while (true) {
-            int num = epoll.wait(-1);
+            int num = epoll.wait(30 * 1000);
             if (num == 0) {
                 std::cout << "timeout" << std::endl;
                 break;
@@ -613,7 +654,6 @@ namespace asns {
                 }
             }
         }
-        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
-        return pClient->Send(res.c_str(), res.length());
+        return 1;
     }
 }
