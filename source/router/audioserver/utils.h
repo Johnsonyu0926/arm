@@ -276,6 +276,18 @@ public:
     int ros_restore_allcfg() {
         system("cm default");
     }
+
+    std::string hex_to_string(const std::string &str) {
+        std::string result;
+        //十六进制两个字符为原始字符一个字符
+        for (size_t i = 0; i < str.length(); i += 2) {
+            //每次切两个字符
+            std::string byte = str.substr(i, 2);
+            //将十六进制的string转成long再强转成int再转成char
+            result.push_back(static_cast<char>(static_cast<int>(std::strtol(byte.c_str(), nullptr, 16))));//将处理完的字符压入result中
+        }
+        return result;
+    }
 };
 
 #endif
