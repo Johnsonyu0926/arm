@@ -27,6 +27,7 @@ namespace asns {
         int spiFreeSpace;
         int flashFreeSpace;
         string hardwareVersion;
+        int hardwareModelId;
         string password;
         int temperature;
         string netmask;
@@ -43,7 +44,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CLoginData, codeVersion, coreVersion, relayMode, ip, storageType, port,
                                        playStatus, volume, relayStatus, hardwareReleaseTime, spiFreeSpace,
                                        flashFreeSpace, hardwareVersion, password, temperature, netmask, address,
-                                       gateway, userName, imei, functionVersion, deviceCode, serverAddress, serverPort)
+                                       gateway, userName, imei, functionVersion, deviceCode, serverAddress, serverPort,hardwareModelId)
     };
 
     class CLoginResult {
@@ -79,6 +80,7 @@ namespace asns {
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = "4.2.1";
+            data.hardwareModelId = 2;
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
             data.netmask = util.get_lan_netmask();
@@ -114,6 +116,7 @@ namespace asns {
             data.relayStatus = 1;
             data.hardwareReleaseTime = "2022.12.09";
             data.spiFreeSpace = 9752500;
+            data.hardwareModelId = 2;
             data.flashFreeSpace = 1305000;
             data.hardwareVersion = "4.2.1";
             data.password = cfg.business[0].serverPassword;
