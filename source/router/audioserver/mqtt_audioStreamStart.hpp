@@ -2,10 +2,9 @@
 
 #include "volume.hpp"
 #include "json.hpp"
-#include "Singleton.hpp"
 #include <iostream>
 #include <thread>
-#include "audiocfg.hpp"
+#include "testFile.hpp"
 
 namespace asns {
     template<typename Quest, typename Result>
@@ -34,30 +33,23 @@ namespace asns {
             if (utils.get_process_status("madplay")) {
                 return 5;
             }
-            CAudioCfgBusiness cfg;
-            cfg.load();
+            TestFileBusiness bus;
             std::cout << "volume:" << volume << std::endl;
             if (volume > 0) {
                 CVolumeSet volumeSet;
                 volumeSet.addj(volume);
                 std::string streamUrl = streamPath + roomId;
                 char buf[256] = {0};
-                // ffmpeg -fflags nobuffer -r 30 -re -i %s -acodec mp3 -muxrate 7000000 -b:a 48k -max_delay 100 -bitrate 7000000 -fifo_size 27887 -burst_bits 1000000 -g 10 -b 7000000 -analyzeduration 10000000 -f mp3 - | madplay - &
-                sprintf(buf, cfg.business[0].ffmpegCmd.c_str(), streamUrl.c_str());
+                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
-
-                Singleton::getInstance().setStatus(1);
                 system(buf);
-                Singleton::getInstance().setStatus(0);
 
             } else {
                 std::string streamUrl = streamPath + roomId;
                 char buf[256] = {0};
-                sprintf(buf, cfg.business[0].ffmpegCmd.c_str(), streamUrl.c_str());
+                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
                 std::cout << "system:" << buf << std::endl;
-                Singleton::getInstance().setStatus(1);
                 system(buf);
-                Singleton::getInstance().setStatus(0);
             }
             return 1;
         }
