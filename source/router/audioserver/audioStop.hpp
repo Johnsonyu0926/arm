@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.hpp"
+#include "Singleton.hpp"
 
 namespace asns {
     class CAudioStopResult {
@@ -25,6 +26,8 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             system("killall -9 madplay");
+            Singleton::getInstance().setStatus(0);
+            system("killall -9 aplay");
             CAudioStopResult audioStopResult;
             audioStopResult.do_success();
             json js = audioStopResult;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Singleton.hpp"
 #include "json.hpp"
+#include "Singleton.hpp"
 
 namespace asns {
     template<typename Quest, typename Result>
@@ -27,6 +27,7 @@ namespace asns {
             system("killall -9 madplay");
             system("killall -9 ffmpeg");
             Singleton::getInstance().setStatus(0);
+            system("killall -9 aplay");
             return 1;
         }
 
