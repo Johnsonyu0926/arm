@@ -47,18 +47,20 @@ namespace asns {
             CAudioCfgBusiness cfg;
             unsigned long long availableDisk = utils.get_available_Disk(cfg.getAudioFilePath());
             std::cout << "disk size:" << availableDisk << "kb" << std::endl;
+            int disk = availableDisk -500;
             if (!fileSize.empty()) {
                 int size = std::atoll(fileSize.c_str());
-                if (size != 0 && size > (availableDisk - 500)) {
+                if (size != 0 && size > disk) {
                     return 4;
                 }
             }
-            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
-                                                      fileName.c_str());
+            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(), fileName.c_str());
             std::cout << "res:-----" << res << std::endl;
             if (res.find("error") != std::string::npos) {
                 return 3;
-            } else {
+            } else if (res.find("Failed writing body") != std::string::npos){
+                return 4;
+            }else{
                 CAddMqttCustomAudioFileData data;
                 data.setName(fileName);
                 data.setAudioUploadRecordId(audioUploadRecordId);
