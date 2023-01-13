@@ -29,6 +29,7 @@
 #include "relaySet.hpp"
 #include "audio_del.hpp"
 #include "micRecord.hpp"
+
 using namespace asns;
 
 extern DWORD total_kilo;
@@ -100,13 +101,13 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         CRecord recod = m_json;
         recod.do_req(pClient);
     }*/
-    //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
+        //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
     else if (strstr(buf, "MicRecord")) {
         std::cout << "MicRecord cmd" << std::endl;
         CMicRecord res = m_json;
         res.do_req(pClient);
     }
-    //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
+        //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
     else if (strstr(buf, "AudioDelete")) {
         cout << "AudioDelete command." << endl;
         CDeleteAudio res = m_json;
@@ -182,7 +183,8 @@ int CClientThread::do_str_req(CSocket *pClient) {
             asns::GetDeviceStatus(pClient);
             break;
         case TTSPLAY:
-            std::cout << "TTS语音播报" << std::endl;
+            std::cout << "TtsPlay" << std::endl;
+            asns::TtsPlay(m_str, pClient);
             break;
         case LIGHTSWITCH:
             std::cout << "闪灯开关" << std::endl;
@@ -200,7 +202,8 @@ int CClientThread::do_str_req(CSocket *pClient) {
             asns::AudioNumberOrTimePlay(m_str, pClient);
             break;
         case TTSNUMORTPLAY:
-            std::cout << "文字时长/次数播报" << std::endl;
+            std::cout << "Tts Number or Time Play" << std::endl;
+            asns::TtsNumTimePlay(m_str, pClient);
             break;
         case GETDEVICEBASEINFO:
             std::cout << "GetDeviceBaseInfo" << std::endl;
