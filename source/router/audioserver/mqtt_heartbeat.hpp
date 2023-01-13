@@ -2,7 +2,6 @@
 
 #include "audiocfg.hpp"
 #include "volume.hpp"
-#include "Singleton.hpp"
 #include "json.hpp"
 #include "utils.h"
 /**

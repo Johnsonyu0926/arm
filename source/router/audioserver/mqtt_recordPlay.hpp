@@ -1,7 +1,6 @@
 #pragma once
 
 #include "json.hpp"
-#include "Singleton.hpp"
 
 /**
  * {
@@ -56,7 +55,6 @@ namespace asns {
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
                     sprintf(command, "madplay %s -r -t %s &",fileName.c_str(), buf);
                     std::cout << "command: " << command << std::endl;
-                    Singleton::getInstance().setStatus(1);
                     system(command);
                     break;
                 }
@@ -67,7 +65,6 @@ namespace asns {
                     }
                     cmd += "&";
                     std::cout << "cmd: " << cmd << std::endl;
-                    Singleton::getInstance().setStatus(1);
                     system(cmd.c_str());
                     break;
                 }
