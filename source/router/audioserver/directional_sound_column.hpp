@@ -9,6 +9,7 @@
 #include "file_recv.hpp"
 #include "epoll.hpp"
 #include "utils.h"
+#include "Singleton.hpp"
 
 #include <thread>
 
@@ -167,6 +168,10 @@ namespace asns {
             /*设备正在播放中，触发失败*/
             return SendFast("F22", pClient);
         } else {
+            if (utils.get_process_status("aplay")) {
+                Singleton::getInstance().setStatus(0);
+                system("killall -9 aplay");
+            }
             char cmd[256] = {0};
             CAudioCfgBusiness cfg;
             cfg.load();
@@ -180,6 +185,8 @@ namespace asns {
 
     int AudioStop(CSocket *pClient) {
         system("killall -9 madplay");
+        Singleton::getInstance().setStatus(0);
+        system("killall -9 aplay");
         g_playing_priority = NON_PLAY_PRIORITY;
         return SendTrue(pClient);
     }
@@ -240,6 +247,79 @@ namespace asns {
         }
     }
 
+    int TtsPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+            return SendFast("F22", pClient);
+        }
+        std::string txt = utils.hex_to_string(m_str[4]);
+        std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+        system(cmd.c_str());
+        SendTrue(pClient);
+        Singleton::getInstance().setStatus(1);
+        std::thread([&] {
+            while (Singleton::getInstance().getStatus()) {
+                system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+            }
+        }).detach();
+    }
+
+    int TtsNumTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+            return SendFast("F22", pClient);
+        }
+
+        int playType = std::stoi(m_str[5]);
+        int duration = std::stoi(m_str[6]);
+
+        std::string txt = utils.hex_to_string(m_str[4]);
+        std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+        system(cmd.c_str());
+        switch (playType) {
+            case 0: {
+                Singleton::getInstance().setStatus(1);
+                std::thread([&] {
+                    while (Singleton::getInstance().getStatus()) {
+                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    }
+                }).detach();
+                break;
+            }
+            case 1: {
+                if (duration < 1) {
+                    return SendFast("F4", pClient);
+                }
+                std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
+                for (int i = 0; i < duration; ++i) {
+                    cmd += "/tmp/output.pcm ";
+                }
+                cmd += "&";
+                std::cout << "cmd: " << cmd << std::endl;
+                system(cmd.c_str());
+                break;
+            }
+            case 2: {
+                if (duration < 1) {
+                    return SendFast("F4", pClient);
+                }
+                Singleton::getInstance().setStatus(1);
+                std::thread([&] {
+                    utils.start_timer(duration);
+                }).detach();
+                std::thread([&] {
+                    while (Singleton::getInstance().getStatus()) {
+                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    }
+                }).detach();
+                break;
+            }
+            default:
+                return SendFast("F4", pClient);
+        }
+        return SendTrue(pClient);
+    }
+
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
@@ -259,6 +339,10 @@ namespace asns {
             int duration = std::stoi(m_str[6]);
             CAudioCfgBusiness cfg;
             cfg.load();
+            if (utils.get_process_status("aplay")) {
+                Singleton::getInstance().setStatus(0);
+                system("killall -9 aplay");
+            }
             switch (std::stoi(m_str[5])) {
                 case 0: {
                     sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
@@ -446,6 +530,10 @@ namespace asns {
     }
 
     int RecordBegin(const std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+            return SendFast("F22", pClient);
+        }
         system("arecord -f cd /tmp/record.mp3 &");
         return SendTrue(pClient);
     }
@@ -518,6 +606,10 @@ namespace asns {
         std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
         std::cout << "res:-----" << res << std::endl;
         if (res.find("error") != std::string::npos) {
+            return SendFast("F5", pClient);
+        } else if (res.find("Failed to connect") != std::string::npos) {
+            return SendFast("F5", pClient);
+        } else if (res.find("Couldn't connect to server") != std::string::npos) {
             return SendFast("F5", pClient);
         } else {
             CAddColumnCustomAudioFileData node;
@@ -634,7 +726,7 @@ namespace asns {
                         break;
                     }
                 } else if (epoll.get_event(i) & EPOLLIN) {
-                    std::fstream fs(" /tmp/audioserver", std::fstream::out | std::fstream::binary);
+                    std::fstream fs("/var/run/version/SONICCOREV100R001.bin", std::fstream::out | std::fstream::binary);
                     int file_size = std::atoi(m_str[4].c_str());
                     char buf[1024] = {0};
                     while (true) {
@@ -647,7 +739,10 @@ namespace asns {
                     }
                     fs.close();
                     SendTrue(pClient);
-                    system("webs -U /tmp/audioserver");
+                    thread([&] {
+                        system("webs -U /var/run/version/SONICCOREV100R001.bin");
+                        system("reboot");
+                    }).detach();
                     return 0;
                 } else {
                     std::cout << "..." << std::endl;
