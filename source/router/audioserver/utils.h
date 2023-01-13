@@ -12,6 +12,12 @@
 #include <dirent.h>
 #include <cstring>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <chrono>
+#include "Singleton.hpp"
 #ifndef __CUTILS_H__
 #define __CUTILS_H__
 
@@ -102,21 +108,21 @@ public:
 
     char *get_ros_addr() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 ipaddress|tail -1");
+        strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_gateway() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 gateway|tail -1");
+        strcpy(cmd, "cm get_val WAN1 gateway|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
 
     char *get_ros_netmask() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val VLAN1 ipmask|tail -1");
+        strcpy(cmd, "cm get_val WAN1 ipmask|tail -1");
         get_addr_by_cmd(cmd);
         return m_lan;
     }
@@ -242,12 +248,10 @@ public:
             printf("open fail %s!\n", full);
             return -1;
         }
-
         struct stat st;
         fstat(fd, &st);
         close(fd);
-        std::cout << filename << "size: " << round(st.st_size / (1024.0 * 1024.0) * 100) / 100 << std::endl;
-        return round(st.st_size / (1024.0 * 1024.0) * 100) / 100; // MB
+        return st.st_size;
     }
 
 
@@ -287,6 +291,40 @@ public:
             result.push_back(static_cast<char>(static_cast<int>(std::strtol(byte.c_str(), nullptr, 16))));//将处理完的字符压入result中
         }
         return result;
+    }
+
+    void udp_multicast_send(std::string ip, uint16_t port, std::string &msg) {
+        // 1. 创建通信的套接字
+        int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+        if (fd == -1) {
+            perror("socket");
+        }
+        // 2. 设置组播属性
+        struct in_addr opt;
+        // 将组播地址初始化到这个结构体成员中即可
+        inet_pton(AF_INET, ip.c_str(), &opt.s_addr);
+        setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &opt, sizeof(opt));
+
+        struct sockaddr_in cliaddr;
+        cliaddr.sin_family = AF_INET;
+        cliaddr.sin_port = htons(port);
+        // 发送组播消息, 需要使用组播地址, 和设置组播属性使用的组播地址一致就可以
+        inet_pton(AF_INET, ip.c_str(), &cliaddr.sin_addr.s_addr);
+        sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
+        printf("%s %d udp_multicast_send: %s\n", ip, port, msg.c_str());
+        close(fd);
+    }
+    void start_timer(const int sec) {
+        auto begin = std::chrono::system_clock::now();
+        while (true) {
+            auto cur = std::chrono::system_clock::now();
+            auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - begin).count();
+            if (end >= sec) {
+                Singleton::getInstance().setStatus(0);
+                system("killall -9 aplay");
+                break;
+            }
+        }
     }
 };
 
