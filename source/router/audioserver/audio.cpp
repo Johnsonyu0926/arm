@@ -513,12 +513,12 @@ int main(int argc, char **argv) {
     }
     sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
 
-    CSUdpClient udpClient("239.255.255.235", 5099);
     asns::CLoginResult loginRes;
     loginRes.do_success();
     json js = loginRes;
     std::string str = js.dump();
-    udpClient.Send(str);
+    CUtils utils;
+    utils.udp_multicast_send("239.255.255.235", 5099,str);
 
     std::thread([] {
         RSBusinessManage rs;
