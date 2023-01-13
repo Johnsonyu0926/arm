@@ -61,7 +61,7 @@ namespace asns {
             data.relayMode = 2;
 
             CUtils util;
-            data.ip = util.get_lan_addr();
+            data.ip = "192.168.1.100";
             data.storageType = 1;
             data.port = 34508;
             data.playStatus = 0;
@@ -74,9 +74,9 @@ namespace asns {
             data.hardwareVersion = "4.2.1";
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = util.get_lan_netmask();
+            data.netmask = "255.255.255.0";
             data.address = "01";
-            data.gateway = util.get_lan_gateway();
+            data.gateway = "192.168.1.1";
             data.userName = "admin";
             data.imei = "869298057534588";
             data.functionVersion = "COMMON";
