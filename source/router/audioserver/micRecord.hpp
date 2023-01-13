@@ -34,7 +34,7 @@ namespace asns {
             std::string filePath = "/tmp/record.mp3";
             system("killall -9 arecord");
             CUtils utils;
-            if (utils.get_process_status("madplay")) {
+            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
                 CMicRecordResult result;
                 result.do_fail("Currently playing");
                 json js = result;
