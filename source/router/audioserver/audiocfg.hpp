@@ -14,7 +14,6 @@ namespace asns {
 
     class CAudioCfgData {
     public:
-        std::string ffmpegCmd;
         int iBdVal;
         int serverType;
         string codeVersion;
@@ -34,7 +33,7 @@ namespace asns {
                                        serverPassword,
                                        serial,
                                        subSerial,
-                                       devName, savePrefix, env, ffmpegCmd)
+                                       devName, savePrefix, env)
     };
 
     class CAudioCfgBusiness {
