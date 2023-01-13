@@ -32,6 +32,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUpload, downloadUrl, fileName)
 
         int do_req(CSocket *pClient) {
+            std::transform(fileName.begin(), fileName.end(), fileName.begin(), ::tolower);
             CFileUploadResult fileUploadResult;
             CUtils utils;
             CAudioCfgBusiness cfg;
@@ -42,6 +43,16 @@ namespace asns {
                 fileUploadResult.do_fail("fail");
             } else if (res.find("error") != std::string::npos) {
                 fileUploadResult.do_fail("Connection unreachable");
+            } else if (res.find("Connection refused") != std::string::npos) {
+                fileUploadResult.do_fail("Connection refused");
+            } else if (res.find("No route to host") != std::string::npos) {
+                fileUploadResult.do_fail("No route to host");
+            } else if (res.find("Host is unreachable") != std::string::npos) {
+                fileUploadResult.do_fail("Host is unreachable");
+            } else if (res.find("Failed to connect") != std::string::npos) {
+                fileUploadResult.do_fail("Failed to connect");
+            } else if (res.find("Couldn't connect to server") != std::string::npos) {
+                fileUploadResult.do_fail("Couldn't connect to server");
             } else {
                 CAddCustomAudioFileData node;
                 node.filePath = downloadUrl;
