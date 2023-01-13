@@ -314,12 +314,12 @@ namespace asns
 		{
 			if (!TimeRange.match())
 			{
-				// cout<<"time range not match."<<endl;
+				cout<<"time range not match."<<endl;
 				return 0;
 			}
 			if (Operation.audioLevel != level)
 			{
-				// cout<<"level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel<<endl;
+				cout<<"level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel<<endl;
 				return 0;
 			}
 			// dayofweek check.
