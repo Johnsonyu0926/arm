@@ -4,6 +4,7 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "add_custom_audio_file.hpp"
+#include "Singleton.hpp"
 
 namespace asns {
     class CAudioPlayResult {
@@ -55,6 +56,10 @@ namespace asns {
                        utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
                 audioPlayResult.do_fail("no file");
             } else if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
+                if (utils.get_process_status("aplay")) {
+                    Singleton::getInstance().setStatus(0);
+                    system("killall -9 aplay");
+                }
                 char command[256] = {0};
                 switch (playType) {
                     case 0:
@@ -62,7 +67,7 @@ namespace asns {
                                 audioName.c_str());
                         break;
                     case 1: {
-                        if(duration < 1){
+                        if (duration < 1) {
                             audioPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
@@ -76,7 +81,7 @@ namespace asns {
                         break;
                     }
                     case 2: {
-                        if(duration < 1){
+                        if (duration < 1) {
                             audioPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
