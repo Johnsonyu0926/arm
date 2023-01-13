@@ -13,7 +13,7 @@ namespace asns {
 
     class CAddColumnCustomAudioFileData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddColumnCustomAudioFileData, type, fileName, size)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddColumnCustomAudioFileData, type, fileName, size)
 
         void setName(const std::string &name) {
             fileName = name;

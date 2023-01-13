@@ -13,7 +13,7 @@ namespace asns {
 
     class CAddMqttCustomAudioFileData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddMqttCustomAudioFileData, fileName, audioUploadRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddMqttCustomAudioFileData, fileName, audioUploadRecordId)
 
         void setName(const std::string &name) {
             fileName = name;

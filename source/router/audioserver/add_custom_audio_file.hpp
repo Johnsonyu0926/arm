@@ -25,7 +25,7 @@ namespace asns {
         char filename[128];
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddCustomAudioFileData, customAudioID, customAudioName, filePath, filePathType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddCustomAudioFileData, customAudioID, customAudioName, filePath, filePathType)
 
         const char *getCustomAudioName() { return customAudioName.c_str(); }
 
