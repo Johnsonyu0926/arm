@@ -17,7 +17,8 @@
 #include <arpa/inet.h>
 
 #include <chrono>
-#include "Singleton.hpp"
+#include <thread>
+
 #ifndef __CUTILS_H__
 #define __CUTILS_H__
 
@@ -288,7 +289,8 @@ public:
             //每次切两个字符
             std::string byte = str.substr(i, 2);
             //将十六进制的string转成long再强转成int再转成char
-            result.push_back(static_cast<char>(static_cast<int>(std::strtol(byte.c_str(), nullptr, 16))));//将处理完的字符压入result中
+            result.push_back(
+                    static_cast<char>(static_cast<int>(std::strtol(byte.c_str(), nullptr, 16))));//将处理完的字符压入result中
         }
         return result;
     }
@@ -311,20 +313,63 @@ public:
         // 发送组播消息, 需要使用组播地址, 和设置组播属性使用的组播地址一致就可以
         inet_pton(AF_INET, ip.c_str(), &cliaddr.sin_addr.s_addr);
         sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
-        printf("%s %d udp_multicast_send: %s\n", ip, port, msg.c_str());
+        printf("%s %d udp_multicast_send: %s\n", ip.c_str(), port, msg.c_str());
         close(fd);
     }
-    void start_timer(const int sec) {
-        auto begin = std::chrono::system_clock::now();
-        while (true) {
-            auto cur = std::chrono::system_clock::now();
-            auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - begin).count();
-            if (end >= sec) {
-                Singleton::getInstance().setStatus(0);
-                system("killall -9 aplay");
-                break;
+
+    /**
+     *
+     * @tparam callable
+     * @tparam arguments
+     * @param count 执行次数, 0 循环执行
+     * @param after 定时执行, 单位秒，过after秒后执行 0 立即执行
+     * @param interval 间隔时间, 单位秒, 每次执行间隔多长  0 不间隔
+     * @param f
+     * @param args
+     */
+    template<typename callable, class... arguments>
+    void async_wait(const size_t count, const int after, const size_t interval, callable &&f, arguments &&... args) {
+        std::function<typename std::result_of<callable(arguments...)>::type()> task
+                (std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
+        std::thread([after, task, count, interval]() {
+            auto begin = std::chrono::high_resolution_clock::now();
+            if (count <= 0) {
+                while (true) {
+                    auto diff = std::chrono::duration_cast<std::chrono::seconds>
+                            (std::chrono::high_resolution_clock::now() - begin).count();
+                    if (diff >= after) {
+                        task();
+                        auto beg = std::chrono::system_clock::now();
+                        while (true) {
+                            auto cur = std::chrono::system_clock::now();
+                            auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - beg).count();
+                            if (end >= interval) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                while (true) {
+                    auto diff = std::chrono::duration_cast<std::chrono::seconds>
+                            (std::chrono::high_resolution_clock::now() - begin).count();
+                    if (diff >= after) {
+                        for (size_t i = 0; i < count; ++i) {
+                            task();
+                            auto beg = std::chrono::system_clock::now();
+                            while (true) {
+                                auto cur = std::chrono::system_clock::now();
+                                auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - beg).count();
+                                if (end >= interval) {
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
             }
-        }
+        }).detach();
     }
 };
 
