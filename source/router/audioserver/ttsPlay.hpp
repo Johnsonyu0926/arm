@@ -39,7 +39,7 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+                std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
                 system(cmd.c_str());
                 switch (playType) {
                     case 0:
@@ -71,7 +71,10 @@ namespace asns {
                         }
                         Singleton::getInstance().setStatus(1);
                         std::thread([&] {
-                            utils.start_timer(duration);
+                            utils.start_timer(duration, [&] {
+                                Singleton::getInstance().setStatus(0);
+                                system("killall -9 aplay");
+                            });
                         }).detach();
                         std::thread([&] {
                             while (Singleton::getInstance().getStatus()) {
