@@ -529,8 +529,8 @@ int main(int argc, char **argv) {
         utils.udp_multicast_send("239.255.255.235", 5099, str);
     });
 
-    std::thread([] {
-        RSBusinessManage rs;
+    RSBusinessManage rs;
+    std::thread([&] {
         rs.worker();
     }).detach();
 

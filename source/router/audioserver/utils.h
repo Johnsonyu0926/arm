@@ -318,7 +318,7 @@ public:
     }
 
     /**
-     *
+     * 异步定时任务
      * @tparam callable
      * @tparam arguments
      * @param count 执行次数, 0 循环执行
@@ -328,12 +328,12 @@ public:
      * @param args
      */
     template<typename callable, class... arguments>
-    void async_wait(const size_t count, const int after, const size_t interval, callable &&f, arguments &&... args) {
+    void async_wait(const size_t count, const size_t after, const size_t interval, callable &&f, arguments &&... args) {
         std::function<typename std::result_of<callable(arguments...)>::type()> task
                 (std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
         std::thread([after, task, count, interval]() {
             auto begin = std::chrono::high_resolution_clock::now();
-            if (count <= 0) {
+            if (count == 0) {
                 while (true) {
                     auto diff = std::chrono::duration_cast<std::chrono::seconds>
                             (std::chrono::high_resolution_clock::now() - begin).count();
@@ -341,8 +341,8 @@ public:
                         task();
                         auto beg = std::chrono::system_clock::now();
                         while (true) {
-                            auto cur = std::chrono::system_clock::now();
-                            auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - beg).count();
+                            auto end = std::chrono::duration_cast<std::chrono::seconds>
+                                    (std::chrono::system_clock::now() - beg).count();
                             if (end >= interval) {
                                 break;
                             }
@@ -358,8 +358,8 @@ public:
                             task();
                             auto beg = std::chrono::system_clock::now();
                             while (true) {
-                                auto cur = std::chrono::system_clock::now();
-                                auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - beg).count();
+                                auto end = std::chrono::duration_cast<std::chrono::seconds>
+                                        (std::chrono::system_clock::now() - beg).count();
                                 if (end >= interval) {
                                     break;
                                 }
