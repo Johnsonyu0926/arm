@@ -458,6 +458,7 @@ For example:\n\
 
 #define AUDIO_DATA_DIR "/audiodata"
 #define AUDIO_CFG_DIR	"/cfg"
+#define AUDIO_TTS_DIR "/tts"
 
 int prepare_work_dir(string prefix)
 {
@@ -472,6 +473,12 @@ int prepare_work_dir(string prefix)
 	snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_cfg_dir.c_str());
 	system(cmd);
 	cout<<"exec cmd:"<<cmd<<endl;
+
+    string audio_tts_dir = prefix + AUDIO_TTS_DIR;
+    memset(cmd, 0, sizeof(cmd));
+    snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_tts_dir.c_str());
+    system(cmd);
+    cout<<"exec cmd:"<<cmd<<endl;
 }
 int main(int argc, char **argv) {
     int op;
@@ -513,12 +520,14 @@ int main(int argc, char **argv) {
     }
     sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
 
-    asns::CLoginResult loginRes;
-    loginRes.do_success();
-    json js = loginRes;
-    std::string str = js.dump();
     CUtils utils;
-    utils.udp_multicast_send("239.255.255.235", 5099,str);
+    asns::CLoginData data;
+    utils.async_wait(0, 0, 30, [&] {
+        data.do_success();
+        json js = data;
+        std::string str = js.dump();
+        utils.udp_multicast_send("239.255.255.235", 5099, str);
+    });
 
     std::thread([] {
         RSBusinessManage rs;
