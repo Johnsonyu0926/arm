@@ -42,7 +42,7 @@ namespace asns {
                 return 5;
             }
             std::string txt = utils.hex_to_string(content);
-            std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+            std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
             system(cmd.c_str());
 
             switch (timeType) {
@@ -73,9 +73,10 @@ namespace asns {
                         return 2;
                     }
                     Singleton::getInstance().setStatus(1);
-                    std::thread([&] {
-                        utils.start_timer(playDuration);
-                    }).detach();
+                    utils.async_wait(1,playDuration,0,[&]{
+                        Singleton::getInstance().setStatus(0);
+                        system("killall -9 aplay");
+                    });
                     std::thread([&] {
                         while (Singleton::getInstance().getStatus()) {
                             system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");

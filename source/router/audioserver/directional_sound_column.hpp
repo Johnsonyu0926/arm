@@ -253,7 +253,7 @@ namespace asns {
             return SendFast("F22", pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
@@ -274,7 +274,7 @@ namespace asns {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -m 0 -f /tmp/output.pcm";
+        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {
@@ -304,9 +304,10 @@ namespace asns {
                     return SendFast("F4", pClient);
                 }
                 Singleton::getInstance().setStatus(1);
-                std::thread([&] {
-                    utils.start_timer(duration);
-                }).detach();
+                utils.async_wait(1,duration,0,[&]{
+                    Singleton::getInstance().setStatus(0);
+                    system("killall -9 aplay");
+                });
                 std::thread([&] {
                     while (Singleton::getInstance().getStatus()) {
                         system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
@@ -373,8 +374,7 @@ namespace asns {
                     int s = duration % (3600 * 24) % 3600 % 60;
                     char buf[64] = {0};
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(),
-                            buf);
+                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(),buf);
                     std::cout << "cmd: " << command << std::endl;
                     system(command);
                     break;

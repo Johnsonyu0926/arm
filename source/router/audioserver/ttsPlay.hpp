@@ -70,12 +70,10 @@ namespace asns {
                             break;
                         }
                         Singleton::getInstance().setStatus(1);
-                        std::thread([&] {
-                            utils.start_timer(duration, [&] {
-                                Singleton::getInstance().setStatus(0);
-                                system("killall -9 aplay");
-                            });
-                        }).detach();
+                        utils.async_wait(1,duration,0,[&]{
+                            Singleton::getInstance().setStatus(0);
+                            system("killall -9 aplay");
+                        });
                         std::thread([&] {
                             while (Singleton::getInstance().getStatus()) {
                                 system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
