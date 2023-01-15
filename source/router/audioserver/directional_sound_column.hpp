@@ -13,59 +13,75 @@
 
 #include <thread>
 
-/*{
-   “address”: “01”,
-   “ip”: “192.168.1.100”,
-   “version”: “0.0.01”,
-    “gateway”: “”,
-    “netmask”: “”,
-    “storageType”: “”, // 0-内置存储；1-外挂存储
-    “volume”: “”,
-    “relayMode”: “”, // 闪灯模式：1-自定义模式；2-播放模式
-    “relayStatus”: “”, // 闪灯状态：0-关闭；1-打开
-    “playStatus”: “”, // 播放状态：0-未播放；1-播放中
-    “coreVersion”: “”, // 内核版本：IO-触发版本；COMMON-普通版本
-}
-*/
 extern int g_playing_priority;
 extern asns::CVolumeSet g_volumeSet;
 
 class DeviceBaseInfo {
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, address, ip, gateway, version, netmask, storageType, volume,
-                                   relayMode,
-                                   relayStatus, playStatus, coreVersion)
+    string codeVersion;
+    string coreVersion;
+    int relayMode;
+    string ip;
+    int storageType;
+    int port;
+    int playStatus;
+    int volume;
+    int relayStatus;
+    string hardwareReleaseTime;
+    int spiFreeSpace;
+    int flashFreeSpace;
+    string hardwareVersion;
+    int hardwareModelId;
+    string password;
+    int temperature;
+    string netmask;
+    string address;
+    string gateway;
+    string userName;
+    string imei;
+    string functionVersion;
+    string deviceCode;
+    string serverAddress;
+    string serverPort;
 
-    int do_success() {
-        address = "01";
-        CUtils util;
-        ip = util.get_lan_addr();
+    void do_success() {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        version = cfg.business[0].codeVersion;
-        gateway = util.get_lan_gateway();
-        netmask = util.get_lan_netmask();
-        storageType = "1";
-        g_volumeSet.load();
-        volume = std::to_string(g_volumeSet.getVolume());
-        relayMode = "2";
-        relayStatus = "1";
-        playStatus = std::to_string(util.get_process_status("madplay"));
+        codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
         coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
+        relayMode = 2;
+        CUtils util;
+        ip = util.get_lan_addr();
+        storageType = util.is_ros_platform() ? 0 : 1;
+        port = 34508;
+        playStatus = 0;
+        g_volumeSet.load();
+        volume = g_volumeSet.getVolume();
+        relayStatus = 1;
+        hardwareReleaseTime = "2022.12.09";
+        spiFreeSpace = storageType ? 9752500 : 0;
+        flashFreeSpace = util.get_available_Disk("/mnt");
+        hardwareVersion = "7621";
+        hardwareModelId = 2;
+        password = cfg.business[0].serverPassword;
+        temperature = 12;
+        netmask = util.get_lan_netmask();
+        address = "01";
+        gateway = util.get_lan_gateway();
+        userName = "admin";
+        imei = "11111";
+        functionVersion = "COMMON";
+        deviceCode = cfg.business[0].deviceID;
+        serverAddress = cfg.business[0].server;
+        serverPort = to_string(cfg.business[0].port);
     }
 
-private:
-    std::string address;
-    std::string ip;
-    std::string version;
-    std::string gateway;
-    std::string netmask;
-    std::string storageType;
-    std::string volume;
-    std::string relayMode;
-    std::string relayStatus;
-    std::string playStatus;
-    std::string coreVersion;
+public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(DeviceBaseInfo, codeVersion, coreVersion, relayMode, ip, storageType, port,
+                                   playStatus, volume, relayStatus, hardwareReleaseTime, spiFreeSpace,
+                                   flashFreeSpace, hardwareVersion, password, temperature, netmask, address,
+                                   gateway, userName, imei, functionVersion, deviceCode, serverAddress, serverPort,
+                                   hardwareModelId)
 };
 
 class DeviceBaseState {
@@ -304,7 +320,7 @@ namespace asns {
                     return SendFast("F4", pClient);
                 }
                 Singleton::getInstance().setStatus(1);
-                utils.async_wait(1,duration,0,[&]{
+                utils.async_wait(1, duration, 0, [&] {
                     Singleton::getInstance().setStatus(0);
                     system("killall -9 aplay");
                 });
@@ -374,7 +390,7 @@ namespace asns {
                     int s = duration % (3600 * 24) % 3600 % 60;
                     char buf[64] = {0};
                     sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(),buf);
+                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(), buf);
                     std::cout << "cmd: " << command << std::endl;
                     system(command);
                     break;
@@ -417,11 +433,7 @@ namespace asns {
                 sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
                 std::cout << cm << std::endl;
                 system(cm);
-                sprintf(cm, "ifconfig eth0 inet %s netmask %s up", ipAddress.c_str(), netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "ip r add default via %s", gateway.c_str());
-                std::cout << cm << std::endl;
+                system("reboot");
             } else {
                 char uci[128] = {0};
                 sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
@@ -449,16 +461,15 @@ namespace asns {
             const std::string &gateway = m_str[7];
             const std::string &ipAddress = m_str[6];
             if (utils.is_ros_platform()) {
+                SendTrue(pClient);
                 char cm[128] = {0};
                 sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
                 system(cm);
                 sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
                 system(cm);
-                sprintf(cm, "ifconfig eth0 inet %s up", ipAddress.c_str());
-                system(cm);
-                sprintf(cm, "ip route add default via %s", gateway.c_str());
-                system(cm);
+                system("reboot");
             } else {
+                SendTrue(pClient);
                 char uci[128] = {0};
                 sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
@@ -469,7 +480,7 @@ namespace asns {
                 sprintf(uci, "/etc/init.d/network reload");
                 system(uci);
             }
-            return SendTrue(pClient);
+            return 1;
         }
     }
 
@@ -523,7 +534,10 @@ namespace asns {
         if (res.empty() || res.find("error") != std::string::npos) {
             return SendFast("F5", pClient);
         } else if (res.find("true") != std::string::npos) {
-            return SendTrue(pClient);
+            json js;
+            js["downloadUrl"] = m_str[5];
+            std::string res = "01 E1 " + js.dump();
+            return pClient->Send(res.c_str(), res.length());
         } else {
             return SendFast("F5", pClient);
         }
@@ -544,7 +558,7 @@ namespace asns {
         std::ifstream fs(audioPath, std::fstream::in | std::fstream::binary);
         CUtils utils;
         int file_size = utils.get_file_size(audioPath);
-        Server server(50000);
+        Server server(34509);
         int port = server.bind();
         if (port < 0) {
             SendFast("F5", pClient);
@@ -640,7 +654,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         std::string path = cfg.getAudioFilePath() + temp;
-        Server server(50000);
+        Server server(34509);
         int port = server.bind();
         if (port < 0) {
             return SendFast("F5", pClient);
@@ -699,7 +713,7 @@ namespace asns {
     }
 
     int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
-        Server server(50001);
+        Server server(34509);
         int port = server.bind();
         if (port < 0) {
             return SendFast("F5", pClient);
