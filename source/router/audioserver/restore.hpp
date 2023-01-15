@@ -103,10 +103,6 @@ namespace asns {
             CAudioCfgBusiness cfg;
             cfg.load();
             if (utils.is_ros_platform()) {
-                cfg.business[0].serverPassword = "Aa123456";
-                cfg.business[0].server = "192.168.1.90";
-                cfg.business[0].port = 7681;
-                cfg.saveToJson();
                 system("cm default");
                 system("reboot");
             } else {
