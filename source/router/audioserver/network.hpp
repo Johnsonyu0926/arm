@@ -53,11 +53,7 @@ namespace asns {
                 sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
                 std::cout << cm << std::endl;
                 system(cm);
-                sprintf(cm, "ifconfig eth0 inet %s netmask %s up", ipAddress.c_str(), netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "ip r add default via %s", gateway.c_str());
-                std::cout << cm << std::endl;
+                system("reboot");
             } else {
                 char uci[128] = {0};
                 sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
