@@ -33,7 +33,7 @@ BOOL CServerThread::InitInstance() {
         }
 
         socket.Accept(pClient);
-        // DS_TRACE("Got the no."<<i<<" connection :"<<pClient->GetRemoteIp()<<":"<<ntohs(pClient->GetPeerPort()));
+        DS_TRACE("Got the no."<<i<<" connection :"<<pClient->GetRemoteIp()<<":"<<ntohs(pClient->GetPeerPort()));
         i++;
         CClientThread *pThread = new CClientThread();
         pThread->SetClient(pClient);

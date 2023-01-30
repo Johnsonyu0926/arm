@@ -2,7 +2,7 @@
 
 class Singleton {
 public:
-    ~Singleton() {}
+    ~Singleton() = default;
 
     Singleton(const Singleton &) = delete;
 
@@ -22,7 +22,7 @@ public:
     }
 
 private:
-    Singleton() {}
+    Singleton() = default;
 
 private:
     int m_status;
