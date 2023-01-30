@@ -20,7 +20,7 @@
 
 #include "hkVolume.hpp"
 // #include "login.hpp"
-
+#include <csignal>
 using namespace asns;
 using namespace std;
 
@@ -480,11 +480,16 @@ int prepare_work_dir(string prefix)
     system(cmd);
     cout<<"exec cmd:"<<cmd<<endl;
 }
+void signal_handler(int signal) {
+    std::cout << "exit" << std::endl;
+    exit(0);
+}
 int main(int argc, char **argv) {
     int op;
     printf("start audio program...\n");
 
     signal(SIGPIPE, SIG_IGN);
+    std::signal(SIGINT, signal_handler);
     int nPort = 34508;
 
     if (argc < 2) {
