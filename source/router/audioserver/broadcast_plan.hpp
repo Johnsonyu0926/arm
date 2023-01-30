@@ -776,7 +776,7 @@ namespace asns
 				{ // broadcast is stop.
 
 					pthread_mutex_lock(&g_ThreadsPlanLock);
-					for (int level = 0; level < 10; level++)
+					for (int level = 0; level < 16; level++)
 					{
 
 						for (int i = 0; i < plan.DailySchedule.size(); i++)
