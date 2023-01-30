@@ -371,6 +371,28 @@ public:
             }
         }).detach();
     }
+
+    /**
+    * 字符串切片
+    * @param str_v
+    * @param del_ims
+    * @return
+    */
+    std::vector<std::string> string_split(std::string str_v, std::string del_ims = " ") {
+        std::vector<std::string> output;
+        size_t first = 0;
+        while (first < str_v.size()) {
+            const auto second = str_v.find_first_of(del_ims, first);
+            if (first != second) {
+                output.emplace_back(str_v.substr(first, second - first));
+            }
+            if (second == std::string::npos) {
+                break;
+            }
+            first = second + 1;
+        }
+        return output;
+    }
 };
 
 #endif
