@@ -111,8 +111,14 @@ namespace asns {
             return 0;
         }
 
-        void getAudioList(){
-
+        int exist(std::string &name) {
+            Columnload();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->getName() == name) {
+                    return 1;
+                }
+            }
+            return 0;
         }
 
     public:
