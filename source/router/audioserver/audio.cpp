@@ -487,7 +487,7 @@ void signal_handler(int signal) {
 int main(int argc, char **argv) {
     int op;
     printf("start audio program...\n");
-
+    signal(SIGCHLD, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     std::signal(SIGINT, signal_handler);
     int nPort = 34508;
