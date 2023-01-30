@@ -100,11 +100,11 @@ public:
     }
 
     int is_ros_platform() {
-        get_ros_addr();
-        if (strlen(m_lan) > 0) {
-            return 1;
+        std::ifstream i("/mnt/cfg/startup");
+        if (!i.is_open()) {
+            return 0;
         }
-        return 0;
+        return 1;
     }
 
     char *get_ros_addr() {
@@ -129,33 +129,36 @@ public:
     }
 
     char *get_lan_gateway() {
-        char cmd[64] = {0};
-        strcpy(cmd, "uci get network.lan.gateway");
-        get_addr_by_cmd(cmd);
-        if (strlen(m_lan) == 0) {
+        if (is_ros_platform()) {
             get_ros_gateway();
+        } else {
+            char cmd[64] = {0};
+            strcpy(cmd, "uci get network.lan.gateway");
+            get_addr_by_cmd(cmd);
         }
         printf("gateway = %s\n", m_lan);
         return m_lan;
     }
 
     char *get_lan_netmask() {
-        char cmd[64] = {};
-        strcpy(cmd, "uci get network.lan.netmask");
-        get_addr_by_cmd(cmd);
-        if (strlen(m_lan) == 0) {
+        if (is_ros_platform()) {
             get_ros_netmask();
+        } else {
+            char cmd[64] = {};
+            strcpy(cmd, "uci get network.lan.netmask");
+            get_addr_by_cmd(cmd);
         }
         printf("netmask = %s\n", m_lan);
         return m_lan;
     }
 
     char *get_lan_addr() {
-        char cmd[64] = {0};
-        strcpy(cmd, "uci get network.lan.ipaddr");
-        get_addr_by_cmd(cmd);
-        if (strlen(m_lan) == 0) {
+        if (is_ros_platform()) {
             get_ros_addr();
+        } else {
+            char cmd[64] = {0};
+            strcpy(cmd, "uci get network.lan.ipaddr");
+            get_addr_by_cmd(cmd);
         }
         printf("address = %s\n", m_lan);
         return m_lan;
@@ -378,8 +381,8 @@ public:
     * @param del_ims
     * @return
     */
-    std::vector<std::string> string_split(std::string str_v, std::string del_ims = " ") {
-        std::vector<std::string> output;
+    std::vector <std::string> string_split(std::string str_v, std::string del_ims = " ") {
+        std::vector <std::string> output;
         size_t first = 0;
         while (first < str_v.size()) {
             const auto second = str_v.find_first_of(del_ims, first);
