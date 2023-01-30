@@ -55,9 +55,14 @@ namespace asns {
                 return 0;
             }
             json js;
-            i >> js;
-            std::cout << "mqtt load json:" << js.dump() << std::endl;
-            business = js;
+            try {
+                i >> js;
+                std::cout << "mqtt load json:" << js.dump() << std::endl;
+                business = js;
+            } catch (json::parse_error &ex) {
+                std::cout << "json parse error" << std::endl;
+                return 0;
+            }
         }
 
         void saveJson() {

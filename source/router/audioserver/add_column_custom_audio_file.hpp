@@ -47,8 +47,13 @@ namespace asns {
                 return 0;
             }
             json js;
-            i >> js;
-            business = js;
+            try {
+                i >> js;
+                business = js;
+            } catch (json::parse_error &ex) {
+                std::cout << "json parse error" << std::endl;
+                return 0;
+            }
         }
 
         int load() {
@@ -57,9 +62,13 @@ namespace asns {
                 return 0;
             }
             json js;
-            i >> js;
-            business = js;
-
+            try {
+                i >> js;
+                business = js;
+            } catch (json::parse_error &ex) {
+                std::cout << "json parse error" << std::endl;
+                return 0;
+            }
             CAddCustomAudioFileBusiness bus;
             bus.load();
             for (const auto &it: bus.business) {
