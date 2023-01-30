@@ -45,7 +45,7 @@ namespace asns {
                 CUtils utils;
                 if (utils.is_ros_platform()) {
                     char buf[64] = {0};
-                    sprintf(buf, "cm set_val sys password %s", password.c_str());
+                    sprintf(buf, "cm set_val sys serverpassword %s", password.c_str());
                     system(buf);
                 }
                 cfg.business[0].serverPassword = password;
@@ -57,10 +57,6 @@ namespace asns {
                 pClient->Send(str.c_str(), str.length());
                 return 1;
             }
-
-
-
-
         }
 
     private:
