@@ -292,17 +292,19 @@ namespace rs {
 
     int restore_network() {
         char uci[128] = {0};
-        sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
-        system(uci);
-        sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
-        system(uci);
-        sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
-        system(uci);
-        sprintf(uci, "uci commit network");
-        system(uci);
-        sprintf(uci, "/etc/init.d/network reload");
-        system(uci);
-
+        CUtils utils;
+        if (utils.is_ros_platform()) {
+            sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
+            system(uci);
+            sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
+            system(uci);
+            sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
+            system(uci);
+            sprintf(uci, "uci commit network");
+            system(uci);
+            sprintf(uci, "/etc/init.d/network reload");
+            system(uci);
+        }
     }
 
     int clean(const char *prefix) {
