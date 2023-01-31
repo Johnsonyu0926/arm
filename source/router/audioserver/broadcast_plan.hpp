@@ -17,7 +17,7 @@ extern asns::CAddCustomAudioFileBusiness g_addAudioBusiness;
 
 pthread_mutex_t g_ThreadsPlanLock = PTHREAD_MUTEX_INITIALIZER;
 
-#define BROADCAST_PLAN_FILE_NAME "/etc/config/broadcast_plan.json"
+#define BROADCAST_PLAN_FILE_NAME "/cfg/broadcast_plan.json"
 /*
 string request = R"(
 {
@@ -314,12 +314,12 @@ namespace asns
 		{
 			if (!TimeRange.match())
 			{
-				// cout<<"time range not match."<<endl;
+				cout<<"time range not match."<<endl;
 				return 0;
 			}
 			if (Operation.audioLevel != level)
 			{
-				// cout<<"level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel<<endl;
+				cout<<"level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel<<endl;
 				return 0;
 			}
 			// dayofweek check.
@@ -385,6 +385,16 @@ namespace asns
 				{
 					int id = Operation.customAudioID.at(i);
 					cout << "playing audio id:" << id << endl;
+					if(g_playing_priority < Operation.audioLevel) {
+						cout << "skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel<<endl;
+						continue;
+					} else { 
+						//playing it.
+						if (g_playing_priority != NON_PLAY_PRIORITY) {
+							cout << "stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority<<endl;
+                            system("killall -9 madplay");
+						}
+					}
 					g_playing_priority = Operation.audioLevel;
 					g_addAudioBusiness.play(id, TimeRange.endTime);
 					g_playing_priority = NON_PLAY_PRIORITY;
@@ -647,18 +657,29 @@ namespace asns
 	{
 	private:
 		CBroadcastPlanData plan;
+        std::string filePath;
 
 	public:
+        CBroadcastPlanBusiness(){
+            CAudioCfgBusiness business;
+            business.load();
+            filePath = business.business[0].savePrefix + BROADCAST_PLAN_FILE_NAME;
+        }
 		virtual int InitInstance() { execPlanThreadStart(); }
 		virtual int ExitInstance() {}
 
 		int parseRequest(string data)
 		{
-			if (g_playing_priority != NON_PLAY_PRIORITY)
+			//Begin modified by shidongxue . fix bug.2023.1.4
+			/*if (g_playing_priority != NON_PLAY_PRIORITY)
 			{ // the plan is playing...
 				cout << "parseRequest for plan...the plan is plaing now, stop plan play first." << endl;
 				system("killall -9 madplay");
 			}
+			*/ 
+			
+			//end modified by shidongxue . fix bug.2023.1.4
+
 			cout << data << endl;
 			pthread_mutex_lock(&g_ThreadsPlanLock);
 			json j = json::parse(data, nullptr, false);
@@ -683,7 +704,7 @@ namespace asns
 		int save_plan(string data)
 		{
 			ofstream outFile;
-			outFile.open(BROADCAST_PLAN_FILE_NAME);
+			outFile.open(filePath);
 			outFile << data;
 			outFile.close();
 			return 0;
@@ -696,16 +717,16 @@ namespace asns
 			// j = json{{"data":plan}};
 			// j = json{{"name", p.name}, {"address", p.address}, {"age", p.age}};
 			// j = json{{"data",plan}};
-			std::ofstream o(BROADCAST_PLAN_FILE_NAME);
+			std::ofstream o(filePath);
 			o << std::setw(4) << j << std::endl;
 		}
 		int load()
 		{
-			std::ifstream i(BROADCAST_PLAN_FILE_NAME);
+			std::ifstream i(filePath);
 			json j;
 			if (!i)
 			{
-				cout << "error read json file for broadcast plan." << BROADCAST_PLAN_FILE_NAME << endl;
+				cout << "error read json file for broadcast plan." << filePath << endl;
 				return -1;
 			}
 
@@ -720,7 +741,7 @@ namespace asns
 				std::cerr << "parse error at byte " << ex.byte << std::endl;
 				return -1;
 			}
-			cout << "load " << BROADCAST_PLAN_FILE_NAME << " success! total plan count:" << plan.DailySchedule.size() << endl;
+			cout << "load " << filePath << " success! total plan count:" << plan.DailySchedule.size() << endl;
 			return 0;
 		}
 		int dump()
@@ -755,7 +776,7 @@ namespace asns
 				{ // broadcast is stop.
 
 					pthread_mutex_lock(&g_ThreadsPlanLock);
-					for (int level = 0; level < 10; level++)
+					for (int level = 0; level < 16; level++)
 					{
 
 						for (int i = 0; i < plan.DailySchedule.size(); i++)

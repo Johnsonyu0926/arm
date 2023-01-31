@@ -32,13 +32,37 @@ namespace asns {
 
         template<typename Quest, typename Result>
         void do_success(const CReQuest<Quest, Result> &c, const int id) {
-            result = id == 1 ? "success" : id == 2 ? "fail" : "not handled";
-            resultId = id;
+            switch (id) {
+                case 5:
+                    result = "playing";
+                    resultId = 2;
+                    break;
+                case 4:
+                    result = "Insufficient disk space";
+                    resultId = 1;
+                    break;
+                case 3:
+                    result = "no file";
+                    resultId = 2;
+                    break;
+                case 2:
+                    result = "fail";
+                    resultId = id;
+                    break;
+                case 1:
+                    result = "success";
+                    resultId = id;
+                    break;
+                default:
+                    result = "fail";
+                    resultId = id;
+                    break;
+            }
             imei = c.imei;
             topic = "TaDiao/device/report/test/" + imei;
             cmd = c.cmd;
             publishId = c.publishId;
-            this->data.template do_success<Quest, Result>(c);
+            this->data.template do_success<Quest, Result, T>(c, *this);
         }
 
     public:

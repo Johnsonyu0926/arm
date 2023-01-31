@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <termios.h>
 
+#include "audiocfg.hpp"
+
 void set_send_dir() {
     system("echo 1 > /sys/class/gpio/gpio3/value");
     printf("set send dir! gpio is 1\n");
@@ -27,7 +29,9 @@ static int g_tty = 1; //ttyUSB1 as default.
 static int _uart_open(void) {
     int iFd = -1;
     struct termios opt;
-    int iBdVal = 9600;
+    asns::CAudioCfgBusiness cfg;
+    cfg.load();
+    int iBdVal = cfg.business[0].iBdVal;
 
     system("echo 3 > /sys/class/gpio/export");
     system("echo out > /sys/class/gpio/gpio3/direction");
@@ -48,6 +52,9 @@ static int _uart_open(void) {
     cfsetospeed(&opt, iBdVal);
 
     tcsetattr(iFd, TCSANOW, &opt);
+    char cmd[64];
+    sprintf(cmd, "stty -F /dev/ttyS%d %d", g_tty, iBdVal);
+    system(cmd);
 
     return iFd;
 }
@@ -115,6 +122,18 @@ static int _uart_read(char *pcBuf, int iBufLen) {
 
     }
     return iLen;
+}
+
+int _uart_work(const char *buf, int len) {
+    int fd = _uart_open();
+    if (fd < 0) {
+        printf("failed to open ttyS%d to read write.\n", g_tty);
+        return 2;
+    }
+    g_irs485 = fd;
+    set_send_dir();
+    _uart_write(buf, len);
+    return 1;
 }
 
 int handle_receive(char *buf, int len) {

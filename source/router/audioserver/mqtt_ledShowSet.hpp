@@ -10,12 +10,15 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CLedShowSetResultData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetResultData, ledShowRecordId)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {
+        template<typename Quest, typename Result, typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             ledShowRecordId = c.data.ledShowRecordId;
         }
 
@@ -29,13 +32,13 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
 
         int do_req() {
-            rs::set_send_dir();
-            rs::_uart_write(ledCommand.c_str(), ledCommand.length());
-            return 1;
+            json js = ledCommand;
+            std::string str = js.dump();
+            return rs::_uart_work(str.c_str(), str.length());
         }
 
     public:
-        std::string ledCommand;
+        std::vector<std::string> ledCommand;
         std::string showContent;
         long ledShowRecordId;
     };

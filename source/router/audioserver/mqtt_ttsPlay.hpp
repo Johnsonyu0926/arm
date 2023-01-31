@@ -1,6 +1,9 @@
 #pragma once
 
 #include "json.hpp"
+#include "utils.h"
+#include "Singleton.hpp"
+#include <thread>
 /**
  * {
         "content":"[v10]广大市民您好，预计1分钟后地震将到达日本，请做好紧急避险措施！",
@@ -15,13 +18,14 @@
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
-
+    template<typename T>
+    class CResult;
     class CTtsPlayResultData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CTtsPlayResultData, null)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {}
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
         std::nullptr_t null;
@@ -33,7 +37,57 @@ namespace asns {
                                        timeType)
 
         int do_req() {
-            return 0;
+            CUtils utils;
+            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+                return 5;
+            }
+            std::string txt = utils.hex_to_string(content);
+            std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
+            system(cmd.c_str());
+
+            switch (timeType) {
+                case 0: {
+                    Singleton::getInstance().setStatus(1);
+                    std::thread([&] {
+                        while (Singleton::getInstance().getStatus()) {
+                            system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                        }
+                    }).detach();
+                    break;
+                }
+                case 1: {
+                    if (playCount < 1) {
+                        return 2;
+                    }
+                    std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
+                    for (int i = 0; i < playCount; ++i) {
+                        cmd += "/tmp/output.pcm ";
+                    }
+                    cmd += "&";
+                    std::cout << "cmd: " << cmd << std::endl;
+                    system(cmd.c_str());
+                    break;
+                }
+                case 2: {
+                    if (playDuration < 1) {
+                        return 2;
+                    }
+                    Singleton::getInstance().setStatus(1);
+                    utils.async_wait(1,playDuration,0,[&]{
+                        Singleton::getInstance().setStatus(0);
+                        system("killall -9 aplay");
+                    });
+                    std::thread([&] {
+                        while (Singleton::getInstance().getStatus()) {
+                            system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                        }
+                    }).detach();
+                    break;
+                }
+                default:
+                    return 2;
+            }
+            return 1;
         }
 
     private:

@@ -30,16 +30,19 @@
 namespace asns {
     class CBootData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CBootData, sdcardSpace, flashSpace, iotVersion, version, volume, v5, v12, v24,
-                                       volt, storageType, imei, topic, cmd, hardwareModelId, hardwareVersion, ipAddress)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CBootData, sdcardSpace, flashSpace, iotVersion, version, volume, v5,
+                                                    v12, v24,
+                                                    volt, storageType, imei, topic, cmd, hardwareModelId,
+                                                    hardwareVersion, ipAddress)
 
 
         void do_success() {
+            CUtils utils;
             CAudioCfgBusiness cfg;
             cfg.load();
             CVolumeSet volumeSet;
             sdcardSpace = 16225000;
-            flashSpace = 16225000;
+            flashSpace = utils.get_available_Disk("/mnt/");
             iotVersion = "COMMON";
             version = cfg.business[0].codeVersion;
             volume = volumeSet.getVolume();
@@ -52,7 +55,6 @@ namespace asns {
             topic = "TaDiao/device/report/test/" + cfg.business[0].serial;
             cmd = "start";
             hardwareModelId = 2;
-            CUtils utils;
             if (utils.is_ros_platform()) {
                 hardwareVersion = "7621";
             } else {

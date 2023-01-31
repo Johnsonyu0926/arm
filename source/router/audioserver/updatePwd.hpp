@@ -12,13 +12,13 @@ namespace asns {
         int do_souccess() {
             cmd = "UpdatePwd";
             resultId = 1;
-            msg = "密码重置成功";
+            msg = "update password success";
         }
 
         int do_fail() {
             cmd = "UpdatePwd";
             resultId = 2;
-            msg = "密码重置失败";
+            msg = "update password fail";
         }
 
     private:
@@ -34,7 +34,7 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CAudioCfgBusiness cfg;
             cfg.load();
-            if (oldPassword != cfg.business[0].password) {
+            if (oldPassword != cfg.business[0].serverPassword) {
                 CUpdateResult updateResult;
                 updateResult.do_fail();
                 json resp = updateResult;
@@ -45,10 +45,10 @@ namespace asns {
                 CUtils utils;
                 if (utils.is_ros_platform()) {
                     char buf[64] = {0};
-                    sprintf(buf, "cm set_val sys password %s", password.c_str());
+                    sprintf(buf, "cm set_val sys serverpassword %s", password.c_str());
                     system(buf);
                 }
-                cfg.business[0].password = password;
+                cfg.business[0].serverPassword = password;
                 cfg.saveToJson();
                 CUpdateResult updateResult;
                 updateResult.do_souccess();
@@ -57,10 +57,6 @@ namespace asns {
                 pClient->Send(str.c_str(), str.length());
                 return 1;
             }
-
-
-
-
         }
 
     private:

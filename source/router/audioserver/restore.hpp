@@ -54,14 +54,14 @@ namespace asns {
 
             cmd = "Restore";
             resultId = 1;
-            msg = "恢复出厂设置成功";
+            msg = "restore success";
 
             data.codeVersion = "2.1.01";
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
             data.relayMode = 2;
 
             CUtils util;
-            data.ip = util.get_lan_addr();
+            data.ip = "192.168.1.100";
             data.storageType = 1;
             data.port = 34508;
             data.playStatus = 0;
@@ -72,11 +72,11 @@ namespace asns {
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;
             data.hardwareVersion = "4.2.1";
-            data.password = cfg.business[0].password;
+            data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = util.get_ros_netmask();
+            data.netmask = "255.255.255.0";
             data.address = "01";
-            data.gateway = util.get_ros_gateway();
+            data.gateway = "192.168.1.1";
             data.userName = "admin";
             data.imei = "869298057534588";
             data.functionVersion = "COMMON";
@@ -99,34 +99,24 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CUtils utils;
+            CRestoreResult restoreResult;
+            CAudioCfgBusiness cfg;
+            cfg.load();
             if (utils.is_ros_platform()) {
                 system("cm default");
-                CAudioCfgBusiness cfg;
-                cfg.load();
-                cfg.business[0].password = "Aa123456";
-                cfg.business[0].server = "192.168.1.90";
-                cfg.business[0].port = 7681;
-                cfg.saveToJson();
-                CVolumeSet volumeSet;
-                volumeSet.setVolume(3);
-                volumeSet.saveToJson();
+                system("reboot");
             } else {
-                CAudioCfgBusiness cfg;
-                cfg.load();
-                cfg.business[0].password = "Aa123456";
+                cfg.business[0].serverPassword = "Aa123456";
                 cfg.business[0].server = "192.168.1.90";
                 cfg.business[0].port = 7681;
                 cfg.saveToJson();
-                CVolumeSet volumeSet;
-                volumeSet.setVolume(3);
-                volumeSet.saveToJson();
+                utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
+                restoreResult.do_success();
+                json js = restoreResult;
+                std::string str = js.dump();
+                pClient->Send(str.c_str(), str.length());
+                utils.openwrt_restore_network();
             }
-
-            CRestoreResult restoreResult;
-            restoreResult.do_success();
-            json js = restoreResult;
-            std::string str = js.dump();
-            pClient->Send(str.c_str(), str.length());
         }
 
     private:

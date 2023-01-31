@@ -1,21 +1,22 @@
 #ifndef __ADD_CUSTOM_AUDIO_FILE_H__
 #define __ADD_CUSTOM_AUDIO_FILE_H__
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "utils.h"
 #include "json.hpp"
 #include "doorsbase.h"
+#include "audiocfg.hpp"
+
 using namespace std;
 using json = nlohmann::json;
 // extern vector<int> playing;
 
-namespace asns
-{
-#define ADD_CUSTOM_AUDIO_FILE "/etc/config/add_custom_audio_file.json"
+namespace asns {
+    const std::string ADD_CUSTOM_AUDIO_FILE = "/cfg/add_custom_audio_file.json";
 
-    class CAddCustomAudioFileData
-    {
+    class CAddCustomAudioFileData {
     public:
         int customAudioID;
         string customAudioName;
@@ -24,30 +25,30 @@ namespace asns
         char filename[128];
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddCustomAudioFileData, customAudioID, customAudioName, filePath, filePathType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddCustomAudioFileData, customAudioID, customAudioName, filePath, filePathType)
+
         const char *getCustomAudioName() { return customAudioName.c_str(); }
-        char *parseFile()
-        {
+
+        char *parseFile() {
             char *p1 = strstr(filePath.c_str(), "?filename=");
-            if (p1)
-            {
+            if (p1) {
                 p1 += strlen("?filename=");
                 char *p2 = strchr(p1, '&');
-                if (p2)
-                {
+                if (p2) {
                     strncpy(filename, p1, p2 - p1);
                 }
             }
             return filename;
         }
+
         const char *getFileName() { return filename; }
+
         const char *getFilePath() { return filePath.c_str(); }
+
         int getCustomAudioID() { return customAudioID; }
 
-        int play(string prefix, string endTime)
-        {
-            if (strlen(filename) <= 0)
-            {
+        int play(string prefix, string endTime) {
+            if (strlen(filename) <= 0) {
                 parseFile();
             }
 
@@ -69,25 +70,20 @@ namespace asns
             sscanf(endTime.c_str(), "%d:%d:%d", &h, &m, &s);
             CSTime t1(tnow.m_nYear, tnow.m_nMon, tnow.m_nDay, h, m, s);
 
-            while (1)
-            {
+            while (1) {
 
                 tnow.GetCurTime();
 
                 int exist = utils.get_process_status(cmd);
-                if (!exist)
-                {
+                if (!exist) {
                     cout << "play finish of cmd:" << cmd << endl;
                     break;
                 }
-                if (tnow.m_time <= t1.m_time)
-                {
+                if (tnow.m_time <= t1.m_time) {
                     // current time is match. waiting
                     cout << "playing:" << cmd << endl;
                     sleep(1);
-                }
-                else
-                {
+                } else {
                     // out of time. stop if it is playing...
                     system("killall -9 madplay");
                     cout << "out of time. play stop! last cmd is:" << cmd << endl;
@@ -98,108 +94,113 @@ namespace asns
         }
     };
 
-    class CAddCustomAudioFileBusiness
-    {
+    class CAddCustomAudioFileBusiness {
     public:
-        vector<CAddCustomAudioFileData> business;
-
+        vector <CAddCustomAudioFileData> business;
+        std::string filePath;
     public:
         string savePrefix;
-        int parseRequest(string data)
-        {
+
+        CAddCustomAudioFileBusiness() {
+            CAudioCfgBusiness business;
+            business.load();
+            filePath = business.business[0].savePrefix + ADD_CUSTOM_AUDIO_FILE;
+        }
+
+        std::string getFilePath() const {
+            return filePath;
+        }
+
+        int parseRequest(string data) {
             cout << data << endl;
             json j = json::parse(data, nullptr, false);
-            try
-            {
+            try {
                 business = j.at("data");
             }
-            catch (json::parse_error &ex)
-            {
+            catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
             return 0;
         }
-        int add(string data)
-        {
+
+        int add(string data) {
             cout << data << endl;
             json j = json::parse(data, nullptr, false);
-            try
-            {
+            try {
                 CAddCustomAudioFileData node = j.at("data");
 
-                if (exist(node))
-                {
+                if (exist(node)) {
                     cout << "exist node , " << endl;
                     return 0;
                 }
                 append(node);
             }
-            catch (json::parse_error &ex)
-            {
+            catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
             return 0;
         }
-        int exist(CAddCustomAudioFileData node)
-        {
-            for (unsigned int i = 0; i < business.size(); i++)
-            {
+
+        int exist(CAddCustomAudioFileData node) {
+            for (unsigned int i = 0; i < business.size(); i++) {
                 CAddCustomAudioFileData data = business.at(i);
-                if (data.getCustomAudioID() == node.getCustomAudioID())
-                {
+                if (data.getCustomAudioID() == node.getCustomAudioID()) {
                     return 1;
                 }
             }
             return 0;
         }
 
-        int append(CAddCustomAudioFileData node)
-        {
+        int exist(std::string &name) {
+            load();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->customAudioName == name) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        int append(CAddCustomAudioFileData node) {
             business.push_back(node);
             download(node);
             saveToJson();
             return 0;
         }
 
-        int saveToJson()
-        {
+        int saveToJson() {
             json j;
             j["data"] = business;
-            std::ofstream o(ADD_CUSTOM_AUDIO_FILE);
+            std::ofstream o(filePath);
             o << std::setw(4) << j << std::endl;
             return 0;
         }
 
-        int download(CAddCustomAudioFileData node)
-        {
+        int download(CAddCustomAudioFileData node) {
             char cmd[1024];
             node.parseFile();
             sprintf(cmd, "/usr/bin/dodownload.sh \"%s\" \"%s/%s\"",
-                    (char *)node.getFilePath(),
+                    (char *) node.getFilePath(),
                     savePrefix.c_str(),
-                    (char *)node.getFileName());
-            DS_TRACE("exec download command:" << cmd);
+                    (char *) node.getFileName());
+            DS_TRACE("NLOHMANN_DEFINE_TYPE_INTRUSIVE:" << cmd);
             system(cmd);
             return 0;
         }
 
-        int load()
-        {
-            std::ifstream i(ADD_CUSTOM_AUDIO_FILE);
-            if (!i)
-            {
+        int load() {
+            std::ifstream i(filePath);
+            if (!i) {
                 return 0;
             }
             json j;
             i >> j;
-            try
-            {
+            try {
                 business = j.at("data");
             }
-            catch (json::parse_error &ex)
-            {
+            catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
@@ -208,20 +209,35 @@ namespace asns
             return 0;
         }
 
-        int play(int id, string endtime)
-        {
+        int play(int id, string endtime) {
             //cout << "business count:" << business.size() << endl;
-            for (unsigned int i = 0; i < business.size(); i++)
-            {
+            for (unsigned int i = 0; i < business.size(); i++) {
                 CAddCustomAudioFileData data = business.at(i);
-                if (data.getCustomAudioID() == id)
-                {
+                if (data.getCustomAudioID() == id) {
                     data.play(savePrefix, endtime);
                 }
             }
             return 0;
         }
-    };
 
+        int deleteAudio(std::string name) {
+            this->load();
+            for (auto it = business.begin(); it != business.end(); ++it) {
+                if (it->customAudioName == name) {
+                    char cmd[256];
+                    CAudioCfgBusiness cfg;
+                    cfg.load();
+
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
+                    std::cout << cmd << std::endl;
+                    system(cmd);
+                    business.erase(it);
+                    this->saveToJson();
+                    return 1;
+                }
+            }
+            return 0;
+        }
+    };
 }
 #endif

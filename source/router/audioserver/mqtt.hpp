@@ -2,23 +2,29 @@
 #include <chrono>
 #include "mosquittopp.h"
 #include "mqtt_serviceManage.hpp"
+#include "audiocfg.hpp"
 
 class MQTT : public mosqpp::mosquittopp {
 public:
     explicit MQTT(const char *id) : mosqpp::mosquittopp(id) {}
 
+    explicit MQTT() : mosqpp::mosquittopp() {}
+
     //连接Mqtt服务器
     void on_connect(int rc) override {
+        std::cout << "on_connect in mqtt , rc = " << rc << std::endl;
         if (MOSQ_ERR_ERRNO == rc) {
             std::cerr << "mqtt connect err:" << mosqpp::strerror(rc) << std::endl;
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
             this->disconnect();
+        } else if (MOSQ_ERR_SUCCESS == rc) {
+            subscribe(nullptr, request_topic.c_str());
+            std::cout << "Subscribe to:" << request_topic << std::endl;
         }
-        std::cout << "rc:" << rc << std::endl;
     }
 
     void on_connect_with_flags(int rc, int flags) override {
-        std::cout << "rc:" << rc << " flags " << flags << std::endl;
+        std::cout << "on connect with flags return rc :" << rc << ", flags:" << flags << std::endl;
     }
 
     //断开Mqtt连接
@@ -34,14 +40,17 @@ public:
     //订阅主题接收到消息
     void on_message(const mosquitto_message *message) override {
         bool res = false;
+        std::string str = static_cast<char *>(message->payload);
+        json js = json::parse(str);
+        std::cout << message->topic << " " << js.dump() << std::endl;
         //检查主题是否与订阅匹配。
         mosqpp::topic_matches_sub(request_topic.c_str(), message->topic, &res);
         if (res) {
-            std::string str = static_cast<char *>(message->payload);
-            json js = json::parse(str);
-            std::cout << message->topic << " " << js.dump() << std::endl;
-            std::string reStr = m_serviceManage.m_fn[js["cmd"]](js);
+            std::string reStr = ServiceManage::instance().getHandler(js["cmd"].get<std::string>())(js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
+        } else {
+            std::cout << "request_topic:" << request_topic << ", message topic:" << message->topic << " , not match."
+                      << std::endl;
         }
     }
 
@@ -77,7 +86,7 @@ public:
     }
 
     void heartBeat() {
-        std::string reStr = m_serviceManage.heartBeat();
+        std::string reStr = ServiceManage::instance().heartBeat();
         this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
     }
 
@@ -94,8 +103,6 @@ public:
     }
 
 public:
-    std::string request_topic = "IOT/intranet/client/request/prod/";
-    std::string publish_topic = "IOT/intranet/server/report/prod/";
-public:
-    ServiceManage m_serviceManage;
+    std::string request_topic = "IOT/intranet/client/request/";
+    std::string publish_topic = "IOT/intranet/server/report/";
 };

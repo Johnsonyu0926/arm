@@ -11,7 +11,7 @@ namespace asns {
         int do_success() {
             cmd = "Reboot";
             resultId = 1;
-            msg = "触发重启成功";
+            msg = "reboot success";
         }
 
     private:

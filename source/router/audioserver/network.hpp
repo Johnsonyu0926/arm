@@ -39,6 +39,11 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char cm[128] = {0};
+                CNetworkSetResult res;
+                res.do_success();
+                json j = res;
+                std::string s = j.dump();
+                pClient->Send(s.c_str(), s.length());
                 sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
                 std::cout << cm << std::endl;
                 system(cm);
@@ -48,29 +53,25 @@ namespace asns {
                 sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
                 std::cout << cm << std::endl;
                 system(cm);
-                sprintf(cm, "ifconfig eth0 inet %s netmask %s up", ipAddress.c_str(), netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "ip r add default via %s", gateway.c_str());
-                std::cout << cm << std::endl;
+                system("reboot");
             } else {
                 char uci[128] = {0};
-                sprintf(uci, "uci set network.wan.gateway=%s", gateway.c_str());
+                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.ipaddr=%s", ipAddress.c_str());
+                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
                 system(uci);
-                sprintf(uci, "uci set network.wan.netmask=%s", netMask.c_str());
+                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
                 system(uci);
-                sprintf(uci, "uci commit");
+                sprintf(uci, "uci commit network");
                 system(uci);
-                sprintf(uci, "/etc/init.d/network reload");
+                sprintf(uci, "/etc/init.d/network reload &");
+                CNetworkSetResult res;
+                res.do_success();
+                json j = res;
+                std::string s = j.dump();
+                pClient->Send(s.c_str(), s.length());
                 system(uci);
             }
-            CNetworkSetResult res;
-            res.do_success();
-            json j = res;
-            std::string s = j.dump();
-            pClient->Send(s.c_str(), s.length());
             return 1;
         }
     };

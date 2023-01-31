@@ -10,25 +10,30 @@ using namespace std;
 using json = nlohmann::json;
 
 namespace asns {
-#define AUDIOCFG_FILE_NAME "/etc/config/audio.cfg"
+    const std::string AUDIOCFG_FILE_NAME = "/mnt/cfg/audio.cfg";
 
     class CAudioCfgData {
     public:
+        int iBdVal;
         int serverType;
         string codeVersion;
         string server;
         int port;
         string deviceID;
         string password;
+        string serverPassword;
         string serial;
         string subSerial;
         string devName;
         string savePrefix;
+        string env;
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, serverType, codeVersion, server, port, deviceID, password, serial,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal, serverType, codeVersion, server, port, deviceID, password,
+                                       serverPassword,
+                                       serial,
                                        subSerial,
-                                       devName, savePrefix)
+                                       devName, savePrefix, env)
     };
 
     class CAudioCfgBusiness {
@@ -42,6 +47,7 @@ namespace asns {
             std::ofstream o(AUDIOCFG_FILE_NAME);
             o << std::setw(4) << j << std::endl;
         }
+
 
         int load() {
             std::ifstream i(AUDIOCFG_FILE_NAME);
@@ -58,9 +64,15 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
-            cout << "count:" << business.size() << endl;
+            //cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
+            //cout << "count:" << business.size() << endl;
             return 0;
+        }
+
+        std::string getAudioFilePath() {
+            this->load();
+            std::string res = business[0].savePrefix + "/audiodata/";
+            return res;
         }
     };
 

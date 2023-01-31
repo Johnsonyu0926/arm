@@ -1,5 +1,7 @@
 [
     {
-        "fileName": "1.mp3"
+        "type": 32,
+        "fileName": "1.mp3",
+        "size": 1024
     }
 ]

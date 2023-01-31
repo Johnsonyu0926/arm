@@ -26,8 +26,9 @@
 #include "record.hpp"
 #include "ptzOperate.hpp"
 #include "directional_sound_column.hpp"
-
+#include "relaySet.hpp"
 #include "audio_del.hpp"
+#include "micRecord.hpp"
 
 using namespace asns;
 
@@ -36,18 +37,6 @@ extern DWORD total_kilo;
 using json = nlohmann::json;
 
 int CClientThread::do_req(char *buf, CSocket *pClient) {
-    /*if (strstr(buf, "Login")) {
-        cout << "do login business." << endl;
-        CLogin login = m_json;
-        m_login_status = login.do_req(pClient);
-        return 0;
-    } else {
-        if (!m_login_status) {
-            cout << "please login first!" << endl;
-            pClient->Close();
-            return -1;
-        }
-    }*/
     if (strstr(buf, "Login")) {
         cout << "do login business." << endl;
         CLogin login = m_json;
@@ -87,10 +76,10 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         std::cout << "TtsPlay cmd" << std::endl;
         CTtsPlay ttsPlay = m_json;
         ttsPlay.do_req(pClient);
-/*    } else if (strstr(buf, "FileUpload")) {
+    } else if (strstr(buf, "FileUpload")) {
         std::cout << "FileUpload cmd" << std::endl;
         CFileUpload fileUpload = m_json;
-        fileUpload.do_req(pClient);*/
+        fileUpload.do_req(pClient);
     } else if (strstr(buf, "AudioStop")) {
         std::cout << "AudioStop cmd" << std::endl;
         CAudioStop audioStop = m_json;
@@ -107,17 +96,17 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         std::cout << "UpdatePwd cmd" << std::endl;
         CUpdate update = m_json;
         update.do_req(pClient);
-    } else if (strstr(buf, "record")) {
+    }/* else if (strstr(buf, "record")) {
         std::cout << "record cmd" << std::endl;
         CRecord recod = m_json;
         recod.do_req(pClient);
-    }
+    }*/
         //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
-        /*else if (strstr(buf, "MicRecord")) {
-            std::cout << "MicRecord cmd" << std::endl;
-            CRecord recod = m_json;
-            recod.do_req(pClient);
-        }*/
+    else if (strstr(buf, "MicRecord")) {
+        std::cout << "MicRecord cmd" << std::endl;
+        CMicRecord res = m_json;
+        res.do_req(pClient);
+    }
         //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
     else if (strstr(buf, "AudioDelete")) {
         cout << "AudioDelete command." << endl;
@@ -126,6 +115,9 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
     } else if (strstr(buf, "PtzOperate")) {
         CPtzOperate res = m_json;
         res.do_req();
+    } else if (strstr(buf, "RelaySet")) {
+        CRelaySet res = m_json;
+        res.do_req(pClient);
     } else {
         cout << "unsupport command:" << buf << endl;
         CUnsupportBusiness business = m_json;
@@ -191,13 +183,15 @@ int CClientThread::do_str_req(CSocket *pClient) {
             asns::GetDeviceStatus(pClient);
             break;
         case TTSPLAY:
-            std::cout << "TTS语音播报" << std::endl;
+            std::cout << "TtsPlay" << std::endl;
+            asns::TtsPlay(m_str, pClient);
             break;
         case LIGHTSWITCH:
             std::cout << "闪灯开关" << std::endl;
             break;
         case FILEUPLOAD:
-            std::cout << "文件上传" << std::endl;
+            std::cout << "fileUpload" << std::endl;
+            asns::FileUpload(m_str, pClient);
             break;
         case RESTORE:
             std::cout << "Restore" << std::endl;
@@ -208,7 +202,8 @@ int CClientThread::do_str_req(CSocket *pClient) {
             asns::AudioNumberOrTimePlay(m_str, pClient);
             break;
         case TTSNUMORTPLAY:
-            std::cout << "文字时长/次数播报" << std::endl;
+            std::cout << "Tts Number or Time Play" << std::endl;
+            asns::TtsNumTimePlay(m_str, pClient);
             break;
         case GETDEVICEBASEINFO:
             std::cout << "GetDeviceBaseInfo" << std::endl;
@@ -216,7 +211,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
             break;
         case RECORD:
             std::cout << "Record" << std::endl;
-            //asns::Record(m_str, pClient);
+            asns::Record(m_str, pClient);
             break;
         case REMOTEUPGRADE:
             std::cout << "远程升级" << std::endl;
@@ -242,6 +237,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
             break;
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
+            CUtils utils;
             asns::RemoteFileUpgrade(m_str, pClient);
             break;
         default:

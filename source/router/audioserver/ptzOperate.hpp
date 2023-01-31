@@ -10,8 +10,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPtzOperate, cmd, operateCmd)
 
         int do_req() {
-            set_send_dir();
-            _uart_write(operateCmd.c_str(), operateCmd.length());
+            _uart_work(operateCmd.c_str(),operateCmd.length());
         }
 
     private:

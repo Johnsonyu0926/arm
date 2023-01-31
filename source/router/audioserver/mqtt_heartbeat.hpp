@@ -2,8 +2,9 @@
 
 #include "audiocfg.hpp"
 #include "volume.hpp"
-
 #include "json.hpp"
+#include "utils.h"
+#include "gpio.hpp"
 /**
  * {
         "cmd":"hello",
@@ -20,7 +21,7 @@
 namespace asns {
     class CHeartBeatData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CHeartBeatData, cmd, volume, imei, playStatus, sdcardSpace, flashSpace,
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CHeartBeatData, cmd, volume, imei, playStatus, sdcardSpace, flashSpace,
                                        storageType, v5, v12, v24)
 
         int do_success() {
@@ -28,15 +29,15 @@ namespace asns {
             cfg.load();
             CVolumeSet volumeSet;
             volumeSet.load();
-
+            CUtils utils;
             cmd = "hello";
             volume = volumeSet.getVolume();
             imei = cfg.business[0].serial;
-            playStatus = 0;
+            playStatus = utils.get_process_status("madplay");
             sdcardSpace = "7684500";
             flashSpace = "7684500";
             storageType = 1;
-            v5 = 0;
+            v5 = CGpio::getInstance().getGpioStatus();
             v12 = 0;
             v24 = 0;
             return 1;

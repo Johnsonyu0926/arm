@@ -44,7 +44,7 @@ namespace asns {
             cfg.business[0].server = serverAddress;
             cfg.business[0].port = atoi(serverPort.c_str());
             cfg.business[0].deviceID = deviceCode;
-            cfg.business[0].password = password;
+            cfg.business[0].serverPassword = password;
             cfg.saveToJson();
 
             CUtils utils;

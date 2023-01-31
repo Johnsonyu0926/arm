@@ -9,11 +9,11 @@
 using json = nlohmann::json;
 
 namespace asns {
-    const std::string ADD_MQTT_CUSTOM_AUDIO_FILE = "/etc/config/add_mqtt_custom_audio_file.json";
+    const std::string ADD_MQTT_CUSTOM_AUDIO_FILE = "/cfg/add_mqtt_custom_audio_file.json";
 
     class CAddMqttCustomAudioFileData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAddMqttCustomAudioFileData, fileName, audioUploadRecordId)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddMqttCustomAudioFileData, fileName, audioUploadRecordId)
 
         void setName(const std::string &name) {
             fileName = name;
@@ -38,37 +38,52 @@ namespace asns {
 
     class CAddMqttCustomAudioFileBusiness {
     public:
+        CAddMqttCustomAudioFileBusiness() {
+            CAudioCfgBusiness business;
+            business.load();
+            filePath = business.business[0].savePrefix + ADD_MQTT_CUSTOM_AUDIO_FILE;
+        }
+
+        std::string getFilePath() const {
+            return filePath;
+        }
+
         int mqttLoad() {
-            std::ifstream i(ADD_MQTT_CUSTOM_AUDIO_FILE);
+            std::ifstream i(filePath);
             if (!i.is_open()) {
-                std::cout<<"ifstream open fail"<<std::endl;
+                std::cout << "ifstream open fail" << std::endl;
                 return 0;
             }
             json js;
-            i >> js;
-            std::cout<<"mqtt load json:"<<js.dump()<<std::endl;
-            business = js;
+            try {
+                i >> js;
+                std::cout << "mqtt load json:" << js.dump() << std::endl;
+                business = js;
+            } catch (json::parse_error &ex) {
+                std::cout << "json parse error" << std::endl;
+                return 0;
+            }
         }
 
         void saveJson() {
-            std::ofstream o(ADD_MQTT_CUSTOM_AUDIO_FILE);
-            if(!o.is_open()){
-                std::cout<<"ofstream open fail"<<std::endl;
-                return ;
+            std::ofstream o(filePath);
+            if (!o.is_open()) {
+                std::cout << "ofstream open fail" << std::endl;
+                return;
             }
             json js = business;
-            std::cout<<"mqtt saveJson :" <<js.dump()<<std::endl;
+            std::cout << "mqtt saveJson :" << js.dump() << std::endl;
             o << js << std::endl;
         }
 
-        int deleteData(std::string &name) {
+        int deleteData(const std::string &name) {
             mqttLoad();
             for (auto it = business.begin(); it != business.end(); ++it) {
                 if (it->getName() == name) {
                     char cmd[256];
                     CAudioCfgBusiness cfg;
                     cfg.load();
-                    sprintf(cmd, "rm %s%s", cfg.business[0].savePrefix.c_str(), name.c_str());
+                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
                     std::cout << cmd << std::endl;
                     system(cmd);
                     business.erase(it);
@@ -76,7 +91,7 @@ namespace asns {
                     return 1;
                 }
             }
-            return 0;
+            return 3;
         }
 
         bool exist(const std::string &name) {
@@ -91,6 +106,7 @@ namespace asns {
 
     public:
         std::vector<CAddMqttCustomAudioFileData> business;
+        std::string filePath;
     };
 
 } // namespace asms

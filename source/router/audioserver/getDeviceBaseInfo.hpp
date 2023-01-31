@@ -4,6 +4,7 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
+
 extern asns::CVolumeSet g_volumeSet;
 namespace asns {
 
@@ -53,7 +54,7 @@ namespace asns {
 
             cmd = "GetDeviceBaseInfo";
             resultId = 1;
-            msg = "查询设备信息成功";
+            msg = "Obtaining information successfully";
             data.codeVersion = "2.1.01";
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
             data.relayMode = 2;
@@ -62,7 +63,7 @@ namespace asns {
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = 0;
+            data.playStatus = util.get_process_status("madplay");
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
             data.relayStatus = 1;
@@ -70,11 +71,11 @@ namespace asns {
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;
             data.hardwareVersion = "4.2.1";
-            data.password = cfg.business[0].password;
+            data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = util.get_ros_netmask();
+            data.netmask = util.get_lan_netmask();
             data.address = "01";
-            data.gateway = util.get_ros_gateway();
+            data.gateway = util.get_lan_gateway();
             data.userName = "admin";
             data.imei = "869298057534588";
             data.functionVersion = "COMMON";

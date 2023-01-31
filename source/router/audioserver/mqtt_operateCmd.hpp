@@ -10,12 +10,15 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CPtzOperateResultData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateResultData, null)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {}
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     public:
         std::nullptr_t null;
@@ -27,9 +30,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateData, operateCmd)
 
         int do_req() {
-            rs::set_send_dir();
-            rs::_uart_write(operateCmd.c_str(), operateCmd.length());
-            return 1;
+            return rs::_uart_work(operateCmd.c_str(), operateCmd.length());
         }
 
     public:

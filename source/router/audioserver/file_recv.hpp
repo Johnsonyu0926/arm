@@ -10,11 +10,9 @@
 
 class Server {
 public:
-    Server(uint16_t port) {
-
+    Server(uint16_t port) : port_(port) {
         memset(&server_addr_, 0, sizeof server_addr_);
         server_addr_.sin_family = AF_INET;
-        server_addr_.sin_port = htons(port);
         server_addr_.sin_addr.s_addr = htonl(INADDR_ANY);
 
         if ((fd_ = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -24,10 +22,17 @@ public:
         setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, (const void *) &opt, sizeof(opt));
     }
 
-    void bind() {
-        if (::bind(fd_, (struct sockaddr *) &server_addr_, sizeof server_addr_) < 0) {
-            perror("bind error");
+    int bind() {
+        for (int port = port_; port < 34608; ++port) {
+            server_addr_.sin_port = htons(port);
+            if (::bind(fd_, (struct sockaddr *) &server_addr_, sizeof server_addr_) >= 0) {
+                printf("bind success %d\n", port);
+                return port;
+            } else {
+                printf("bind error port: %d\n", port);
+            }
         }
+        return -1;
     }
 
     void listen() {
@@ -62,7 +67,12 @@ public:
         return fd_;
     }
 
+    void closeFd() {
+        close(fd_);
+    }
+
 private:
     int fd_;
+    int port_;
     struct sockaddr_in server_addr_;
 };

@@ -15,12 +15,15 @@ namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
 
+    template<typename T>
+    class CResult;
+
     class CRecordPlayResultData {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayResultData, null);
 
     public:
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest<Quest, Result> &c) {}
+        template<typename Quest, typename Result, typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
         std::nullptr_t null;
@@ -28,23 +31,44 @@ namespace asns {
 
     class CRecordPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRecordPlayData, downloadUrl, playCount, playType, storageType, timeType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT (CRecordPlayData, downloadUrl, playCount, playType, storageType,
+                                                     timeType)
 
         int do_req() {
-            char command[256] = {0};
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                return 5;
+            }
+            char buf[256] = {0};
+            std::string fileName = "/tmp/record.mp3";
+            sprintf(buf, "curl --location --request GET %s --output %s", downloadUrl.c_str(), fileName.c_str());
+            std::cout << "cmd: " << buf << std::endl;
+            system(buf);
             switch (timeType) {
                 case 0: {
+                    char command[256] = {0};
+                    int d = playCount / (3600 * 24);
+                    int t = playCount % (3600 * 24) / 3600;
+                    int m = playCount % (3600 * 24) % 3600 / 60;
+                    int s = playCount % (3600 * 24) % 3600 % 60;
+                    char buf[64] = {0};
+                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
+                    sprintf(command, "madplay %s -r -t %s &",fileName.c_str(), buf);
+                    std::cout << "command: " << command << std::endl;
+                    system(command);
                     break;
                 }
                 case 1: {
-                    sprintf(command,
-                            "ffmpeg -y -r 30 -re -i rtmp:%s -acodec mp3 -b:a 48k -max_delay 100 -g 5 -b 700000 -f mp3 - | madplay -",
-                            downloadUrl.substr(5).c_str());
+                    std::string cmd = "madplay ";
+                    for (int i = 0; i < playCount; ++i) {
+                        cmd += fileName + ' ';
+                    }
+                    cmd += "&";
+                    std::cout << "cmd: " << cmd << std::endl;
+                    system(cmd.c_str());
                     break;
                 }
             }
-            std::cout << "command: " << command << std::endl;
-            system(command);
             return 1;
         }
 

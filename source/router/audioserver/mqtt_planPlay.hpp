@@ -5,13 +5,14 @@
 namespace asns {
     template<typename Quest, typename Result>
     class CReQuest;
-
+    template<typename T>
+    class CResult;
     class CPlanPlayResultData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayResultData, null)
 
-        template<typename Quest, typename Result>
-        void do_success(const CReQuest <Quest, Result> &c) {}
+        template<typename Quest, typename Result,typename T>
+        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
 
     private:
         std::nullptr_t null;
@@ -19,22 +20,16 @@ namespace asns {
 
     class CPlanPlayData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, fileName, content, audioSubTaskId, playDuration,
-                                                    playStatus, playType, storageType, timeType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, cmd, command)
 
         int do_req() {
-
+            std::cout << "command:" << command << std::endl;
+            system(command.c_str());
             return 1;
         }
 
     private:
-        std::string fileName;
-        std::string content;
-        int audioSubTaskId;
-        int playDuration;
-        int playStatus;
-        int playType;
-        int storageType;
-        int timeType;
+        std::string cmd;
+        std::string command;
     };
 }
