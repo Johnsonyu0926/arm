@@ -69,7 +69,7 @@ public:
         address = "01";
         gateway = util.get_lan_gateway();
         userName = "admin";
-        imei = "11111";
+        imei = cfg.business[0].deviceID;
         functionVersion = "COMMON";
         deviceCode = cfg.business[0].deviceID;
         serverAddress = cfg.business[0].server;
@@ -269,7 +269,7 @@ namespace asns {
             return SendFast("F22", pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
@@ -290,7 +290,7 @@ namespace asns {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {
@@ -497,7 +497,7 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char buf[64] = {0};
-                sprintf(buf, "cm set_val sys password %s", m_str[5].c_str());
+                sprintf(buf, "cm set_val sys serverpassword %s", m_str[5].c_str());
                 system(buf);
             }
             return SendTrue(pClient);
@@ -531,6 +531,7 @@ namespace asns {
         }).join();
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
+        system("rm /tmp/record.mp3");
         if (res.empty() || res.find("error") != std::string::npos) {
             return SendFast("F5", pClient);
         } else if (res.find("true") != std::string::npos) {
@@ -604,12 +605,17 @@ namespace asns {
     int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
         std::string audioPath = "/tmp/record.mp3";
         system("killall -9 arecord");
-        std::ifstream fs(audioPath, std::fstream::in | std::fstream::binary);
+
         CUtils utils;
         int file_size = utils.get_file_size(audioPath);
-        utils.async_wait(1, 0, 0, [&, pClient] {
+        if (file_size <= 0) {
+            return SendFast("F5", pClient);
+        }
+        utils.async_wait(1, 0, 0, [&,file_size, pClient] {
             CSocket socket;
-            socket.Create(TCP);
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
             int opt = 1;
             setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
             for (int i = 34509; i < 34608; ++i) {
@@ -625,7 +631,6 @@ namespace asns {
             socket.Listen();
             while (1) {
                 CSocket *pTcp = new CSocket;
-
                 fd_set rset;
                 FD_ZERO(&rset);
                 FD_SET(socket.m_hSocket, &rset);
@@ -635,10 +640,10 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
@@ -646,12 +651,14 @@ namespace asns {
                 DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
                                        << ntohs(pTcp->GetPeerPort()));
                 char buf[8192] = {0};
+                std::fstream fs(audioPath, std::fstream::in | std::fstream::binary);
                 while (!fs.eof()) {
                     fs.read(buf, sizeof(buf));
-                    std::cout << buf << std::endl;
+                    std::cout << sizeof(buf) << " ";
                     pTcp->Send(buf, fs.gcount());
                 }
                 fs.close();
+                socket.Close();
                 return SendTrue(pClient);
             }
         });
@@ -684,13 +691,16 @@ namespace asns {
             return SendFast("F5", pClient);
         } else {
             CAddColumnCustomAudioFileBusiness business;
-            if(!business.exist(temp)){
+            if (!business.exist(temp)) {
                 CAddColumnCustomAudioFileData node;
                 node.type = 32;
                 node.setName(temp);
                 node.size = utils.get_file_size(path);
                 business.business.push_back(node);
                 business.saveJson();
+            } else {
+                int size = utils.get_file_size(path);
+                business.updateSize(temp, size);
             }
             SendTrue(pClient);
             return 1;
@@ -787,11 +797,12 @@ namespace asns {
         std::string temp = name + "." + suffix;
         CUtils utils;
         CAudioCfgBusiness cfg;
-        cfg.load();
         std::string path = cfg.getAudioFilePath() + temp;
-        utils.async_wait(1, 0, 0, [&, pClient] {
+        utils.async_wait(1, 0, 0, [&, path, pClient] {
             CSocket socket;
-            socket.Create(TCP);
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
             int opt = 1;
             setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
             for (int i = 34509; i < 34608; ++i) {
@@ -807,7 +818,6 @@ namespace asns {
             socket.Listen();
             while (1) {
                 CSocket *pTcp = new CSocket;
-
                 fd_set rset;
                 FD_ZERO(&rset);
                 FD_SET(socket.m_hSocket, &rset);
@@ -817,39 +827,52 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
                 socket.Accept(pTcp);
                 DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
                                        << ntohs(pTcp->GetPeerPort()));
-                std::fstream fs(path, std::fstream::out | std::fstream::binary);
+                std::cout << "path: " << path << std::endl;
+                std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
                 int file_size = std::atoi(m_str[4].c_str());
                 char buf[8192] = {0};
                 while (true) {
                     int len = pTcp->Recv(buf, sizeof(buf));
+                    std::cout << "recv len :" << len << std::endl;
                     if (len > 0) {
                         fs.write(buf, len);
                         file_size -= len;
                         if (file_size <= 0) {
+                            std::cout << "read end" << std::endl;
                             break;
                         }
+                    } else if (len == 0) {
+                        std::cout << "read end" << std::endl;
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
                     }
                 }
                 fs.close();
+                std::cout << "begin json" << std::endl;
                 CAddColumnCustomAudioFileBusiness business;
-                if(!business.exist(temp)){
+                if (!business.exist(temp)) {
                     CAddColumnCustomAudioFileData node;
                     node.type = 32;
                     node.setName(temp);
                     node.size = utils.get_file_size(path);
                     business.business.push_back(node);
                     business.saveJson();
+                } else {
+                    business.updateSize(temp, std::atoi(m_str[4].c_str()));
                 }
+                socket.Close();
                 return SendTrue(pClient);
             }
         });
@@ -939,10 +962,10 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
@@ -955,11 +978,19 @@ namespace asns {
                     int len = pTcp->Recv(buf, sizeof(buf));
                     if (len > 0) {
                         fs.write(buf, len);
+                        std::cout << len << " ";
                         file_size -= len;
                         if (file_size <= 0)break;
+                    } else if (len == 0) {
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
                     }
                 }
                 fs.close();
+                socket.Close();
+                std::cout << "begin up" << std::endl;
                 thread([&] {
                     system("webs -U /var/run/version/SONICCOREV100R001.bin");
                     system("reboot");
