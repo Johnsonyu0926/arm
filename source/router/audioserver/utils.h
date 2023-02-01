@@ -28,7 +28,7 @@ private:
 
 public:
 
-    size_t get_file_size(std::string &path) {
+    size_t get_file_size(std::string path) {
         int fd = open(path.c_str(), O_RDWR);
         if (fd < 0) {
             printf("open fail %s!\n", path.c_str());
@@ -172,6 +172,12 @@ public:
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
         std::cout << "cmd:" << cmd << std::endl;
         return get_by_cmd_res(cmd);
+    }
+
+    pid_t get_process_id(std::string name) {
+        char cmd[128] = {0};
+        sprintf(cmd, "ps -ef | grep %s | grep -v grep | awk '{print $2}'", name);
+        return std::atoi(get_by_cmd_res(cmd).c_str());
     }
 
     std::string get_by_cmd_res(char *cmd) {
