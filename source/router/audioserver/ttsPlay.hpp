@@ -39,7 +39,7 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                std::string cmd = "tts -l xiaoyan -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
+                std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
                 system(cmd.c_str());
                 switch (playType) {
                     case 0:

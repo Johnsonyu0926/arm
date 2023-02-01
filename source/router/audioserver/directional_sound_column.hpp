@@ -245,7 +245,7 @@ namespace asns {
             return SendFast("F22", pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
@@ -266,7 +266,7 @@ namespace asns {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {
@@ -652,7 +652,6 @@ namespace asns {
         pServer->SetClient(pClient);
         pServer->SetVecStr(m_str);
         pServer->CreateThread();
-        delete pServer;
     }
 
     int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
@@ -886,7 +885,6 @@ namespace asns {
         pServer->SetClient(pClient);
         pServer->SetVecStr(m_str);
         pServer->CreateThread();
-        delete pServer;
     }
     /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         Server server(34509);
@@ -1021,6 +1019,5 @@ namespace asns {
         pServer->SetClient(pClient);
         pServer->SetVecStr(m_str);
         pServer->CreateThread();
-        delete pServer;
     }
 }

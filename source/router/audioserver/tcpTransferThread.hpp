@@ -63,9 +63,13 @@ public:
         return TRUE;
     }
 
-public:
+    void SetPort(int nPort) { m_nPort = nPort; }
 
+    void SetClient(CSocket *pClient) { this->pClient = pClient; }
 
+    void SetVecStr(const std::vector<std::string> &vecStr) { m_vecStr = vecStr; }
+
+private:
     int do_req(CSocket *pTcp) {
         int condition = std::stoi(m_vecStr[3]);
         switch (condition) {
@@ -90,8 +94,8 @@ public:
 
     int Record(CSocket *pTcp) {
         CUtils utils;
-        int file_size = utils.get_file_size(asns::RECORD_PATH)
-        std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
+        int file_size = utils.get_file_size(asns::RECORD_PATH);
+        std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
         pClient->Send(res.c_str(), res.length());
 
         char buf[asns::BUFSIZE] = {0};
@@ -179,9 +183,9 @@ public:
         }
         fs.close();
         std::cout << "begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH) << std::endl;
-        std::string res = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
-        std::cout << "cmd res:" << res << std::endl;
-        if (res.find("OK") != std::string::npos) {
+        std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
+        std::cout << "cmd res:" << cmdRes << std::endl;
+        if (cmdRes.find("OK") != std::string::npos) {
             SendTrue(pClient);
             system("reboot");
         } else {
@@ -189,7 +193,6 @@ public:
             return SendFast("F5", pClient);
         }
     }
-
 
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
@@ -203,12 +206,6 @@ public:
         pClient->Send(buf.c_str(), buf.length());
         return 0;
     }
-
-    void SetPort(int nPort) { m_nPort = nPort; }
-
-    void SetClient(CSocket *pClient) { this->pClient = pClient; }
-
-    void SetVecStr(const std::vector<std::string> &vecStr) { m_vecStr = vecStr; }
 
 private:
     CSocket *pClient;
