@@ -269,7 +269,7 @@ namespace asns {
             return SendFast("F22", pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
@@ -290,7 +290,7 @@ namespace asns {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {
@@ -659,6 +659,7 @@ namespace asns {
                 }
                 fs.close();
                 socket.Close();
+                system("rm /tmp/record.mp3");
                 return SendTrue(pClient);
             }
         });

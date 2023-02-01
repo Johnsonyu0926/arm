@@ -355,7 +355,7 @@ namespace rs {
             return SendFast("F22");
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue();
         Singleton::getInstance().setStatus(1);
@@ -376,7 +376,7 @@ namespace rs {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -l xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {

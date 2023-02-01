@@ -49,6 +49,7 @@ namespace asns {
             }).join();
             std::string res = utils.get_doupload_result(uploadUrl, imei);
             std::cout << "result:" << res << std::endl;
+            system("rm /tmp/record.mp3");
             if (res.empty() || res.find("error") != std::string::npos) {
                 CMicRecordResult result;
                 result.do_fail("post error");
