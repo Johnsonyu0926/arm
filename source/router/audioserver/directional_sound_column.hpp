@@ -611,7 +611,7 @@ namespace asns {
         if (file_size <= 0) {
             return SendFast("F5", pClient);
         }
-        utils.async_wait(1, 0, 0, [&,file_size, pClient] {
+        utils.async_wait(1, 0, 0, [&, file_size, pClient] {
             CSocket socket;
             if (!socket.Create(TCP)) {
                 return SendFast("F5", pClient);
@@ -990,12 +990,19 @@ namespace asns {
                 }
                 fs.close();
                 socket.Close();
-                std::cout << "begin up" << std::endl;
+                std::cout << "begin up read size:" << utils.get_file_size("/var/run/version/SONICCOREV100R001.bin")
+                          << std::endl;
                 thread([&] {
-                    system("webs -U /var/run/version/SONICCOREV100R001.bin");
-                    system("reboot");
+                    std::string res = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
+                    std::cout << "cmd res:" << res << std::endl;
+                    if (res.find("OK") != std::string::npos) {
+                        SendTrue(pClient);
+                        system("reboot");
+                    } else {
+                        system("rm /var/run/version/SONICCOREV100R001.bin");
+                        return SendFast("F5", pClient);
+                    }
                 }).join();
-                return SendTrue(pClient);
             }
         });
     }
