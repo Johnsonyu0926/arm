@@ -82,7 +82,7 @@ public:
         address = "01";
         gateway = util.get_lan_gateway();
         userName = "admin";
-        imei = "11111";
+        imei = cfg.business[0].deviceID;
         functionVersion = "COMMON";
         deviceCode = cfg.business[0].deviceID;
         serverAddress = cfg.business[0].server;
@@ -355,7 +355,7 @@ namespace rs {
             return SendFast("F22");
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue();
         Singleton::getInstance().setStatus(1);
@@ -376,7 +376,7 @@ namespace rs {
         int duration = std::stoi(m_str[6]);
 
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
+        std::string cmd = "tts -r xiaoyan -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         switch (playType) {
             case 0: {
@@ -583,7 +583,7 @@ namespace rs {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char buf[64] = {0};
-                sprintf(buf, "cm set_val sys password %s", m_str[5].c_str());
+                sprintf(buf, "cm set_val sys serverpassword %s", m_str[5].c_str());
                 system(buf);
             }
             return SendTrue();
