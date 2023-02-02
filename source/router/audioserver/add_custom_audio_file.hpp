@@ -8,6 +8,7 @@
 #include "json.hpp"
 #include "doorsbase.h"
 #include "audiocfg.hpp"
+#include "playStatus.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -25,7 +26,8 @@ namespace asns {
         char filename[128];
 
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddCustomAudioFileData, customAudioID, customAudioName, filePath, filePathType)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAddCustomAudioFileData, customAudioID, customAudioName, filePath,
+                                                    filePathType)
 
         const char *getCustomAudioName() { return customAudioName.c_str(); }
 
@@ -51,7 +53,7 @@ namespace asns {
             if (strlen(filename) <= 0) {
                 parseFile();
             }
-
+            CUtils utils;
             //cout << "custom audio file data : playing " << customAudioID << ",file" << customAudioName << endl;
 
             // background play. and monitor....
@@ -61,8 +63,10 @@ namespace asns {
             char background_cmd[256] = {0};
             sprintf(background_cmd, "%s&", cmd);
             system(background_cmd); // background play
-            CUtils utils;
-
+            /*PlayStatus::getInstance().setPlayId(1);
+            PlayStatus::getInstance().setPriority(); //todo
+            PlayStatus::getInstance().setProcessId(utils.get_process_id("madplay"));
+*/
             CSTime tnow;
 
             tnow.GetCurTime();
@@ -87,6 +91,8 @@ namespace asns {
                     // out of time. stop if it is playing...
                     system("killall -9 madplay");
                     cout << "out of time. play stop! last cmd is:" << cmd << endl;
+                    //PlayStatus::getInstance().init();
+
                 }
                 sleep(2);
             }

@@ -93,7 +93,7 @@ public:
         CUtils utils;
         relayStatus = std::to_string(utils.get_process_status("madplay"));
         g_volumeSet.load();
-        volume = g_volumeSet.getVolume();
+        volume = std::to_string(g_volumeSet.getVolume());
         storageType = "1";
     }
 
@@ -511,10 +511,7 @@ namespace asns {
         if (res.empty() || res.find("error") != std::string::npos) {
             return SendFast("F5", pClient);
         } else if (res.find("true") != std::string::npos) {
-            json js;
-            js["downloadUrl"] = m_str[5];
-            std::string res = "01 E1 " + js.dump();
-            return pClient->Send(res.c_str(), res.length());
+            return SendTrue(pClient);
         } else {
             return SendFast("F5", pClient);
         }

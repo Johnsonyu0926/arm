@@ -4,6 +4,8 @@
 #include <fstream>
 #include "audiocfg.hpp"
 #include "json.hpp"
+#include "utils.h"
+#include "public.hpp"
 #include "add_custom_audio_file.hpp"
 
 using json = nlohmann::json;
@@ -21,6 +23,13 @@ namespace asns {
 
         std::string getName() const {
             return fileName;
+        }
+
+        void setType(const int type){
+            this->type = type;
+        }
+        void setSize(const int size){
+            this->size = size;
         }
 
     public:
@@ -82,12 +91,18 @@ namespace asns {
                 std::cout << "json parse error" << std::endl;
                 return 0;
             }
+            CUtils utils;
+            CAudioCfgBusiness cfgBusiness;
+            cfgBusiness.load();
             CAddCustomAudioFileBusiness bus;
             bus.load();
             for (const auto &it: bus.business) {
                 CAddColumnCustomAudioFileData data;
                 data.setName(it.customAudioName);
-                business.push_back(data);
+                std::string path = cfgBusiness.getAudioFilePath() + it.customAudioName;
+                data.setType(asns::AUDIO_FILE_TYPE);
+                data.setSize(utils.get_file_size(path));
+                this->business.push_back(data);
             }
         }
 
