@@ -22,6 +22,15 @@ public:
         for (int i = m_nPort; i < asns::ENDPORT; ++i) {
             if (socket.Bind(i)) {
                 m_nPort = i;
+                if (std::stoi(m_vecStr[3]) != asns::RECORDEND) {
+                    std::string res = "01 E1 " + m_vecStr[5] + " " + std::to_string(m_nPort);
+                    pClient->Send(res.c_str(), res.length());
+                } else {
+                    CUtils utils;
+                    int file_size = utils.get_file_size(asns::RECORD_PATH);
+                    std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
+                    pClient->Send(res.c_str(), res.length());
+                }
                 break;
             } else if (i == asns::ENDPORT) {
                 DS_TRACE("fatal , bind error!\n");
@@ -50,8 +59,9 @@ public:
             socket.Accept(pTcp);
             DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
             do_req(pTcp);
-            delete pTcp;
             socket.Close();
+            delete pTcp;
+            std::cout << "task end" << std::endl;
         }
     }
 
@@ -67,7 +77,7 @@ public:
 
     void SetClient(CSocket *pClient) { this->pClient = pClient; }
 
-    void SetVecStr(const std::vector<std::string> &vecStr) { m_vecStr = vecStr; }
+    void SetVecStr(const std::vector <std::string> &vecStr) { m_vecStr = vecStr; }
 
 private:
     int do_req(CSocket *pTcp) {
@@ -90,20 +100,22 @@ private:
                 SendFast("F4", pClient);
                 break;
         }
+        return 1;
     }
 
     int Record(CSocket *pTcp) {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
-        std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
-        pClient->Send(res.c_str(), res.length());
-
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
             fs.read(buf, sizeof(buf));
             std::cout << sizeof(buf) << " ";
             pTcp->Send(buf, fs.gcount());
+            file_size -= fs.gcount();
+            if (file_size <= 0) {
+                break;
+            }
         }
         fs.close();
         system("rm /tmp/record.mp3");
@@ -111,9 +123,6 @@ private:
     }
 
     int FileUpload(CSocket *pTcp) {
-        std::string res = "01 E1 " + m_vecStr[5] + " " + std::to_string(m_nPort);
-        pClient->Send(res.c_str(), res.length());
-
         std::string prefix = m_vecStr[6].substr(0, m_vecStr[6].find_first_of('.'));
         std::string suffix = m_vecStr[6].substr(m_vecStr[6].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
@@ -161,8 +170,6 @@ private:
     }
 
     int FileUpgrade(CSocket *pTcp) {
-        std::string res = "01 E1 " + m_vecStr[5] + " " + std::to_string(m_nPort);
-        pClient->Send(res.c_str(), res.length());
         CUtils utils;
         std::fstream fs(asns::FIRMWARE_PATH, std::fstream::out | std::fstream::binary);
         int file_size = std::atoi(m_vecStr[4].c_str());
@@ -183,13 +190,13 @@ private:
         }
         fs.close();
         std::cout << "begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH) << std::endl;
-        std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
+        std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/SONICCOREV100R001.bin");
         std::cout << "cmd res:" << cmdRes << std::endl;
         if (cmdRes.find("OK") != std::string::npos) {
             SendTrue(pClient);
             system("reboot");
         } else {
-            system("rm /var/run/version/SONICCOREV100R001.bin");
+            system("rm /var/run/SONICCOREV100R001.bin");
             return SendFast("F5", pClient);
         }
     }
@@ -210,5 +217,5 @@ private:
 private:
     CSocket *pClient;
     int m_nPort;
-    std::vector<std::string> m_vecStr;
+    std::vector <std::string> m_vecStr;
 };

@@ -41,5 +41,5 @@ namespace asns {
     const char *const USER_PWD_ERROR        = "F6";
 
     const char *const RECORD_PATH = "/tmp/record.mp3";
-    const char *const FIRMWARE_PATH = "/var/run/version/SONICCOREV100R001.bin";
+    const char *const FIRMWARE_PATH = "/var/run/SONICCOREV100R001.bin";
 }

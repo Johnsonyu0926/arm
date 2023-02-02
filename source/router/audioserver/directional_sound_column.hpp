@@ -473,7 +473,7 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char buf[64] = {0};
-                sprintf(buf, "cm set_val sys serverpassword %s", m_str[5].c_str());
+                sprintf(buf, "cm set_val sys serverpassword %s", m_str[6].c_str());
                 system(buf);
             }
             return SendTrue(pClient);
@@ -492,7 +492,8 @@ namespace asns {
     // AA 05 01 13 5 http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload BB EF
     int Record(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
-        std::string imei = "11111";
+        CAudioCfgBusiness bus;
+        std::string imei = bus.business[0].deviceID;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
             return SendFast("F22", pClient);
         }
@@ -640,6 +641,7 @@ namespace asns {
             }
         });
     }*/
+
     int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
         system("killall -9 arecord");
         CUtils utils;
@@ -885,6 +887,7 @@ namespace asns {
         pServer->SetClient(pClient);
         pServer->SetVecStr(m_str);
         pServer->CreateThread();
+        return 1;
     }
     /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         Server server(34509);
