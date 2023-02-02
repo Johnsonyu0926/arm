@@ -234,6 +234,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
         case AUDIOFILEUPLOAD:
             std::cout << "AudioFileUpload" << std::endl;
             asns::AudioFileUpload(m_str, pClient);
+            std::cout << "do_str_req end ..." << std::endl;
             break;
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
@@ -277,6 +278,7 @@ BOOL CClientThread::InitInstance() {
     char *p = buf;
     int offset = 0;
     while (1) {
+        std::cout<<"audioserver begin ..."<<std::endl;
         FD_ZERO(&rset);
         FD_SET(m_pClient->m_hSocket, &rset);
 
@@ -298,6 +300,7 @@ BOOL CClientThread::InitInstance() {
                         p = buf;
                         offset = 0;
                         do_str_req(m_pClient);
+                        std::cout<<"InitInstance do_str_req end"<<std::endl;
                         memset(buf, 0, sizeof(buf));
                     } else {
                         offset += n1;
@@ -325,149 +328,6 @@ BOOL CClientThread::InitInstance() {
             }
         }
     }
-#if 0
-    fd_set rset;
-
-
-    int n;
-    while(1)
-    {
-        FD_ZERO(&rset);
-        FD_SET(m_pClient->m_hSocket,&rset);
-
-        n=select(m_pClient->m_hSocket+1,&rset,NULL,NULL,NULL);
-        if(n>0)
-        {
-            char buf[100];
-            int n1 = m_pClient->Recv(buf,sizeof(buf)-1);
-            if(n1==0)
-            {
-                printf("recv finish!\n");
-                m_pClient->Close();
-                return 0;
-            }
-
-        }
-        else
-        {
-            if(n==0)
-            {
-
-            }
-
-            if(n<0)
-            {
-                printf("select <0\n");
-                return 0;
-            }
-        }
-    }
-
-#endif
-#if 0
-    int nMsg = m_pClient->Recv(&m_msg,sizeof(m_msg));
-
-    if(nMsg<(int)sizeof(m_msg))
-    {
-        printf("Recv failed! disconnect it!");
-        DS_TRACE("Recv failed.");
-        return 0;
-    }
-    printf("Speed = %d\n",m_msg.m_nRate);
-    printf("Double direct = %d\n",m_msg.m_nDoubleDirect);
-    printf("CheckSum = %d\n",m_msg.m_nCheckSum);
-    if(m_msg.m_nRate==0)
-    {
-        char szBuf[BUF_LEN];
-        memset(szBuf,'a',sizeof(szBuf));
-        while(1)
-        {
-            m_pClient->Recv(szBuf,sizeof(szBuf));
-            m_pClient->Send(szBuf,sizeof(szBuf));
-
-            usleep(10);
-        }
-    }
-    else if(m_msg.m_nRate >0)
-    {
-        char szBuf[1];
-        int nTotal = 0;
-        while(1)
-        {
-            int nRecv = m_pClient->Recv(szBuf,sizeof(szBuf));
-            if(nRecv<=0)
-            {
-                DS_TRACE("Disconnect! terminate the thread..");
-                return FALSE;
-            }
-            nTotal+=nRecv;
-            if(nTotal>=m_msg.m_nRate)
-            {
-                sleep(1);
-                nTotal=0;
-            }
-
-        }
-    }
-    else if(m_msg.m_nRate==-1)
-    {
-        unsigned int nTotalRecv = 0;
-        char szBuf[BUF_LEN];
-        while(1)
-        {
-            DS_TRACE("[CClientThread::Work] Receiving on socket :"<<m_pClient->GetHandle()<<", thread id:"<<pthread_self()<<", Total Recv:"<<nTotalRecv<<"................................");
-            int nRecv = m_pClient->Recv(szBuf,sizeof(szBuf),120,TRUE); //2min receive
-            if(nRecv==TIMEOUT)
-            {
-                printf("[Warning!] Receive 120 seconds TIMEOUT!\n");
-                return 0;
-            }
-            else if(nRecv<=0)
-            {
-                DS_TRACE("Disconnect! terminate the thread :"<<pthread_self()<<".. receive:"<<nTotalRecv);
-                m_pClient->Close();
-                break;
-            }
-            nTotalRecv+=nRecv;
-            DS_TRACE("[CClientThread::Work] Received on socket :"<<m_pClient->GetHandle()<<", thread id:"<<pthread_self()<<", Total recv:"<<nTotalRecv);
-
-            if( m_msg.m_nCheckSum )
-            {
-                if(!Check((BYTE*)szBuf))
-                {
-                    printf("[Warning!] compare data error!\n");
-                    return 0;
-                }
-            }
-
-
-            total_kilo ++;
-
-
-            //add for double direct
-            if(m_msg.m_nDoubleDirect)
-            {
-                if(m_msg.m_nCheckSum)
-                    Gen((BYTE*)szBuf);
-                time_t tSentStart;
-                time(&tSentStart);
-                int nSent = m_pClient->Send(szBuf,sizeof(szBuf));
-                time_t tSentEnd;
-                time(&tSentEnd);
-                if(tSentEnd-tSentStart>10)
-                {
-                    DS_TRACE("[Warning!!!] send block  in 10 second with 1k bytes data.");
-                }
-
-                total_kilo ++;
-            }
-        }
-    }
-    else
-    {
-        printf("Protocols error!");
-    }
-#endif
     return TRUE;
 }
 

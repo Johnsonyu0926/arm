@@ -38,7 +38,7 @@ public:
             }
         }
         socket.Listen();
-        while (1) {
+        //while (1) {
             CSocket *pTcp = new CSocket;
             fd_set rset;
             FD_ZERO(&rset);
@@ -62,14 +62,11 @@ public:
             socket.Close();
             delete pTcp;
             std::cout << "task end" << std::endl;
-        }
+        //}
     }
 
     virtual BOOL ExitInstance() {
-        if (pClient) {
-            delete pClient;
-            pClient = NULL;
-        }
+        std::cout<<"exit tcp transfer thread."<<std::endl;
         return TRUE;
     }
 

@@ -887,6 +887,7 @@ namespace asns {
         pServer->SetClient(pClient);
         pServer->SetVecStr(m_str);
         pServer->CreateThread();
+        std::cout << "AudioFileUpload end....." << std::endl;
         return 1;
     }
     /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
