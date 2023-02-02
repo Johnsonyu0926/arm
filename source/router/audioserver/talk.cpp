@@ -3,6 +3,7 @@
 #include "HPR/HPR_Error.h"
 #include "ezDevSDK_talk.h"
 #include "talk.h"
+#include "playStatus.hpp"
 
 extern HPR_VOIDPTR g_pKernel;
 extern HPR_BOOL g_bAccessEz;
@@ -115,6 +116,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
             return -1;
         }
         system("killall -9 madplay");
+        //PlayStatus::getInstance().init();
         // g_ctalk.initMp3();
         g_bStop = 0;
         g_ctalk.do_fork();
@@ -133,6 +135,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         g_bStop = 1;
         // printf("ezdevsdk talk on stop talk msg type is incoming.\n");
         system("killall -9 madplay");
+        //PlayStatus::getInstance().init();
     }
     break;
 
@@ -182,6 +185,7 @@ int CTalk::RecvTalkData(int channel, char *data, int len)
     {
         // printf("failed to write pipe! %d\n", g_ctalk.pipefd[1]);
         system("killall -9 madplay");
+        //PlayStatus::getInstance().init();
         return -1;
     }
     return 0;
@@ -209,6 +213,7 @@ int CTalk::do_fork()
         close(g_ctalk.pipefd[0]);
         close(g_ctalk.pipefd[1]);
         execlp("madplay", "madplay", "-", NULL);
+        //PlayStatus::getInstance().setPlayId(2);
     }
 
     // parent process.
