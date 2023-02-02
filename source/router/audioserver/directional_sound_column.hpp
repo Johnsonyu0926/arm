@@ -59,7 +59,7 @@ public:
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         relayStatus = 1;
-        hardwareReleaseTime = "2022.12.09";
+        hardwareReleaseTime = util.get_by_cmd_res("uname -a");
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");
         hardwareVersion = "7621";
