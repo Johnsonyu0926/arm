@@ -103,11 +103,15 @@ private:
     int Record(CSocket *pTcp) {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
+        std::cout<<"record file size:"<<file_size<<std::endl;
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
             fs.read(buf, sizeof(buf));
-            std::cout << sizeof(buf) << " ";
+            std::cout << fs.gcount() << " ";
+            if(fs.gcount() <=0){
+                break;
+            }
             pTcp->Send(buf, fs.gcount());
             file_size -= fs.gcount();
             if (file_size <= 0) {
