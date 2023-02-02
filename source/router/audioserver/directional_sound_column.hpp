@@ -493,6 +493,7 @@ namespace asns {
     int Record(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         CAudioCfgBusiness bus;
+        bus.load();
         std::string imei = bus.business[0].deviceID;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
             return SendFast("F22", pClient);
@@ -502,10 +503,8 @@ namespace asns {
             return SendFast("F5", pClient);
         }
         system("arecord -f cd /tmp/record.mp3 &");
-        std::thread([&] {
-            std::this_thread::sleep_for(std::chrono::seconds(time));
-            system("killall -9 arecord");
-        }).join();
+        std::this_thread::sleep_for(std::chrono::seconds(time));
+        system("killall -9 arecord");
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
         system("rm /tmp/record.mp3");
