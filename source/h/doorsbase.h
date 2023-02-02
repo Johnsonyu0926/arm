@@ -687,11 +687,11 @@ class CSThread
 public:
 	CSThread() : m_bAutoDelete(TRUE), m_bJoinable(FALSE)
 	{
-		// DS_TRACE("[CSThread::CSThread] Constuctor function called.");
+		 DS_TRACE("[CSThread::CSThread] Constuctor function called.");
 	}
 	virtual ~CSThread()
 	{
-		// DS_TRACE("[CSThread::~CSThread] Destroy function called");
+		 DS_TRACE("[CSThread::~CSThread] Destroy function called");
 	}
 
 public:
@@ -708,15 +708,15 @@ public:
 		pthread_mutex_lock(&g_threadcountLock);
 		_threadcount++;
 		pthread_mutex_unlock(&g_threadcountLock);
-		// DS_TRACE("[CSThread::CreateThread] Creating " << _threadcount << " thread.");
+		DS_TRACE("[CSThread::CreateThread] Creating " << _threadcount << " thread.");
 		if (pthread_create(&m_threadId, NULL, CSThread::_threadfunc, this) == 0)
 		{
-			// DS_TRACE("[CSThread::CreateThread] Create thread " << m_threadId << " success!");
+			DS_TRACE("[CSThread::CreateThread] Create thread " << m_threadId << " success!");
 			return m_threadId;
 		}
 		else
 		{
-			// DS_TRACE("[CSThread::CreateThread] Failed create thread  " << _threadcount << "! program exit abnormal!");
+			DS_TRACE("[CSThread::CreateThread] Failed create thread  " << _threadcount << "! program exit abnormal!");
 			exit(0);
 		}
 		return FALSE;
@@ -734,7 +734,7 @@ protected:
 		ExitInstance();
 		if (m_bAutoDelete)
 		{
-			// DS_TRACE("[CSThread::ThreadFunc] delete myself! thread count = " << _threadcount << "\n");
+            DS_TRACE("[CSThread::ThreadFunc] delete myself! thread count = " << _threadcount << "\n");
 			delete this;
 		}
 		return TRUE;

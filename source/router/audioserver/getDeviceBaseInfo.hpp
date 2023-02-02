@@ -55,7 +55,7 @@ namespace asns {
             cmd = "GetDeviceBaseInfo";
             resultId = 1;
             msg = "Obtaining information successfully";
-            data.codeVersion = "2.1.01";
+            data.codeVersion = cfg.business[0].codeVersion;
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
             data.relayMode = 2;
 
@@ -70,14 +70,14 @@ namespace asns {
             data.hardwareReleaseTime = "2022.10.25";
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;
-            data.hardwareVersion = "4.2.1";
+            data.hardwareVersion = util.get_by_cmd_res("uname -r");
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
             data.netmask = util.get_lan_netmask();
             data.address = "01";
             data.gateway = util.get_lan_gateway();
             data.userName = "admin";
-            data.imei = "869298057534588";
+            data.imei = cfg.business[0].deviceID;
             data.functionVersion = "COMMON";
             data.deviceCode = cfg.business[0].deviceID;
             data.serverAddress = cfg.business[0].server;

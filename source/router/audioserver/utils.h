@@ -28,7 +28,7 @@ private:
 
 public:
 
-    size_t get_file_size(std::string &path) {
+    size_t get_file_size(const std::string &path) {
         int fd = open(path.c_str(), O_RDWR);
         if (fd < 0) {
             printf("open fail %s!\n", path.c_str());
@@ -40,7 +40,7 @@ public:
         return st.st_size;
     }
 
-    void get_dir_file_names(std::string &path, std::vector <std::string> &files) {
+    void get_dir_file_names(const std::string &path, std::vector <std::string> &files) {
         DIR *pDir;
         dirent *ptr;
         if (!(pDir = opendir(path.c_str()))) return;
@@ -52,7 +52,7 @@ public:
         closedir(pDir);
     }
 
-    bool find_dir_file_exists(std::string path, std::string &name) {
+    bool find_dir_file_exists(const std::string &path, const std::string &name) {
         std::vector <std::string> files_name;
         get_dir_file_names(path, files_name);
         for (auto iter = files_name.cbegin(); iter != files_name.cend(); ++iter) {
@@ -172,6 +172,12 @@ public:
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
         std::cout << "cmd:" << cmd << std::endl;
         return get_by_cmd_res(cmd);
+    }
+
+    pid_t get_process_id(const std::string &name) {
+        char cmd[128] = {0};
+        sprintf(cmd, "ps -ef | grep %s | grep -v grep | awk '{print $2}'", name.c_str());
+        return std::atoi(get_by_cmd_res(cmd).c_str());
     }
 
     std::string get_by_cmd_res(char *cmd) {
@@ -298,7 +304,7 @@ public:
         return result;
     }
 
-    void udp_multicast_send(std::string ip, uint16_t port, std::string &msg) {
+    void udp_multicast_send(const std::string &ip, uint16_t port, const std::string &msg) {
         // 1. 创建通信的套接字
         int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
         if (fd == -1) {

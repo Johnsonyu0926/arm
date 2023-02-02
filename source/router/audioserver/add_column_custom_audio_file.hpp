@@ -41,6 +41,18 @@ namespace asns {
             return filePath;
         }
 
+        void updateSize(const std::string name, const int size) {
+            Columnload();
+            for (auto &it: business) {
+                if (it.getName() == name) {
+                    it.size = size;
+                    saveJson();
+                    break;
+                }
+            }
+
+        }
+
         int Columnload() {
             std::ifstream i(filePath);
             if (!i.is_open()) {
@@ -49,6 +61,7 @@ namespace asns {
             json js;
             try {
                 i >> js;
+                std::cout << js.dump() << std::endl;
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cout << "json parse error" << std::endl;

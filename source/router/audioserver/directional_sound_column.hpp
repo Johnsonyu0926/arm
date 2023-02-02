@@ -10,7 +10,8 @@
 #include "epoll.hpp"
 #include "utils.h"
 #include "Singleton.hpp"
-
+#include "tcpTransferThread.hpp"
+#include "public.hpp"
 #include <thread>
 
 extern int g_playing_priority;
@@ -69,7 +70,7 @@ public:
         address = "01";
         gateway = util.get_lan_gateway();
         userName = "admin";
-        imei = "11111";
+        imei = cfg.business[0].deviceID;
         functionVersion = "COMMON";
         deviceCode = cfg.business[0].deviceID;
         serverAddress = cfg.business[0].server;
@@ -103,31 +104,6 @@ private:
 };
 
 namespace asns {
-    const int TCPNETWORKSET = 101;
-    const int UPDATEPWD = 102;
-    const int NETWORKSET = 104;
-    const int LOGIN = 103;
-    const int SETDEVICEADDRRESS = 0;
-    const int AUDIOPLAY = 1;
-    const int AUDIOSTOP = 2;
-    const int VOLUMSET = 3;
-    const int REBOOT = 4;
-    const int GETDEVICESTATUS = 5;
-    const int TTSPLAY = 6;
-    const int LIGHTSWITCH = 7;
-    const int FILEUPLOAD = 8;
-    const int RESTORE = 9;
-    const int AUDIONUMORTPLAY = 10;
-    const int TTSNUMORTPLAY = 11;
-    const int GETDEVICEBASEINFO = 12;
-    const int RECORD = 13;
-    const int REMOTEUPGRADE = 14;
-    const int GETAUDIOLIST = 15;
-    const int LIGHTCONFIG = 16;
-    const int RECORDBEGIN = 18;
-    const int RECORDEND = 19;
-    const int AUDIOFILEUPLOAD = 20;
-    const int REMOTEFILEUPGRADE = 21;
 
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
@@ -497,7 +473,7 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char buf[64] = {0};
-                sprintf(buf, "cm set_val sys password %s", m_str[5].c_str());
+                sprintf(buf, "cm set_val sys serverpassword %s", m_str[6].c_str());
                 system(buf);
             }
             return SendTrue(pClient);
@@ -516,8 +492,9 @@ namespace asns {
     // AA 05 01 13 5 http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload BB EF
     int Record(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
-        std::string imei = "11111";
-        if (utils.get_process_status("madplay")) {
+        CAudioCfgBusiness bus;
+        std::string imei = bus.business[0].deviceID;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
             return SendFast("F22", pClient);
         }
         int time = std::stod(m_str[4]);
@@ -531,6 +508,7 @@ namespace asns {
         }).join();
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
+        system("rm /tmp/record.mp3");
         if (res.empty() || res.find("error") != std::string::npos) {
             return SendFast("F5", pClient);
         } else if (res.find("true") != std::string::npos) {
@@ -601,15 +579,20 @@ namespace asns {
         }
     }*/
 
-    int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
+    /*int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
         std::string audioPath = "/tmp/record.mp3";
         system("killall -9 arecord");
-        std::ifstream fs(audioPath, std::fstream::in | std::fstream::binary);
+
         CUtils utils;
         int file_size = utils.get_file_size(audioPath);
-        utils.async_wait(1, 0, 0, [&, pClient] {
+        if (file_size <= 0) {
+            return SendFast("F5", pClient);
+        }
+        utils.async_wait(1, 0, 0, [&, file_size, pClient] {
             CSocket socket;
-            socket.Create(TCP);
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
             int opt = 1;
             setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
             for (int i = 34509; i < 34608; ++i) {
@@ -625,7 +608,6 @@ namespace asns {
             socket.Listen();
             while (1) {
                 CSocket *pTcp = new CSocket;
-
                 fd_set rset;
                 FD_ZERO(&rset);
                 FD_SET(socket.m_hSocket, &rset);
@@ -635,10 +617,10 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
@@ -646,17 +628,33 @@ namespace asns {
                 DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
                                        << ntohs(pTcp->GetPeerPort()));
                 char buf[8192] = {0};
+                std::fstream fs(audioPath, std::fstream::in | std::fstream::binary);
                 while (!fs.eof()) {
                     fs.read(buf, sizeof(buf));
-                    std::cout << buf << std::endl;
+                    std::cout << sizeof(buf) << " ";
                     pTcp->Send(buf, fs.gcount());
                 }
                 fs.close();
+                socket.Close();
+                system("rm /tmp/record.mp3");
                 return SendTrue(pClient);
             }
         });
-    }
+    }*/
 
+    int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
+        system("killall -9 arecord");
+        CUtils utils;
+        int file_size = utils.get_file_size(asns::RECORD_PATH);
+        if (file_size <= 0) {
+            return SendFast("F5", pClient);
+        }
+        TcpTransferThread *pServer = new TcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetClient(pClient);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
+    }
 
     int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
         std::string name = m_str[5].substr(0, m_str[5].find_first_of('.'));
@@ -684,13 +682,16 @@ namespace asns {
             return SendFast("F5", pClient);
         } else {
             CAddColumnCustomAudioFileBusiness business;
-            if(!business.exist(temp)){
+            if (!business.exist(temp)) {
                 CAddColumnCustomAudioFileData node;
                 node.type = 32;
                 node.setName(temp);
                 node.size = utils.get_file_size(path);
                 business.business.push_back(node);
                 business.saveJson();
+            } else {
+                int size = utils.get_file_size(path);
+                business.updateSize(temp, size);
             }
             SendTrue(pClient);
             return 1;
@@ -773,6 +774,7 @@ namespace asns {
         });
         return 1;
     }*/
+    /*
     int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
@@ -787,11 +789,12 @@ namespace asns {
         std::string temp = name + "." + suffix;
         CUtils utils;
         CAudioCfgBusiness cfg;
-        cfg.load();
         std::string path = cfg.getAudioFilePath() + temp;
-        utils.async_wait(1, 0, 0, [&, pClient] {
+        utils.async_wait(1, 0, 0, [&, path, pClient] {
             CSocket socket;
-            socket.Create(TCP);
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
             int opt = 1;
             setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
             for (int i = 34509; i < 34608; ++i) {
@@ -807,7 +810,6 @@ namespace asns {
             socket.Listen();
             while (1) {
                 CSocket *pTcp = new CSocket;
-
                 fd_set rset;
                 FD_ZERO(&rset);
                 FD_SET(socket.m_hSocket, &rset);
@@ -817,44 +819,77 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
                 socket.Accept(pTcp);
                 DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
                                        << ntohs(pTcp->GetPeerPort()));
-                std::fstream fs(path, std::fstream::out | std::fstream::binary);
+                std::cout << "path: " << path << std::endl;
+                std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
                 int file_size = std::atoi(m_str[4].c_str());
                 char buf[8192] = {0};
                 while (true) {
                     int len = pTcp->Recv(buf, sizeof(buf));
+                    std::cout << "recv len :" << len << std::endl;
                     if (len > 0) {
                         fs.write(buf, len);
                         file_size -= len;
                         if (file_size <= 0) {
+                            std::cout << "read end" << std::endl;
                             break;
                         }
+                    } else if (len == 0) {
+                        std::cout << "read end" << std::endl;
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
                     }
                 }
                 fs.close();
+                std::cout << "begin json" << std::endl;
                 CAddColumnCustomAudioFileBusiness business;
-                if(!business.exist(temp)){
+                if (!business.exist(temp)) {
                     CAddColumnCustomAudioFileData node;
                     node.type = 32;
                     node.setName(temp);
                     node.size = utils.get_file_size(path);
                     business.business.push_back(node);
                     business.saveJson();
+                } else {
+                    business.updateSize(temp, std::atoi(m_str[4].c_str()));
                 }
+                socket.Close();
                 return SendTrue(pClient);
             }
         });
     }
+    */
+    int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+        std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
+        std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
+        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+            //音频文件名校验失败
+            return SendFast("F21", pClient);
+        }
+        if (suffix.compare("mp3") != 0) {
+            return SendFast("F27", pClient);
+        }
 
+        TcpTransferThread *pServer = new TcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetClient(pClient);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
+        std::cout << "AudioFileUpload end....." << std::endl;
+        return 1;
+    }
     /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         Server server(34509);
         int port = server.bind();
@@ -909,7 +944,7 @@ namespace asns {
         return 1;
     }*/
 
-    int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
+    /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         utils.async_wait(1, 0, 0, [&, pClient] {
             CSocket socket;
@@ -939,10 +974,10 @@ namespace asns {
                 int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
                 if (n < 0) {
                     DS_TRACE("fatal , select error!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n == 0) {
                     DS_TRACE("timeout!\n");
-                    return 0;
+                    return SendFast("F5", pClient);
                 } else if (n > 0) {
                     DS_TRACE("server select n = " << n);
                 }
@@ -955,17 +990,38 @@ namespace asns {
                     int len = pTcp->Recv(buf, sizeof(buf));
                     if (len > 0) {
                         fs.write(buf, len);
+                        std::cout << len << " ";
                         file_size -= len;
                         if (file_size <= 0)break;
+                    } else if (len == 0) {
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
                     }
                 }
                 fs.close();
-                thread([&] {
-                    system("webs -U /var/run/version/SONICCOREV100R001.bin");
+                socket.Close();
+                std::cout << "begin up read size:" << utils.get_file_size("/var/run/version/SONICCOREV100R001.bin")
+                          << std::endl;
+                std::string res = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
+                std::cout << "cmd res:" << res << std::endl;
+                if (res.find("OK") != std::string::npos) {
+                    SendTrue(pClient);
                     system("reboot");
-                }).join();
-                return SendTrue(pClient);
+                } else {
+                    system("rm /var/run/version/SONICCOREV100R001.bin");
+                    return SendFast("F5", pClient);
+                }
             }
         });
+    }*/
+
+    int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
+        TcpTransferThread *pServer = new TcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetClient(pClient);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
     }
 }

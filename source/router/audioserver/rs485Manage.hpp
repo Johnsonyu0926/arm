@@ -82,7 +82,7 @@ public:
         address = "01";
         gateway = util.get_lan_gateway();
         userName = "admin";
-        imei = "11111";
+        imei = cfg.business[0].deviceID;
         functionVersion = "COMMON";
         deviceCode = cfg.business[0].deviceID;
         serverAddress = cfg.business[0].server;
@@ -583,7 +583,7 @@ namespace rs {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 char buf[64] = {0};
-                sprintf(buf, "cm set_val sys password %s", m_str[5].c_str());
+                sprintf(buf, "cm set_val sys serverpassword %s", m_str[6].c_str());
                 system(buf);
             }
             return SendTrue();
