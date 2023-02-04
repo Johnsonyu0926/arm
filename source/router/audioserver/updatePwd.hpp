@@ -43,11 +43,8 @@ namespace asns {
                 return 0;
             } else {
                 CUtils utils;
-                if (utils.is_ros_platform()) {
-                    char buf[64] = {0};
-                    sprintf(buf, "cm set_val sys serverpassword %s", password.c_str());
-                    system(buf);
-                }
+				utils.change_password(password.c_str());
+
                 cfg.business[0].serverPassword = password;
                 cfg.saveToJson();
                 CUpdateResult updateResult;
