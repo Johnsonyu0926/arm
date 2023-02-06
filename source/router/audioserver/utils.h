@@ -402,16 +402,6 @@ public:
         }
         return output;
     }
-
-	int change_password(const char *password) {
-		if (is_ros_platform()) {
-			char buf[64] = {0};
-			snprintf(buf, sizeof(buf), "webs -P %s", password);
-			system(buf);
-			snprintf(buf, sizeof(buf), "cm set_val sys serverpassword %s", password);
-			system(buf);
-		}
-	}
 };
 
 #endif
