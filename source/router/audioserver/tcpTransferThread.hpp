@@ -38,31 +38,29 @@ public:
             }
         }
         socket.Listen();
-        //while (1) {
-            CSocket *pTcp = new CSocket;
-            fd_set rset;
-            FD_ZERO(&rset);
-            FD_SET(socket.m_hSocket, &rset);
-            struct timeval timeout;
-            timeout.tv_sec = 30;
-            timeout.tv_usec = 0;
-            int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
-            if (n < 0) {
-                DS_TRACE("fatal , select error!\n");
-                return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
-            } else if (n == 0) {
-                DS_TRACE("timeout!\n");
-                return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
-            } else if (n > 0) {
-                DS_TRACE("server select n = " << n);
-            }
-            socket.Accept(pTcp);
-            DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
-            do_req(pTcp);
-            socket.Close();
-            delete pTcp;
-            std::cout << "task end" << std::endl;
-        //}
+        CSocket *pTcp = new CSocket;
+        fd_set rset;
+        FD_ZERO(&rset);
+        FD_SET(socket.m_hSocket, &rset);
+        struct timeval timeout;
+        timeout.tv_sec = 30;
+        timeout.tv_usec = 0;
+        int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+        if (n < 0) {
+            DS_TRACE("fatal , select error!\n");
+            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
+        } else if (n == 0) {
+            DS_TRACE("timeout!\n");
+            return SendFast(asns::TCP_TIMEOUT, pClient);
+        } else if (n > 0) {
+            DS_TRACE("server select n = " << n);
+        }
+        socket.Accept(pTcp);
+        DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
+        do_req(pTcp);
+        socket.Close();
+        delete pTcp;
+        std::cout << "task end" << std::endl;
     }
 
     virtual BOOL ExitInstance() {
@@ -94,7 +92,7 @@ private:
                 break;
             default:
                 std::cout << "switch F4" << std::endl;
-                SendFast("F4", pClient);
+                SendFast(asns::NONSUPPORT_ERROR, pClient);
                 break;
         }
         return 1;
@@ -103,18 +101,25 @@ private:
     int Record(CSocket *pTcp) {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
+        std::cout << "record file size:" << file_size << std::endl;
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
             fs.read(buf, sizeof(buf));
-            std::cout << sizeof(buf) << " ";
+            std::cout << fs.gcount() << " ";
+            if (fs.gcount() <= 0) {
+                std::cout << "read count < 0" << std::endl;
+                break;
+            }
             pTcp->Send(buf, fs.gcount());
             file_size -= fs.gcount();
             if (file_size <= 0) {
+                std::cout << "file size < 0" << std::endl;
                 break;
             }
         }
         fs.close();
+        std::cout << "Send ok" << std::endl;
         system("rm /tmp/record.mp3");
         return SendTrue(pClient);
     }
@@ -146,7 +151,8 @@ private:
                 break;
             } else if (len < 0) {
                 fs.close();
-                return SendFast("F5", pClient);
+                //system(path.c_str()); todo remove audio file
+                return SendFast(asns::RECORD_SIZE_ERROR, pClient);
             }
         }
         fs.close();
@@ -182,7 +188,7 @@ private:
                 break;
             } else if (len < 0) {
                 fs.close();
-                return SendFast("F5", pClient);
+                return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
             }
         }
         fs.close();
@@ -194,7 +200,7 @@ private:
             system("reboot");
         } else {
             system("rm /var/run/SONICCOREV100R001.bin");
-            return SendFast("F5", pClient);
+            return SendFast(asns::TCP_UPGRADE_ERROR, pClient);
         }
     }
 
