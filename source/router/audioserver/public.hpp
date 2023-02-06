@@ -51,6 +51,13 @@ namespace asns {
     const char *const DOWNLOAD_FILE_ERROR = "F28";
     const char *const FLASH_LIGHT_SET_ERROR = "F30";
     const char *const VOLUME_RANGE_ERROR = "F31";
+    const char *const TTS_TXT_LENGTH_ERROR = "F41";
+    const char *const RECORD_TIME_ERROR = "F60";
+    const char *const POST_ERROR = "F61";
+    const char *const GET_ERROR = "F65";
+    const char *const RECORD_SIZE_ERROR = "F62";
+    const char *const TCP_TRANSFER_ERROR = "F66";
+    const char* const TCP_UPGRADE_ERROR = "F70";
     const char *const TCP_TIMEOUT = "F71";
     /*const char *const
     const char *const

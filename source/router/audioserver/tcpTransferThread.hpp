@@ -92,7 +92,7 @@ private:
                 break;
             default:
                 std::cout << "switch F4" << std::endl;
-                SendFast("F4", pClient);
+                SendFast(asns::NONSUPPORT_ERROR, pClient);
                 break;
         }
         return 1;
@@ -152,7 +152,7 @@ private:
             } else if (len < 0) {
                 fs.close();
                 system(path.c_str());
-                return SendFast("F66", pClient);
+                return SendFast(asns::RECORD_SIZE_ERROR, pClient);
             }
         }
         fs.close();
@@ -188,7 +188,7 @@ private:
                 break;
             } else if (len < 0) {
                 fs.close();
-                return SendFast("F66", pClient);
+                return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
             }
         }
         fs.close();
@@ -200,7 +200,7 @@ private:
             system("reboot");
         } else {
             system("rm /var/run/SONICCOREV100R001.bin");
-            return SendFast("F70", pClient);
+            return SendFast(asns::TCP_UPGRADE_ERROR, pClient);
         }
     }
 

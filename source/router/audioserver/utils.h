@@ -435,7 +435,7 @@ public:
                 character++;
             }
         }
-        printf("大写%d个，小写%d个，数字%d个，字符%d个，汉字%d个，空格%d个\n", UpperCase, LowerCase, digit, character,
+        printf("UpperCase %d个，LowerCase %d个，digit %d个，character %d个，chinese %d个，space %d个\n", UpperCase, LowerCase, digit, character,
                chinese / 3, space);
         return UpperCase + LowerCase + digit + character + (chinese / 3) + space;
     }

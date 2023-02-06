@@ -135,7 +135,7 @@ namespace asns {
             return SendTrue(pClient);
         } else {
             std::cout << "return login error" << std::endl;
-            return SendFast("F6", pClient);
+            return SendFast(asns::USER_PWD_ERROR, pClient);
         }
     }
 
@@ -146,19 +146,19 @@ namespace asns {
     int AudioPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21", pClient);
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         } else if (!busines.isNameEmpty(m_str[4])) {
             //音频文件查询不存在
-            return SendFast("F23", pClient);
+            return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             /*设备正在播放中，触发失败*/
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         } else {
             if (utils.get_process_status("aplay")) {
                 Singleton::getInstance().setStatus(0);
@@ -187,7 +187,7 @@ namespace asns {
         int volume = std::stoi(m_str[4]);
         if (volume > 7 || volume < 0) {
             //音量值不在范围
-            return SendFast("F31", pClient);
+            return SendFast(asns::VOLUME_RANGE_ERROR, pClient);
         } else {
             CVolumeSet volumeSet;
             volumeSet.setVolume(volume);
@@ -242,11 +242,11 @@ namespace asns {
     int TtsPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
         if (utils.statistical_character_count(txt) > 100) {
-            return SendFast("F41", pClient);
+            return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
         }
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
@@ -294,7 +294,7 @@ namespace asns {
                 break;
             }
             default:
-                SendFast("F4", pClient);
+                SendFast(asns::NONSUPPORT_ERROR, pClient);
         }
         SendTrue(pClient);
     }
@@ -303,17 +303,17 @@ namespace asns {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay") ||
             utils.get_process_status("tts")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
         if (utils.statistical_character_count(txt) > 100) {
-            return SendFast("F41", pClient);
+            return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
         }
         std::cout << "tts size:" << txt.length() << "txt: " << txt << std::endl;
         int playType = std::stoi(m_str[5]);
         int duration = std::stoi(m_str[6]);
         if (duration < 1) {
-            return SendFast("F4", pClient);
+            return SendFast(asns::NONSUPPORT_ERROR, pClient);
         }
         utils.async_wait(1, 0, 0, tts, playType, duration, txt, pClient);
     }
@@ -321,17 +321,17 @@ namespace asns {
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21", pClient);
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         } else if (!busines.isNameEmpty(m_str[4])) {
-            return SendFast("F23", pClient);
+            return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
         } else {
             char command[256] = {0};
             int duration = std::stoi(m_str[6]);
@@ -350,7 +350,7 @@ namespace asns {
                 }
                 case 1: {
                     if (duration < 1) {
-                        return SendFast("F4", pClient);
+                        return SendFast(asns::NONSUPPORT_ERROR, pClient);
                     }
                     std::string cmd = "madplay ";
                     for (int i = 0; i < duration; ++i) {
@@ -363,7 +363,7 @@ namespace asns {
                 }
                 case 2: {
                     if (duration < 1) {
-                        return SendFast("F4", pClient);
+                        return SendFast(asns::NONSUPPORT_ERROR, pClient);
                     }
                     int d = duration / (3600 * 24);
                     int t = duration % (3600 * 24) / 3600;
@@ -377,7 +377,7 @@ namespace asns {
                     break;
                 }
                 default:
-                    return SendFast("F4", pClient);
+                    return SendFast(asns::NONSUPPORT_ERROR, pClient);
             }
             return SendTrue(pClient);
         }
@@ -396,7 +396,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6", pClient);
+            return SendFast(asns::USER_PWD_ERROR, pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -436,7 +436,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6", pClient);
+            return SendFast(asns::USER_PWD_ERROR, pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -469,9 +469,9 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[6].length() < 8) {
-            return SendFast("F25", pClient);
+            return SendFast(asns::OPERATION_NEW_PWD_COMPLEXITY_ERROR, pClient);
         } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6", pClient);
+            return SendFast(asns::USER_PWD_ERROR, pClient);
         } else {
             cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
@@ -501,11 +501,11 @@ namespace asns {
         bus.load();
         std::string imei = bus.business[0].deviceID;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         int time = std::stod(m_str[4]);
         if (time > 30 || time < 0) {
-            return SendFast("F60", pClient);
+            return SendFast(asns::RECORD_TIME_ERROR, pClient);
         }
         system("arecord -f cd /tmp/record.mp3 &");
 
@@ -517,14 +517,14 @@ namespace asns {
         if (res.find("true") != std::string::npos) {
             return SendTrue(pClient);
         } else {
-            return SendFast("F61", pClient);
+            return SendFast(asns::POST_ERROR, pClient);
         }
     }
 
     int RecordBegin(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22", pClient);
+            return SendFast(asns::ALREADY_PLAYED, pClient);
         }
         system("arecord -f cd /tmp/record.mp3 &");
         return SendTrue(pClient);
@@ -535,7 +535,7 @@ namespace asns {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         if (file_size <= 0) {
-            return SendFast("F62", pClient);
+            return SendFast(asns::RECORD_SIZE_ERROR, pClient);
         }
         TcpTransferThread *pServer = new TcpTransferThread();
         pServer->SetPort(asns::BEGINPORT);
@@ -550,10 +550,10 @@ namespace asns {
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21", pClient);
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast("F27", pClient);
+            return SendFast(asns::AUDIO_SUFFIX_ERROR, pClient);
         }
         std::string temp = name + "." + suffix;
         CUtils utils;
@@ -563,11 +563,11 @@ namespace asns {
         std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
         std::cout << "res:-----" << res << std::endl;
         if (res.find("error") != std::string::npos) {
-            return SendFast("F5", pClient);
+            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
         } else if (res.find("Failed to connect") != std::string::npos) {
-            return SendFast("F5", pClient);
+            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
         } else if (res.find("Couldn't connect to server") != std::string::npos) {
-            return SendFast("F5", pClient);
+            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
         } else {
             CAddColumnCustomAudioFileBusiness business;
             if (!business.exist(temp)) {
@@ -592,10 +592,10 @@ namespace asns {
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21", pClient);
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast("F27", pClient);
+            return SendFast(asns::AUDIO_SUFFIX_ERROR, pClient);
         }
 
         TcpTransferThread *pServer = new TcpTransferThread();
