@@ -70,7 +70,7 @@ namespace asns {
             data.hardwareReleaseTime = "2022.10.25";
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;
-            data.hardwareVersion = util.get_by_cmd_res("uname -a");
+            data.hardwareVersion = util.get_by_cmd_res("uname -r");
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
             data.netmask = util.get_lan_netmask();

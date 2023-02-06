@@ -59,7 +59,7 @@ public:
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         relayStatus = 1;
-        hardwareReleaseTime = util.get_by_cmd_res("uname -a");
+        hardwareReleaseTime = "2022.12.09";
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");
         hardwareVersion = "7621";
@@ -135,7 +135,7 @@ namespace asns {
             return SendTrue(pClient);
         } else {
             std::cout << "return login error" << std::endl;
-            return SendFast(asns::USER_PWD_ERROR, pClient);
+            return SendFast("F6", pClient);
         }
     }
 
@@ -146,19 +146,19 @@ namespace asns {
     int AudioPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
+            return SendFast("F21", pClient);
         } else if (!busines.isNameEmpty(m_str[4])) {
             //音频文件查询不存在
-            return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
+            return SendFast("F23", pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             /*设备正在播放中，触发失败*/
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         } else {
             if (utils.get_process_status("aplay")) {
                 Singleton::getInstance().setStatus(0);
@@ -187,7 +187,7 @@ namespace asns {
         int volume = std::stoi(m_str[4]);
         if (volume > 7 || volume < 0) {
             //音量值不在范围
-            return SendFast(asns::VOLUME_RANGE_ERROR, pClient);
+            return SendFast("F31", pClient);
         } else {
             CVolumeSet volumeSet;
             volumeSet.setVolume(volume);
@@ -242,12 +242,9 @@ namespace asns {
     int TtsPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        if (utils.statistical_character_count(txt) > 100) {
-            return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
-        }
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
         SendTrue(pClient);
@@ -259,79 +256,77 @@ namespace asns {
         }).detach();
     }
 
-    void tts(const int playType, const int duration, const std::string &txt, CSocket *pClient) {
+    int TtsNumTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+            return SendFast("F22", pClient);
+        }
+
+        int playType = std::stoi(m_str[5]);
+        int duration = std::stoi(m_str[6]);
+
+        std::string txt = utils.hex_to_string(m_str[4]);
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-        std::cout << "cmd" << cmd << std::endl;
         system(cmd.c_str());
         switch (playType) {
             case 0: {
                 Singleton::getInstance().setStatus(1);
-                while (Singleton::getInstance().getStatus()) {
-                    system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
-                }
+                std::thread([&] {
+                    while (Singleton::getInstance().getStatus()) {
+                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    }
+                }).detach();
                 break;
             }
             case 1: {
+                if (duration < 1) {
+                    return SendFast("F4", pClient);
+                }
                 std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
                 for (int i = 0; i < duration; ++i) {
                     cmd += "/tmp/output.pcm ";
                 }
-                //cmd += "&";
+                cmd += "&";
                 std::cout << "cmd: " << cmd << std::endl;
                 system(cmd.c_str());
                 break;
             }
             case 2: {
+                if (duration < 1) {
+                    return SendFast("F4", pClient);
+                }
                 Singleton::getInstance().setStatus(1);
                 utils.async_wait(1, duration, 0, [&] {
                     Singleton::getInstance().setStatus(0);
                     system("killall -9 aplay");
                 });
-                while (Singleton::getInstance().getStatus()) {
-                    system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
-                }
+                std::thread([&] {
+                    while (Singleton::getInstance().getStatus()) {
+                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    }
+                }).detach();
                 break;
             }
             default:
-                SendFast(asns::NONSUPPORT_ERROR, pClient);
+                return SendFast("F4", pClient);
         }
-        SendTrue(pClient);
-    }
-
-    int TtsNumTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
-        CUtils utils;
-        if (utils.get_process_status("madplay") || utils.get_process_status("aplay") ||
-            utils.get_process_status("tts")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
-        }
-        std::string txt = utils.hex_to_string(m_str[4]);
-        if (utils.statistical_character_count(txt) > 100) {
-            return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
-        }
-        std::cout << "tts size:" << txt.length() << "txt: " << txt << std::endl;
-        int playType = std::stoi(m_str[5]);
-        int duration = std::stoi(m_str[6]);
-        if (duration < 1) {
-            return SendFast(asns::NONSUPPORT_ERROR, pClient);
-        }
-        utils.async_wait(1, 0, 0, tts, playType, duration, txt, pClient);
+        return SendTrue(pClient);
     }
 
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
+            return SendFast("F21", pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         } else if (!busines.isNameEmpty(m_str[4])) {
-            return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
+            return SendFast("F23", pClient);
         } else {
             char command[256] = {0};
             int duration = std::stoi(m_str[6]);
@@ -350,7 +345,7 @@ namespace asns {
                 }
                 case 1: {
                     if (duration < 1) {
-                        return SendFast(asns::NONSUPPORT_ERROR, pClient);
+                        return SendFast("F4", pClient);
                     }
                     std::string cmd = "madplay ";
                     for (int i = 0; i < duration; ++i) {
@@ -363,7 +358,7 @@ namespace asns {
                 }
                 case 2: {
                     if (duration < 1) {
-                        return SendFast(asns::NONSUPPORT_ERROR, pClient);
+                        return SendFast("F4", pClient);
                     }
                     int d = duration / (3600 * 24);
                     int t = duration % (3600 * 24) / 3600;
@@ -377,7 +372,7 @@ namespace asns {
                     break;
                 }
                 default:
-                    return SendFast(asns::NONSUPPORT_ERROR, pClient);
+                    return SendFast("F4", pClient);
             }
             return SendTrue(pClient);
         }
@@ -396,7 +391,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast(asns::USER_PWD_ERROR, pClient);
+            return SendFast("F6", pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -436,7 +431,7 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast(asns::USER_PWD_ERROR, pClient);
+            return SendFast("F6", pClient);
         } else {
             CUtils utils;
             const std::string &gateway = m_str[7];
@@ -469,9 +464,9 @@ namespace asns {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[6].length() < 8) {
-            return SendFast(asns::OPERATION_NEW_PWD_COMPLEXITY_ERROR, pClient);
+            return SendFast("F25", pClient);
         } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast(asns::USER_PWD_ERROR, pClient);
+            return SendFast("F6", pClient);
         } else {
             cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
@@ -497,41 +492,154 @@ namespace asns {
         bus.load();
         std::string imei = bus.business[0].deviceID;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         }
         int time = std::stod(m_str[4]);
         if (time > 30 || time < 0) {
-            return SendFast(asns::RECORD_TIME_ERROR, pClient);
+            return SendFast("F5", pClient);
         }
         system("arecord -f cd /tmp/record.mp3 &");
-
         std::this_thread::sleep_for(std::chrono::seconds(time));
         system("killall -9 arecord");
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
         system("rm /tmp/record.mp3");
-        if (res.find("true") != std::string::npos) {
+        if (res.empty() || res.find("error") != std::string::npos) {
+            return SendFast("F5", pClient);
+        } else if (res.find("true") != std::string::npos) {
             return SendTrue(pClient);
         } else {
-            return SendFast(asns::POST_ERROR, pClient);
+            return SendFast("F5", pClient);
         }
     }
 
     int RecordBegin(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast(asns::ALREADY_PLAYED, pClient);
+            return SendFast("F22", pClient);
         }
         system("arecord -f cd /tmp/record.mp3 &");
         return SendTrue(pClient);
     }
+
+    /*int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
+        std::string audioPath = "/tmp/record.mp3";
+        system("killall -9 arecord");
+        std::ifstream fs(audioPath, std::fstream::in | std::fstream::binary);
+        CUtils utils;
+        int file_size = utils.get_file_size(audioPath);
+        Server server(34509);
+        int port = server.bind();
+        if (port < 0) {
+            SendFast("F5", pClient);
+            return 0;
+        }
+        server.listen();
+        Epoll epoll;
+        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+        std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " " + std::to_string(port);
+        pClient->Send(res.c_str(), res.length());
+        while (true) {
+            int num = epoll.wait(-1);
+            if (num == 0) {
+                std::cout << "timeout" << std::endl;
+                break;
+            }
+            for (int i = 0; i < num; ++i) {
+                int cur_fd = epoll.get_event_fd(i);
+                if (cur_fd == server.get_fd()) {
+                    int connfd = server.accept();
+                    epoll.set_no_blocking(connfd);
+                    bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                    if (flag == false) {
+                        std::cout << "Connection error" << std::endl;
+                        break;
+                    }
+                } else if (epoll.get_event(i) & EPOLLIN) {
+                    char buf[8192] = {0};
+                    while (!fs.eof()) {
+                        fs.read(buf, sizeof(buf));
+                        std::cout << buf << std::endl;
+                        server.write(cur_fd, buf, fs.gcount());
+                    }
+                    fs.close();
+                    return SendTrue(pClient);
+                } else {
+                    std::cout << "..." << std::endl;
+                }
+            }
+        }
+    }*/
+
+    /*int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
+        std::string audioPath = "/tmp/record.mp3";
+        system("killall -9 arecord");
+
+        CUtils utils;
+        int file_size = utils.get_file_size(audioPath);
+        if (file_size <= 0) {
+            return SendFast("F5", pClient);
+        }
+        utils.async_wait(1, 0, 0, [&, file_size, pClient] {
+            CSocket socket;
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
+            int opt = 1;
+            setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
+            for (int i = 34509; i < 34608; ++i) {
+                if (socket.Bind(i)) {
+                    std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " " + std::to_string(i);
+                    pClient->Send(res.c_str(), res.length());
+                    break;
+                } else if (i == 34608) {
+                    DS_TRACE("fatal , bind error!\n");
+                    return SendFast("F5", pClient);
+                }
+            }
+            socket.Listen();
+            while (1) {
+                CSocket *pTcp = new CSocket;
+                fd_set rset;
+                FD_ZERO(&rset);
+                FD_SET(socket.m_hSocket, &rset);
+                struct timeval timeout;
+                timeout.tv_sec = 30;
+                timeout.tv_usec = 0;
+                int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+                if (n < 0) {
+                    DS_TRACE("fatal , select error!\n");
+                    return SendFast("F5", pClient);
+                } else if (n == 0) {
+                    DS_TRACE("timeout!\n");
+                    return SendFast("F5", pClient);
+                } else if (n > 0) {
+                    DS_TRACE("server select n = " << n);
+                }
+                socket.Accept(pTcp);
+                DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
+                                       << ntohs(pTcp->GetPeerPort()));
+                char buf[8192] = {0};
+                std::fstream fs(audioPath, std::fstream::in | std::fstream::binary);
+                while (!fs.eof()) {
+                    fs.read(buf, sizeof(buf));
+                    std::cout << sizeof(buf) << " ";
+                    pTcp->Send(buf, fs.gcount());
+                }
+                fs.close();
+                socket.Close();
+                system("rm /tmp/record.mp3");
+                return SendTrue(pClient);
+            }
+        });
+    }*/
 
     int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
         system("killall -9 arecord");
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         if (file_size <= 0) {
-            return SendFast(asns::RECORD_SIZE_ERROR, pClient);
+            return SendFast("F5", pClient);
         }
         TcpTransferThread *pServer = new TcpTransferThread();
         pServer->SetPort(asns::BEGINPORT);
@@ -546,10 +654,10 @@ namespace asns {
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
+            return SendFast("F21", pClient);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast(asns::AUDIO_SUFFIX_ERROR, pClient);
+            return SendFast("F27", pClient);
         }
         std::string temp = name + "." + suffix;
         CUtils utils;
@@ -559,11 +667,11 @@ namespace asns {
         std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
         std::cout << "res:-----" << res << std::endl;
         if (res.find("error") != std::string::npos) {
-            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
+            return SendFast("F5", pClient);
         } else if (res.find("Failed to connect") != std::string::npos) {
-            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
+            return SendFast("F5", pClient);
         } else if (res.find("Couldn't connect to server") != std::string::npos) {
-            return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
+            return SendFast("F5", pClient);
         } else {
             CAddColumnCustomAudioFileBusiness business;
             if (!business.exist(temp)) {
@@ -582,16 +690,188 @@ namespace asns {
         }
     }
 
+    /*int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+        std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
+        std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
+        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+            //音频文件名校验失败
+            return SendFast("F21", pClient);
+        }
+        if (suffix.compare("mp3") != 0) {
+            return SendFast("F27", pClient);
+        }
+        std::string temp = name + "." + suffix;
+        CUtils utils;
+        CAudioCfgBusiness cfg;
+        cfg.load();
+        std::string path = cfg.getAudioFilePath() + temp;
+        Server server(34509);
+        int port = server.bind();
+        if (port < 0) {
+            return SendFast("F5", pClient);
+        }
+        server.listen();
+        Epoll epoll;
+        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
+        pClient->Send(res.c_str(), res.length());
+        utils.async_wait(1, 0, 0, [&] {
+            while (true) {
+                int num = epoll.wait(30 * 1000);
+                if (num == 0) {
+                    std::cout << "timeout..." << std::endl;
+                    break;
+                }
+                for (int i = 0; i < num; ++i) {
+                    int cur_fd = epoll.get_event_fd(i);
+                    if (cur_fd == server.get_fd()) {
+                        int connfd = server.accept();
+                        epoll.set_no_blocking(connfd);
+                        bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                        if (!flag) {
+                            std::cout << "Connection error" << std::endl;
+                            break;
+                        }
+                    } else if (epoll.get_event(i) & EPOLLIN) {
+                        std::fstream fs(path, std::fstream::out | std::fstream::binary);
+                        int file_size = std::atoi(m_str[4].c_str());
+                        char buf[8192] = {0};
+                        while (true) {
+                            int len = server.read(cur_fd, buf, sizeof(buf));
+                            if (len > 0) {
+                                fs.write(buf, len);
+                                file_size -= len;
+                                if (file_size <= 0) {
+                                    break;
+                                }
+                            }
+                        }
+                        fs.close();
+                        CAddColumnCustomAudioFileData node;
+                        node.type = 32;
+                        node.setName(temp);
+                        node.size = utils.get_file_size(path);
+                        CAddColumnCustomAudioFileBusiness business;
+                        business.load();
+                        business.business.push_back(node);
+                        business.saveJson();
+                        SendTrue(pClient);
+                        return 1;
+                    } else {
+                        std::cout << "..." << std::endl;
+                    }
+                }
+            }
+        });
+        return 1;
+    }*/
+    /*
     int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
         if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
+            return SendFast("F21", pClient);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast(asns::AUDIO_SUFFIX_ERROR, pClient);
+            return SendFast("F27", pClient);
+        }
+        std::string temp = name + "." + suffix;
+        CUtils utils;
+        CAudioCfgBusiness cfg;
+        std::string path = cfg.getAudioFilePath() + temp;
+        utils.async_wait(1, 0, 0, [&, path, pClient] {
+            CSocket socket;
+            if (!socket.Create(TCP)) {
+                return SendFast("F5", pClient);
+            }
+            int opt = 1;
+            setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
+            for (int i = 34509; i < 34608; ++i) {
+                if (socket.Bind(i)) {
+                    std::string res = "01 E1 " + m_str[5] + " " + std::to_string(i);
+                    pClient->Send(res.c_str(), res.length());
+                    break;
+                } else if (i == 34608) {
+                    DS_TRACE("fatal , bind error!\n");
+                    return SendFast("F5", pClient);
+                }
+            }
+            socket.Listen();
+            while (1) {
+                CSocket *pTcp = new CSocket;
+                fd_set rset;
+                FD_ZERO(&rset);
+                FD_SET(socket.m_hSocket, &rset);
+                struct timeval timeout;
+                timeout.tv_sec = 30;
+                timeout.tv_usec = 0;
+                int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+                if (n < 0) {
+                    DS_TRACE("fatal , select error!\n");
+                    return SendFast("F5", pClient);
+                } else if (n == 0) {
+                    DS_TRACE("timeout!\n");
+                    return SendFast("F5", pClient);
+                } else if (n > 0) {
+                    DS_TRACE("server select n = " << n);
+                }
+                socket.Accept(pTcp);
+                DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":"
+                                       << ntohs(pTcp->GetPeerPort()));
+                std::cout << "path: " << path << std::endl;
+                std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
+                int file_size = std::atoi(m_str[4].c_str());
+                char buf[8192] = {0};
+                while (true) {
+                    int len = pTcp->Recv(buf, sizeof(buf));
+                    std::cout << "recv len :" << len << std::endl;
+                    if (len > 0) {
+                        fs.write(buf, len);
+                        file_size -= len;
+                        if (file_size <= 0) {
+                            std::cout << "read end" << std::endl;
+                            break;
+                        }
+                    } else if (len == 0) {
+                        std::cout << "read end" << std::endl;
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
+                    }
+                }
+                fs.close();
+                std::cout << "begin json" << std::endl;
+                CAddColumnCustomAudioFileBusiness business;
+                if (!business.exist(temp)) {
+                    CAddColumnCustomAudioFileData node;
+                    node.type = 32;
+                    node.setName(temp);
+                    node.size = utils.get_file_size(path);
+                    business.business.push_back(node);
+                    business.saveJson();
+                } else {
+                    business.updateSize(temp, std::atoi(m_str[4].c_str()));
+                }
+                socket.Close();
+                return SendTrue(pClient);
+            }
+        });
+    }
+    */
+    int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+        std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
+        std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
+        std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
+        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+            //音频文件名校验失败
+            return SendFast("F21", pClient);
+        }
+        if (suffix.compare("mp3") != 0) {
+            return SendFast("F27", pClient);
         }
 
         TcpTransferThread *pServer = new TcpTransferThread();
@@ -602,6 +882,132 @@ namespace asns {
         std::cout << "AudioFileUpload end....." << std::endl;
         return 1;
     }
+    /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
+        Server server(34509);
+        int port = server.bind();
+        if (port < 0) {
+            return SendFast("F5", pClient);
+        }
+        server.listen();
+        Epoll epoll;
+        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
+        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
+        pClient->Send(res.c_str(), res.length());
+        while (true) {
+            int num = epoll.wait(30 * 1000);
+            if (num == 0) {
+                std::cout << "timeout" << std::endl;
+                break;
+            }
+            for (int i = 0; i < num; ++i) {
+                int cur_fd = epoll.get_event_fd(i);
+                if (cur_fd == server.get_fd()) {
+                    int connfd = server.accept();
+                    epoll.set_no_blocking(connfd);
+                    bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
+                    if (!flag) {
+                        std::cout << "Connection error" << std::endl;
+                        break;
+                    }
+                } else if (epoll.get_event(i) & EPOLLIN) {
+                    std::fstream fs("/var/run/version/SONICCOREV100R001.bin", std::fstream::out | std::fstream::binary);
+                    int file_size = std::atoi(m_str[4].c_str());
+                    char buf[1024] = {0};
+                    while (true) {
+                        int len = server.read(cur_fd, buf, sizeof(buf));
+                        if (len > 0) {
+                            fs.write(buf, len);
+                            file_size -= len;
+                            if (file_size <= 0)break;
+                        }
+                    }
+                    fs.close();
+                    SendTrue(pClient);
+                    thread([&] {
+                        system("webs -U /var/run/version/SONICCOREV100R001.bin");
+                        system("reboot");
+                    }).detach();
+                    return 0;
+                } else {
+                    std::cout << "..." << std::endl;
+                }
+            }
+        }
+        return 1;
+    }*/
+
+    /*int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        utils.async_wait(1, 0, 0, [&, pClient] {
+            CSocket socket;
+            socket.Create(TCP);
+            int opt = 1;
+            setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
+            for (int i = 34509; i < 34608; ++i) {
+                if (socket.Bind(i)) {
+                    std::string res = "01 E1 " + m_str[5] + " " + std::to_string(i);
+                    pClient->Send(res.c_str(), res.length());
+                    break;
+                } else if (i == 34608) {
+                    DS_TRACE("fatal , bind error!\n");
+                    return SendFast("F5", pClient);
+                }
+            }
+            socket.Listen();
+            while (1) {
+                CSocket *pTcp = new CSocket;
+
+                fd_set rset;
+                FD_ZERO(&rset);
+                FD_SET(socket.m_hSocket, &rset);
+                struct timeval timeout;
+                timeout.tv_sec = 30;
+                timeout.tv_usec = 0;
+                int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+                if (n < 0) {
+                    DS_TRACE("fatal , select error!\n");
+                    return SendFast("F5", pClient);
+                } else if (n == 0) {
+                    DS_TRACE("timeout!\n");
+                    return SendFast("F5", pClient);
+                } else if (n > 0) {
+                    DS_TRACE("server select n = " << n);
+                }
+                socket.Accept(pTcp);
+                DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
+                std::fstream fs("/var/run/version/SONICCOREV100R001.bin", std::fstream::out | std::fstream::binary);
+                int file_size = std::atoi(m_str[4].c_str());
+                char buf[8192] = {0};
+                while (true) {
+                    int len = pTcp->Recv(buf, sizeof(buf));
+                    if (len > 0) {
+                        fs.write(buf, len);
+                        std::cout << len << " ";
+                        file_size -= len;
+                        if (file_size <= 0)break;
+                    } else if (len == 0) {
+                        break;
+                    } else if (len < 0) {
+                        fs.close();
+                        return SendFast("F5", pClient);
+                    }
+                }
+                fs.close();
+                socket.Close();
+                std::cout << "begin up read size:" << utils.get_file_size("/var/run/version/SONICCOREV100R001.bin")
+                          << std::endl;
+                std::string res = utils.get_by_cmd_res("webs -U /var/run/version/SONICCOREV100R001.bin");
+                std::cout << "cmd res:" << res << std::endl;
+                if (res.find("OK") != std::string::npos) {
+                    SendTrue(pClient);
+                    system("reboot");
+                } else {
+                    system("rm /var/run/version/SONICCOREV100R001.bin");
+                    return SendFast("F5", pClient);
+                }
+            }
+        });
+    }*/
 
     int RemoteFileUpgrade(std::vector<std::string> &m_str, CSocket *pClient) {
         TcpTransferThread *pServer = new TcpTransferThread();
