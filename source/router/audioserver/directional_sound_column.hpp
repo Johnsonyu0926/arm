@@ -471,11 +471,7 @@ namespace asns {
             cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
             CUtils utils;
-            if (utils.is_ros_platform()) {
-                char buf[64] = {0};
-                sprintf(buf, "cm set_val sys serverpassword %s", m_str[6].c_str());
-                system(buf);
-            }
+			utils.change_password(m_str[6].c_str());
             return SendTrue(pClient);
         }
     }
