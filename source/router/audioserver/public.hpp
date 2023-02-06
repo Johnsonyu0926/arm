@@ -59,21 +59,6 @@ namespace asns {
     const char *const TCP_TRANSFER_ERROR = "F66";
     const char* const TCP_UPGRADE_ERROR = "F70";
     const char *const TCP_TIMEOUT = "F71";
-    /*const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-    const char *const
-
-
-*/
 
     const char *const RECORD_PATH = "/tmp/record.mp3";
     const char *const FIRMWARE_PATH = "/var/run/SONICCOREV100R001.bin";

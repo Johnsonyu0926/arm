@@ -151,7 +151,8 @@ private:
                 break;
             } else if (len < 0) {
                 fs.close();
-                //system(path.c_str()); todo remove audio file
+                std::string cmd = "rm " + path;
+                system(cmd.c_str());
                 return SendFast(asns::RECORD_SIZE_ERROR, pClient);
             }
         }
