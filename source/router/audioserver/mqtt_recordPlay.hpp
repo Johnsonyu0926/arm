@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.hpp"
+#include "public.hpp"
 
 /**
  * {
@@ -44,6 +45,9 @@ namespace asns {
             sprintf(buf, "curl --location --request GET %s --output %s", downloadUrl.c_str(), fileName.c_str());
             std::cout << "cmd: " << buf << std::endl;
             system(buf);
+            char cmd[64] = {0};
+            ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
+            system(cmd);
             switch (timeType) {
                 case 0: {
                     char command[256] = {0};

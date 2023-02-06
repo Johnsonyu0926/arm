@@ -59,6 +59,8 @@ namespace asns {
                 node.customAudioName = fileName;
                 CAddCustomAudioFileBusiness business;
                 if (!business.exist(fileName)) {
+                    std::string cmd = "conv.sh " + cfg.getAudioFilePath() + fileName;
+                    system(cmd.c_str());
                     business.business.push_back(node);
                     business.saveToJson();
                     fileUploadResult.do_success();

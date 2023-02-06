@@ -28,7 +28,8 @@ public:
                 } else {
                     CUtils utils;
                     int file_size = utils.get_file_size(asns::RECORD_PATH);
-                    std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
+                    std::string res =
+                            "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
                     pClient->Send(res.c_str(), res.length());
                 }
                 break;
@@ -64,7 +65,7 @@ public:
     }
 
     virtual BOOL ExitInstance() {
-        std::cout<<"exit tcp transfer thread."<<std::endl;
+        std::cout << "exit tcp transfer thread." << std::endl;
         return TRUE;
     }
 
@@ -72,7 +73,7 @@ public:
 
     void SetClient(CSocket *pClient) { this->pClient = pClient; }
 
-    void SetVecStr(const std::vector <std::string> &vecStr) { m_vecStr = vecStr; }
+    void SetVecStr(const std::vector<std::string> &vecStr) { m_vecStr = vecStr; }
 
 private:
     int do_req(CSocket *pTcp) {
@@ -102,6 +103,9 @@ private:
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         std::cout << "record file size:" << file_size << std::endl;
+        char cmd[64] = {0};
+        ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
+        system(cmd);
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
@@ -158,6 +162,8 @@ private:
         }
         fs.close();
         std::cout << "begin json" << std::endl;
+        std::string cmd = "conv.sh " + path;
+        system(cmd.c_str());
         CUtils utils;
         asns::CAddColumnCustomAudioFileBusiness business;
         if (!business.exist(name)) {
@@ -221,5 +227,5 @@ private:
 private:
     CSocket *pClient;
     int m_nPort;
-    std::vector <std::string> m_vecStr;
+    std::vector<std::string> m_vecStr;
 };

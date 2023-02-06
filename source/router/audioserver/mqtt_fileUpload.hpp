@@ -66,6 +66,8 @@ namespace asns {
                 data.setAudioUploadRecordId(audioUploadRecordId);
                 CAddMqttCustomAudioFileBusiness business;
                 if (!business.exist(fileName)) {
+                    std::string cmd = "conv.sh " + cfg.getAudioFilePath() + fileName;
+                    system(cmd.c_str());
                     business.business.push_back(data);
                     business.saveJson();
                 }

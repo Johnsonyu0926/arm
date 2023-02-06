@@ -54,6 +54,9 @@ namespace asns {
             std::thread([&] {
                 std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
                 system("killall -9 arecord");
+                char cmd[64] = {0};
+                ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
+                system(cmd);
             }).join();
             return 1;
         }

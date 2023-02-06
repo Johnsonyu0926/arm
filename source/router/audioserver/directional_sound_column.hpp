@@ -476,7 +476,7 @@ namespace asns {
             cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
             CUtils utils;
-			utils.change_password(m_str[6].c_str());
+            utils.change_password(m_str[6].c_str());
             return SendTrue(pClient);
         }
     }
@@ -506,6 +506,9 @@ namespace asns {
         system("arecord -f cd /tmp/record.mp3 &");
         std::this_thread::sleep_for(std::chrono::seconds(time));
         system("killall -9 arecord");
+        char cmd[64] = {0};
+        ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
+        system(cmd);
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
         system("rm /tmp/record.mp3");
@@ -566,6 +569,9 @@ namespace asns {
         } else {
             CAddColumnCustomAudioFileBusiness business;
             if (!business.exist(temp)) {
+                std::string cmd = "conv.sh " + path;
+                std::cout << "cmd : " << cmd << std::endl;
+                system(cmd.c_str());
                 CAddColumnCustomAudioFileData node;
                 node.type = 32;
                 node.setName(temp);
