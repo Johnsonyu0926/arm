@@ -402,43 +402,6 @@ public:
         }
         return output;
     }
-    bool check(const unsigned char c) {
-        //通过字节码进行判断
-        return c >= 0x80;
-    }
-    int statistical_character_count(const std::string &str) {
-        std::cout << str.length() << std::endl;
-        std::cout << str.size() << std::endl;
-        int LowerCase, UpperCase; //大写，小写
-        int space = 0;
-        int digit, character; //数字，字符
-        int chinese = 0; //中文
-        digit = character = LowerCase = UpperCase = 0;
-        for (int i = 0; i < str.length(); i++) {
-            if (str[i] >= 'a' && str[i] <= 'z') {
-                std::cout << str[i] << " ";
-                LowerCase++;
-            } else if (str[i] >= 'A' && str[i] <= 'Z') {
-                std::cout << str[i] << " ";
-                UpperCase++;
-            } else if (str[i] >= '0' && str[i] <= '9') {
-                std::cout << str[i] << " ";
-                digit++;
-            } else if (check(str[i])) {
-                std::cout <<"chinese"<< str[i] << " ";
-                chinese++;
-            } else if (str[i] == ' ') {
-                std::cout << str[i] << " ";
-                space++;
-            } else {
-                std::cout << str[i] << " ";
-                character++;
-            }
-        }
-        printf("UpperCase %d个，LowerCase %d个，digit %d个，character %d个，chinese %d个，space %d个\n", UpperCase, LowerCase, digit, character,
-               chinese / 3, space);
-        return UpperCase + LowerCase + digit + character + (chinese / 3) + space;
-    }
 };
 
 #endif
