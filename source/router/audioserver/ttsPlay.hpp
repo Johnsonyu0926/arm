@@ -42,13 +42,14 @@ namespace asns {
                 std::string txt = utils.hex_to_string(content);
                 std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
                 system(cmd.c_str());
-                utils.volume_gain(asns::TTS_PATH);
+                system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
+                utils.volume_gain(asns::TTS_PATH, "wav");
                 switch (playType) {
                     case 0:
                         Singleton::getInstance().setStatus(1);
                         std::thread([&] {
                             while (Singleton::getInstance().getStatus()) {
-                                system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                                system("aplay /tmp/output.wav");
                             }
                         }).detach();
                         break;
@@ -57,9 +58,9 @@ namespace asns {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
+                        std::string cmd = "aplay ";
                         for (int i = 0; i < duration; ++i) {
-                            cmd += "/tmp/output.pcm ";
+                            cmd += "/tmp/output.wav ";
                         }
                         cmd += "&";
                         std::cout << "cmd: " << cmd << std::endl;
@@ -78,7 +79,7 @@ namespace asns {
                         });
                         std::thread([&] {
                             while (Singleton::getInstance().getStatus()) {
-                                system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                                system("aplay /tmp/output.wav");
                             }
                         }).detach();
                         break;

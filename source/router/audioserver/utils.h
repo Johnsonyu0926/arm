@@ -402,6 +402,7 @@ public:
         }
         return output;
     }
+
     bool check(const unsigned char c) {
         //通过字节码进行判断
         return c >= 0x80;
@@ -458,8 +459,8 @@ public:
         system(cmd.c_str());
     }
 
-    void volume_gain(const std::string &path) {
-        std::string cmd = "vol.sh " + path;
+    void volume_gain(const std::string &path, const std::string &suffix) {
+        std::string cmd = "vol.sh " + path + " " + suffix;
         std::cout << "cmd : " << cmd << std::endl;
         system(cmd.c_str());
     }

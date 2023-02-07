@@ -250,34 +250,40 @@ namespace asns {
         }
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
-        utils.volume_gain(asns::TTS_PATH);
+        system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
+        utils.volume_gain(asns::TTS_PATH, "wav");
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
         std::thread([&] {
             while (Singleton::getInstance().getStatus()) {
-                system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                system("aplay /tmp/output.wav");
             }
         }).detach();
     }
 
-    void tts(const int playType, const int duration, const std::string &txt, CSocket *pClient) {
+    int tts(const int playType, const int duration, const std::string &txt, CSocket *pClient) {
         CUtils utils;
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         std::cout << "cmd" << cmd << std::endl;
         system(cmd.c_str());
-        utils.volume_gain(asns::TTS_PATH);
+        system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
+        utils.volume_gain(asns::TTS_PATH, "wav");
         switch (playType) {
             case 0: {
                 Singleton::getInstance().setStatus(1);
+                SendTrue(pClient);
                 while (Singleton::getInstance().getStatus()) {
-                    system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    system("aplay /tmp/output.wav");
                 }
-                break;
+                return 0;
             }
             case 1: {
-                std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
+                if (duration < 1) {
+                    return SendFast(asns::NONSUPPORT_ERROR, pClient);
+                }
+                std::string cmd = "aplay ";
                 for (int i = 0; i < duration; ++i) {
-                    cmd += "/tmp/output.pcm ";
+                    cmd += "/tmp/output.wav ";
                 }
                 //cmd += "&";
                 std::cout << "cmd: " << cmd << std::endl;
@@ -285,18 +291,21 @@ namespace asns {
                 break;
             }
             case 2: {
+                if (duration < 1) {
+                    return SendFast(asns::NONSUPPORT_ERROR, pClient);
+                }
                 Singleton::getInstance().setStatus(1);
                 utils.async_wait(1, duration, 0, [&] {
                     Singleton::getInstance().setStatus(0);
                     system("killall -9 aplay");
                 });
                 while (Singleton::getInstance().getStatus()) {
-                    system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
+                    system("aplay /tmp/output.wav");
                 }
                 break;
             }
             default:
-                SendFast(asns::NONSUPPORT_ERROR, pClient);
+                return SendFast(asns::NONSUPPORT_ERROR, pClient);
         }
         SendTrue(pClient);
     }
@@ -314,9 +323,6 @@ namespace asns {
         std::cout << "tts size:" << txt.length() << "txt: " << txt << std::endl;
         int playType = std::stoi(m_str[5]);
         int duration = std::stoi(m_str[6]);
-        if (duration < 1) {
-            return SendFast(asns::NONSUPPORT_ERROR, pClient);
-        }
         utils.async_wait(1, 0, 0, tts, playType, duration, txt, pClient);
     }
 
@@ -508,7 +514,7 @@ namespace asns {
         system("arecord -f cd /tmp/record.mp3 &");
         std::this_thread::sleep_for(std::chrono::seconds(time));
         system("killall -9 arecord");
-        utils.volume_gain(asns::RECORD_PATH);
+        utils.volume_gain(asns::RECORD_PATH, "mp3");
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
         system("rm /tmp/record.mp3");

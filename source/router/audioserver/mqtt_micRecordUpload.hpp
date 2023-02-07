@@ -54,7 +54,7 @@ namespace asns {
             std::thread([&] {
                 std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
                 system("killall -9 arecord");
-                utils.volume_gain(asns::RECORD_PATH);
+                utils.volume_gain(asns::RECORD_PATH, "mp3");
             }).join();
             return 1;
         }

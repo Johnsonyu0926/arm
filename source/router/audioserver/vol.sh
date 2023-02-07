@@ -4,6 +4,6 @@ echo "get val: $vol"
 if [ "$vol" -gt 14 ]
 then
   x=$((vol-14))
-  ffmpeg -i "$1" -filter:a "volume=${x}dB" /tmp/vol.mp3
-  cp /tmp/vol.mp3 "$1"
+  ffmpeg -i "$1" -filter:a "volume=${x}dB" /tmp/vol."$2"
+  cp /tmp/vol."$2" "$1"
 fi

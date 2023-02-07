@@ -35,7 +35,7 @@ namespace asns {
             CUtils utils;
             sleep(std::atoi(duration.c_str()));
             system("killall -9 arecord");
-            utils.volume_gain(asns::RECORD_PATH);
+            utils.volume_gain(asns::RECORD_PATH, "mp3");
             std::string res = utils.get_doupload_result(uploadUrl, imei);
             std::cout << "result:" << res << std::endl;
             system("rm /tmp/record.mp3");
