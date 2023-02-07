@@ -58,9 +58,8 @@ namespace asns {
                 node.filePath = downloadUrl;
                 node.customAudioName = fileName;
                 CAddCustomAudioFileBusiness business;
+                utils.bit_rate_32_to_48(cfg.getAudioFilePath() + fileName);
                 if (!business.exist(fileName)) {
-                    std::string cmd = "conv.sh " + cfg.getAudioFilePath() + fileName;
-                    system(cmd.c_str());
                     business.business.push_back(node);
                     business.saveToJson();
                     fileUploadResult.do_success();

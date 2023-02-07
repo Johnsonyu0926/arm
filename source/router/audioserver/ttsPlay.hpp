@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include "utils.h"
 #include "Singleton.hpp"
+#include "public.hpp"
 #include <thread>
 
 namespace asns {
@@ -41,6 +42,7 @@ namespace asns {
                 std::string txt = utils.hex_to_string(content);
                 std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
                 system(cmd.c_str());
+                utils.volume_gain(asns::TTS_PATH);
                 switch (playType) {
                     case 0:
                         Singleton::getInstance().setStatus(1);

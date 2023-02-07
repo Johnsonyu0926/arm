@@ -250,6 +250,7 @@ namespace asns {
         }
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         system(cmd.c_str());
+        utils.volume_gain(asns::TTS_PATH);
         SendTrue(pClient);
         Singleton::getInstance().setStatus(1);
         std::thread([&] {
@@ -264,6 +265,7 @@ namespace asns {
         std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
         std::cout << "cmd" << cmd << std::endl;
         system(cmd.c_str());
+        utils.volume_gain(asns::TTS_PATH);
         switch (playType) {
             case 0: {
                 Singleton::getInstance().setStatus(1);
@@ -506,9 +508,7 @@ namespace asns {
         system("arecord -f cd /tmp/record.mp3 &");
         std::this_thread::sleep_for(std::chrono::seconds(time));
         system("killall -9 arecord");
-        char cmd[64] = {0};
-        ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
-        system(cmd);
+        utils.volume_gain(asns::RECORD_PATH);
         std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
         std::cout << "result:" << res << std::endl;
         system("rm /tmp/record.mp3");
@@ -567,11 +567,9 @@ namespace asns {
         } else if (res.find("Couldn't connect to server") != std::string::npos) {
             return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
         } else {
+            utils.bit_rate_32_to_48(path);
             CAddColumnCustomAudioFileBusiness business;
             if (!business.exist(temp)) {
-                std::string cmd = "conv.sh " + path;
-                std::cout << "cmd : " << cmd << std::endl;
-                system(cmd.c_str());
                 CAddColumnCustomAudioFileData node;
                 node.type = 32;
                 node.setName(temp);

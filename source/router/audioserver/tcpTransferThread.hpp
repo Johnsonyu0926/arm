@@ -28,8 +28,7 @@ public:
                 } else {
                     CUtils utils;
                     int file_size = utils.get_file_size(asns::RECORD_PATH);
-                    std::string res =
-                            "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
+                    std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
                     pClient->Send(res.c_str(), res.length());
                 }
                 break;
@@ -103,9 +102,7 @@ private:
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         std::cout << "record file size:" << file_size << std::endl;
-        char cmd[64] = {0};
-        ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
-        system(cmd);
+        utils.volume_gain(asns::RECORD_PATH);
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
@@ -162,9 +159,8 @@ private:
         }
         fs.close();
         std::cout << "begin json" << std::endl;
-        std::string cmd = "conv.sh " + path;
-        system(cmd.c_str());
         CUtils utils;
+        utils.bit_rate_32_to_48(path);
         asns::CAddColumnCustomAudioFileBusiness business;
         if (!business.exist(name)) {
             asns::CAddColumnCustomAudioFileData node;

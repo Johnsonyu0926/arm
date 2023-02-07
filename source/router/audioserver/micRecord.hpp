@@ -2,6 +2,9 @@
 
 #include "json.hpp"
 #include "audiocfg.hpp"
+#include "utils.h"
+#include "public.hpp"
+
 //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
 namespace asns {
 
@@ -32,6 +35,7 @@ namespace asns {
             CUtils utils;
             sleep(std::atoi(duration.c_str()));
             system("killall -9 arecord");
+            utils.volume_gain(asns::RECORD_PATH);
             std::string res = utils.get_doupload_result(uploadUrl, imei);
             std::cout << "result:" << res << std::endl;
             system("rm /tmp/record.mp3");

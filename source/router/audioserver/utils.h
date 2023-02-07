@@ -426,7 +426,7 @@ public:
                 std::cout << str[i] << " ";
                 digit++;
             } else if (check(str[i])) {
-                std::cout <<"chinese"<< str[i] << " ";
+                std::cout << "chinese" << str[i] << " ";
                 chinese++;
             } else if (str[i] == ' ') {
                 std::cout << str[i] << " ";
@@ -436,20 +436,33 @@ public:
                 character++;
             }
         }
-        printf("UpperCase%d，LowerCase%d，digit%d，character%d，chinese%d，space%d\n", UpperCase, LowerCase, digit, character,
+        printf("UpperCase%d，LowerCase%d，digit%d，character%d，chinese%d，space%d\n", UpperCase, LowerCase, digit,
+               character,
                chinese / 3, space);
         return UpperCase + LowerCase + digit + character + (chinese / 3) + space;
     }
 
-	int change_password(const char *password) {
-		if (is_ros_platform()) {
-			char buf[64] = {0};
-			snprintf(buf, sizeof(buf), "webs -P %s", password);
-			system(buf);
-			snprintf(buf, sizeof(buf), "cm set_val sys serverpassword %s", password);
-			system(buf);
-		}
-	}
+    int change_password(const char *password) {
+        if (is_ros_platform()) {
+            char buf[64] = {0};
+            snprintf(buf, sizeof(buf), "webs -P %s", password);
+            system(buf);
+            snprintf(buf, sizeof(buf), "cm set_val sys serverpassword %s", password);
+            system(buf);
+        }
+    }
+
+    void bit_rate_32_to_48(const std::string &path) {
+        std::string cmd = "conv.sh " + path;
+        std::cout << "cmd : " << cmd << std::endl;
+        system(cmd.c_str());
+    }
+
+    void volume_gain(const std::string &path) {
+        std::string cmd = "vol.sh " + path;
+        std::cout << "cmd : " << cmd << std::endl;
+        system(cmd.c_str());
+    }
 };
 
 #endif

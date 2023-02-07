@@ -115,4 +115,6 @@ romfs:
 	cp ./lib/libmos* -a $(ROOTFS_DIR)/usr/lib
 	cp ./mips_r3000/*.so $(ROOTFS_DIR)/usr/lib
 	cp ./asctrl.sh $(ROOTFS_DIR)/sbin
+	cp ./vol.sh $(ROOTFS_DIR)/sbin
+	cp ./conv.sh $(ROOTFS_DIR)/sbin
 	cp -a ./mp3/ $(ROOTFS_DIR)/usr/lib
