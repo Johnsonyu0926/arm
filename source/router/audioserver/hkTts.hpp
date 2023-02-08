@@ -44,7 +44,7 @@ namespace asns {
         std::string parse(const std::string &res) {
             try {
                 json js = json::parse(res);
-                data = json::parse(js.at("params").at("data").get<std::string>());
+                data = json::parse(js.at("data").get<std::string>());
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;

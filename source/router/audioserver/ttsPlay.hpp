@@ -43,14 +43,14 @@ namespace asns {
                 utils.txt_to_audio(txt, speed);
                 switch (playType) {
                     case 0:
-                        utils.tts_loop_play(true);
+                        utils.tts_loop_play(ASYNC_START);
                         break;
                     case 1: {
                         if (duration < 1) {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        utils.tts_num_play(duration, true);
+                        utils.tts_num_play(duration, ASYNC_START);
                         break;
                     }
                     case 2: {
@@ -58,7 +58,7 @@ namespace asns {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        utils.tts_time_play(duration, true);
+                        utils.tts_time_play(duration, ASYNC_START);
                         break;
                     }
                 }
