@@ -631,14 +631,14 @@ public:
     void gpio_set(const int model, const int status) {
         CGpio::getInstance().setGpioModel(model);
         switch (model) {
-            case 1:
+            case asns::GPIO_CUSTOM_MODE:
                 if (status == 0) {
                     CGpio::getInstance().set_gpio_off();
                 } else if (status == 1) {
                     CGpio::getInstance().set_gpio_on();
                 }
                 break;
-            case 2:
+            case asns::GPIO_PLAY_MODE:
                 async_wait(0, 0, 0, [&] {
                     if (get_process_status("madplay") || get_process_status("aplay")) {
                         CGpio::getInstance().set_gpio_on();

@@ -71,4 +71,7 @@ namespace asns {
     const int AUDIO_TASK_PLAYING = 3;
 
     const bool ASYNC_START = true;
+
+    const int GPIO_CUSTOM_MODE = 1;
+    const int GPIO_PLAY_MODE = 2;
 }
