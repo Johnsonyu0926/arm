@@ -1,7 +1,6 @@
 #pragma once
 
 #include "json.hpp"
-#include "Singleton.hpp"
 
 namespace asns {
     template<typename Quest, typename Result>

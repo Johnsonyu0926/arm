@@ -113,9 +113,11 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         CDeleteAudio res = m_json;
         res.do_req(pClient);
     } else if (strstr(buf, "PtzOperate")) {
+        cout << "PtzOperate command." << endl;
         CPtzOperate res = m_json;
         res.do_req();
     } else if (strstr(buf, "RelaySet")) {
+        cout << "RelaySet command." << endl;
         CRelaySet res = m_json;
         res.do_req(pClient);
     } else {
@@ -222,6 +224,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
             break;
         case LIGHTCONFIG:
             std::cout << "闪灯配置" << std::endl;
+            asns::FlashConfig(m_str,pClient);
             break;
         case RECORDBEGIN:
             std::cout << "RecordBegin" << std::endl;

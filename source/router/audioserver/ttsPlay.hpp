@@ -40,31 +40,17 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
-                system(cmd.c_str());
-                system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
-                utils.volume_gain(asns::TTS_PATH, "wav");
+                utils.txt_to_audio(txt, speed);
                 switch (playType) {
                     case 0:
-                        Singleton::getInstance().setStatus(1);
-                        std::thread([&] {
-                            while (Singleton::getInstance().getStatus()) {
-                                system("aplay /tmp/output.wav");
-                            }
-                        }).detach();
+                        utils.tts_loop_play(true);
                         break;
                     case 1: {
                         if (duration < 1) {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        std::string cmd = "aplay ";
-                        for (int i = 0; i < duration; ++i) {
-                            cmd += "/tmp/output.wav ";
-                        }
-                        cmd += "&";
-                        std::cout << "cmd: " << cmd << std::endl;
-                        system(cmd.c_str());
+                        utils.tts_num_play(duration, true);
                         break;
                     }
                     case 2: {
@@ -72,16 +58,7 @@ namespace asns {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        Singleton::getInstance().setStatus(1);
-                        utils.async_wait(1,duration,0,[&]{
-                            Singleton::getInstance().setStatus(0);
-                            system("killall -9 aplay");
-                        });
-                        std::thread([&] {
-                            while (Singleton::getInstance().getStatus()) {
-                                system("aplay /tmp/output.wav");
-                            }
-                        }).detach();
+                        utils.tts_time_play(duration, true);
                         break;
                     }
                 }

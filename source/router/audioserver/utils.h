@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -15,12 +17,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <fstream>
+#include <iostream>
+#include <vector>
 #include <chrono>
 #include <thread>
-
-#ifndef __CUTILS_H__
-#define __CUTILS_H__
+#include <future>
+#include "public.hpp"
+#include "gpio.hpp"
+#include "playStatus.hpp"
 
 class CUtils {
 private:
@@ -164,7 +169,7 @@ public:
         return m_lan;
     }
 
-    std::string get_doupload_result(const std::string url, const std::string &imei) {
+    std::string get_doupload_result(const std::string &url, const std::string &imei) {
         char cmd[1024] = {0};
         sprintf(cmd,
                 "curl --location --request POST '%s' \\\n"
@@ -461,9 +466,190 @@ public:
 
     void volume_gain(const std::string &path, const std::string &suffix) {
         std::string cmd = "vol.sh " + path + " " + suffix;
-        std::cout << "cmd : " << cmd << std::endl;
+        std::cout << "cmd :" << cmd << std::endl;
         system(cmd.c_str());
     }
-};
 
-#endif
+    void txt_to_audio(const std::string &txt, const int speed = 50) {
+        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
+        system(cmd.c_str());
+        system("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
+        volume_gain(asns::TTS_PATH, "wav");
+    }
+
+    void audio_clear() {
+        system("rm /tmp/output.wav");
+        system("rm /tmp/output.pcm");
+        system("rm /tmp/vol.wav");
+    }
+
+    void audio_stop() {
+        system("killall -9 madplay");
+        system("killall -9 aplay");
+        PlayStatus::getInstance().init();
+    }
+
+    void tts_loop_play(const bool async = false) {
+        if (async) {
+            async_wait(1, 0, 0, [&] {
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
+                    system("aplay /tmp/output.wav");
+                }
+            });
+        } else {
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
+                system("aplay /tmp/output.wav");
+            }
+        }
+    }
+
+    void tts_num_play(const int num, const bool async = false) {
+        if (async) {
+            async_wait(1, 0, 0, [&] {
+                std::string cmd = "aplay ";
+                for (int i = 0; i < num; ++i) {
+                    cmd += "/tmp/output.wav ";
+                }
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                system(cmd.c_str());
+                PlayStatus::getInstance().init();
+            });
+        } else {
+            std::string cmd = "aplay ";
+            for (int i = 0; i < num; ++i) {
+                cmd += "/tmp/output.wav ";
+            }
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            system(cmd.c_str());
+            PlayStatus::getInstance().init();
+        }
+    }
+
+    void tts_time_play(const int time, const bool async = false) {
+        async_wait(1, time, 0, [&] {
+            system("killall -9 aplay");
+            PlayStatus::getInstance().init();
+        });
+        if (async) {
+            async_wait(1, 0, 0, [&] {
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
+                    system("aplay /tmp/output.wav");
+                }
+            });
+        } else {
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
+                system("aplay /tmp/output.wav");
+            }
+        }
+    }
+
+    void audio_loop_play(const std::string &path, const bool async = false) {
+        if (async) {
+            async_wait(1, 0, 0, [=] {
+                std::string cmd = "madplay " + path + " -r";
+                std::cout << cmd << std::endl;
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                system(cmd.c_str());
+                PlayStatus::getInstance().init();
+            });
+        } else {
+            std::string cmd = "madplay " + path + " -r";
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            system(cmd.c_str());
+            PlayStatus::getInstance().init();
+        }
+    }
+
+    void audio_num_play(const int num, const std::string &path, const bool async = false) {
+        if (async) {
+            async_wait(1, 0, 0, [=] {
+                std::string cmd = "madplay ";
+                for (int i = 0; i < num; ++i) {
+                    cmd += path + ' ';
+                }
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                std::cout << cmd << std::endl;
+                system(cmd.c_str());
+                PlayStatus::getInstance().init();
+            });
+        } else {
+            std::string cmd = "madplay ";
+            for (int i = 0; i < num; ++i) {
+                cmd += path + ' ';
+            }
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            std::cout << cmd << std::endl;
+            system(cmd.c_str());
+            PlayStatus::getInstance().init();
+        }
+
+    }
+
+    void audio_time_play(const int time, const std::string &path, const bool async = false) {
+        int d = time / (3600 * 24);
+        int t = time % (3600 * 24) / 3600;
+        int m = time % (3600 * 24) % 3600 / 60;
+        int s = time % (3600 * 24) % 3600 % 60;
+        char buf[64] = {0};
+        char cmd[128] = {0};
+        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
+        sprintf(cmd, "madplay %s -r -t %s", path.c_str(), buf);
+        if (async) {
+            async_wait(1, 0, 0, [=] {
+                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+                std::cout << cmd << std::endl;
+                system(cmd);
+                PlayStatus::getInstance().init();
+            });
+        } else {
+            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
+            std::cout << cmd << std::endl;
+            system(cmd);
+            PlayStatus::getInstance().init();
+        }
+    }
+
+    std::string record_upload(const int time, const std::string &url, const std::string &imei) {
+        std::future <std::string> res = std::async(std::launch::async, [=] {
+            std::this_thread::sleep_for(std::chrono::seconds(time));
+            system("killall -9 arecord");
+            volume_gain(asns::RECORD_PATH, "mp3");
+            std::string res = get_doupload_result(url, imei);
+            system("rm /tmp/record.mp3");
+            return res;
+        });
+        async_wait(1, 0, 0, [&] {
+            system("arecord -f cd /tmp/record.mp3");
+        });
+        return res.get();
+    }
+
+    void gpio_set(const int model, const int status) {
+        CGpio::getInstance().setGpioModel(model);
+        switch (model) {
+            case 1:
+                if (status == 0) {
+                    CGpio::getInstance().set_gpio_off();
+                } else if (status == 1) {
+                    CGpio::getInstance().set_gpio_on();
+                }
+                break;
+            case 2:
+                async_wait(0, 0, 0, [&] {
+                    if (get_process_status("madplay") || get_process_status("aplay")) {
+                        CGpio::getInstance().set_gpio_on();
+                    } else {
+                        CGpio::getInstance().set_gpio_off();
+                    }
+                    if (CGpio::getInstance().getGpioModel() != 2)return;
+                });
+                break;
+            default:
+                break;
+        }
+    }
+};

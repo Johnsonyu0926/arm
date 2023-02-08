@@ -64,4 +64,11 @@ namespace asns {
     const char *const FIRMWARE_PATH = "/var/run/SONICCOREV100R001.bin";
 
     const char *const TTS_PATH = "/tmp/output.wav";
+
+    const int STOP_TASK_PLAYING = -1;
+    const int TIMED_TASK_PLAYING = 1;
+    const int TALK_TASK_PLAYING = 2;
+    const int AUDIO_TASK_PLAYING = 3;
+
+    const bool ASYNC_START = true;
 }

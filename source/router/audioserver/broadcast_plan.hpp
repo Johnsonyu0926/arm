@@ -8,6 +8,9 @@
 #include "doorsbase.h"
 #include "add_custom_audio_file.hpp"
 #include "talk.h"
+#include "playStatus.hpp"
+#include "utils.h"
+
 using namespace std;
 using json = nlohmann::json;
 extern int g_bStop;
@@ -392,11 +395,12 @@ namespace asns
 						//playing it.
 						if (g_playing_priority != NON_PLAY_PRIORITY) {
 							cout << "stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority<<endl;
-                            system("killall -9 madplay");
+                            CUtils utils;
+                            utils.audio_stop();
 						}
 					}
 					g_playing_priority = Operation.audioLevel;
-					g_addAudioBusiness.play(id, TimeRange.endTime);
+					g_addAudioBusiness.play(id, TimeRange.endTime,g_playing_priority);
 					g_playing_priority = NON_PLAY_PRIORITY;
 				}
 			}

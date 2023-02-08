@@ -9,7 +9,7 @@
 #include "doorsbase.h"
 #include "audiocfg.hpp"
 #include "playStatus.hpp"
-
+#include "public.hpp"
 using namespace std;
 using json = nlohmann::json;
 // extern vector<int> playing;
@@ -49,12 +49,12 @@ namespace asns {
 
         int getCustomAudioID() { return customAudioID; }
 
-        int play(string prefix, string endTime) {
+        int play(string prefix, string endTime,const int priority) {
             if (strlen(filename) <= 0) {
                 parseFile();
             }
             CUtils utils;
-            //cout << "custom audio file data : playing " << customAudioID << ",file" << customAudioName << endl;
+            cout << "custom audio file data : playing " << customAudioID << ",file" << customAudioName << endl;
 
             // background play. and monitor....
             //
@@ -63,10 +63,9 @@ namespace asns {
             char background_cmd[256] = {0};
             sprintf(background_cmd, "%s&", cmd);
             system(background_cmd); // background play
-            /*PlayStatus::getInstance().setPlayId(1);
-            PlayStatus::getInstance().setPriority(); //todo
-            PlayStatus::getInstance().setProcessId(utils.get_process_id("madplay"));
-*/
+            PlayStatus::getInstance().setPlayId(asns::TIMED_TASK_PLAYING);
+            PlayStatus::getInstance().setPriority(priority);
+
             CSTime tnow;
 
             tnow.GetCurTime();
@@ -89,10 +88,8 @@ namespace asns {
                     sleep(1);
                 } else {
                     // out of time. stop if it is playing...
-                    system("killall -9 madplay");
                     cout << "out of time. play stop! last cmd is:" << cmd << endl;
-                    //PlayStatus::getInstance().init();
-
+                    utils.audio_stop();
                 }
                 sleep(2);
             }
@@ -215,12 +212,12 @@ namespace asns {
             return 0;
         }
 
-        int play(int id, string endtime) {
+        int play(int id, string endtime,const int priority) {
             //cout << "business count:" << business.size() << endl;
             for (unsigned int i = 0; i < business.size(); i++) {
                 CAddCustomAudioFileData data = business.at(i);
                 if (data.getCustomAudioID() == id) {
-                    data.play(savePrefix, endtime);
+                    data.play(savePrefix, endtime,priority);
                 }
             }
             return 0;

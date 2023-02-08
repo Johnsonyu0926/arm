@@ -43,10 +43,7 @@ namespace asns {
                 return 5;
             }
             std::string txt = utils.hex_to_string(content);
-            std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-            system(cmd.c_str());
-            system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
-            utils.volume_gain(asns::TTS_PATH, "wav");
+            utils.txt_to_audio(txt);
             switch (timeType) {
                 case 0: {
                     Singleton::getInstance().setStatus(1);

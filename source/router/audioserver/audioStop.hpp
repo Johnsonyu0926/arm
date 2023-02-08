@@ -1,7 +1,7 @@
 #pragma once
 
 #include "json.hpp"
-#include "Singleton.hpp"
+#include "utils.h"
 
 namespace asns {
     class CAudioStopResult {
@@ -25,9 +25,8 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioStop, cmd)
 
         int do_req(CSocket *pClient) {
-            system("killall -9 madplay");
-            Singleton::getInstance().setStatus(0);
-            system("killall -9 aplay");
+            CUtils utils;
+            utils.audio_stop();
             CAudioStopResult audioStopResult;
             audioStopResult.do_success();
             json js = audioStopResult;

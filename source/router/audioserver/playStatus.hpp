@@ -1,6 +1,8 @@
 #pragma once
+
 #include <thread>
-/*
+#include "public.hpp"
+
 class PlayStatus {
 public:
     PlayStatus(const PlayStatus &) = delete;
@@ -13,12 +15,10 @@ public:
     }
 
     void init() {
-        m_playId = -1;
-        m_priority = -1;
-        m_pId = -1;
-        m_tId = 0;
+        m_playId = asns::STOP_TASK_PLAYING;
+        m_priority = asns::STOP_TASK_PLAYING;
+        m_pId = asns::STOP_TASK_PLAYING;
     }
-
 
     int getPlayId() const {
         return m_playId;
@@ -34,14 +34,6 @@ public:
 
     void setPriority(const int id) {
         m_priority = id;
-    }
-
-    std::thread::id getThreadId() const {
-        return m_tId;
-    }
-
-    void setThreadId(const std::thread::id id) {
-        m_tId = id;
     }
 
     pid_t getProcessId() const {
@@ -60,7 +52,5 @@ private:
 private:
     int m_playId{-1};
     int m_priority{-1};
-    std::thread::id m_tId{0};
     pid_t m_pId{-1};
 };
-*/

@@ -19,6 +19,7 @@
 #include "login.hpp"
 
 #include "hkVolume.hpp"
+#include "hkTts.hpp"
 // #include "login.hpp"
 #include <csignal>
 using namespace asns;
@@ -241,8 +242,15 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
             sprintf(res,resp_add_custom_audio_file,"success");
             struData.pBodyData = (HPR_VOIDPTR)(res);
 		}
+        else if(strcmp(identifier, "StartTTSAudio") == 0) {
+            printf("json:%s\n", (char *)pTemp->pDodyData);
+            CStartTTSAudio ttsAudio;
+            std::string res = ttsAudio.parse((char *)pTemp->pDodyData);
+            struData.pBodyData = (HPR_VOIDPTR)(res.c_str());
+        }
         else
         {
+            printf("unknown body:%s\n", (char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(resp);
             printf("resp = %s\n", resp);
         }

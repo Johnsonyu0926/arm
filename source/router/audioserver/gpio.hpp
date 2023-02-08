@@ -4,9 +4,9 @@ class CGpio {
 public:
     ~CGpio() = default;
 
-    CGpio(const Singleton &) = delete;
+    CGpio(const CGpio &) = delete;
 
-    CGpio &operator=(const Singleton &) = delete;
+    CGpio &operator=(const CGpio &) = delete;
 
     static CGpio &getInstance() {
         static CGpio instance;

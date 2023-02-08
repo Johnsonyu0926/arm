@@ -9,10 +9,8 @@
 #include "file_recv.hpp"
 #include "epoll.hpp"
 #include "utils.h"
-#include "Singleton.hpp"
 #include "tcpTransferThread.hpp"
 #include "public.hpp"
-#include <thread>
 
 extern int g_playing_priority;
 extern asns::CVolumeSet g_volumeSet;
@@ -161,25 +159,19 @@ namespace asns {
             return SendFast(asns::ALREADY_PLAYED, pClient);
         } else {
             if (utils.get_process_status("aplay")) {
-                Singleton::getInstance().setStatus(0);
-                system("killall -9 aplay");
+                utils.audio_stop();
             }
             char cmd[256] = {0};
             CAudioCfgBusiness cfg;
             cfg.load();
-            sprintf(cmd, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-            std::cout << "cmd: " << cmd << std::endl;
-            std::thread([&] { system(cmd); }).detach();
-
+            utils.audio_loop_play(cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
             return SendTrue(pClient);
         }
     }
 
     int AudioStop(CSocket *pClient) {
-        system("killall -9 madplay");
-        Singleton::getInstance().setStatus(0);
-        system("killall -9 aplay");
-        g_playing_priority = NON_PLAY_PRIORITY;
+        CUtils utils;
+        utils.audio_stop();
         return SendTrue(pClient);
     }
 
@@ -239,6 +231,12 @@ namespace asns {
         }
     }
 
+    int FlashConfig(const std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
+        utils.gpio_set(std::stoi(m_str[4].c_str()), std::stoi(m_str[5].c_str()));
+        return SendTrue(pClient);
+    }
+
     int TtsPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
@@ -248,60 +246,32 @@ namespace asns {
         if (utils.statistical_character_count(txt) > 100) {
             return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
         }
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-        system(cmd.c_str());
-        system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
-        utils.volume_gain(asns::TTS_PATH, "wav");
+        utils.txt_to_audio(txt);
         SendTrue(pClient);
-        Singleton::getInstance().setStatus(1);
-        std::thread([&] {
-            while (Singleton::getInstance().getStatus()) {
-                system("aplay /tmp/output.wav");
-            }
-        }).detach();
+        utils.tts_loop_play(asns::ASYNC_START);
     }
 
     int tts(const int playType, const int duration, const std::string &txt, CSocket *pClient) {
         CUtils utils;
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-        std::cout << "cmd" << cmd << std::endl;
-        system(cmd.c_str());
-        system("ffmpeg -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
-        utils.volume_gain(asns::TTS_PATH, "wav");
+        utils.txt_to_audio(txt);
         switch (playType) {
             case 0: {
-                Singleton::getInstance().setStatus(1);
                 SendTrue(pClient);
-                while (Singleton::getInstance().getStatus()) {
-                    system("aplay /tmp/output.wav");
-                }
+                utils.tts_loop_play();
                 return 0;
             }
             case 1: {
                 if (duration < 1) {
                     return SendFast(asns::NONSUPPORT_ERROR, pClient);
                 }
-                std::string cmd = "aplay ";
-                for (int i = 0; i < duration; ++i) {
-                    cmd += "/tmp/output.wav ";
-                }
-                //cmd += "&";
-                std::cout << "cmd: " << cmd << std::endl;
-                system(cmd.c_str());
+                utils.tts_num_play(duration);
                 break;
             }
             case 2: {
                 if (duration < 1) {
                     return SendFast(asns::NONSUPPORT_ERROR, pClient);
                 }
-                Singleton::getInstance().setStatus(1);
-                utils.async_wait(1, duration, 0, [&] {
-                    Singleton::getInstance().setStatus(0);
-                    system("killall -9 aplay");
-                });
-                while (Singleton::getInstance().getStatus()) {
-                    system("aplay /tmp/output.wav");
-                }
+                utils.tts_time_play(duration);
                 break;
             }
             default:
@@ -341,47 +311,29 @@ namespace asns {
         } else if (!busines.isNameEmpty(m_str[4])) {
             return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
         } else {
-            char command[256] = {0};
             int duration = std::stoi(m_str[6]);
             CAudioCfgBusiness cfg;
             cfg.load();
             if (utils.get_process_status("aplay")) {
-                Singleton::getInstance().setStatus(0);
-                system("killall -9 aplay");
+                utils.audio_stop();
             }
             switch (std::stoi(m_str[5])) {
                 case 0: {
-                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-                    std::cout << "cmd: " << command << std::endl;
-                    system(command);
+                    utils.audio_loop_play(cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 case 1: {
                     if (duration < 1) {
                         return SendFast(asns::NONSUPPORT_ERROR, pClient);
                     }
-                    std::string cmd = "madplay ";
-                    for (int i = 0; i < duration; ++i) {
-                        cmd += cfg.getAudioFilePath() + m_str[4] + ' ';
-                    }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
+                    utils.audio_num_play(duration, cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 case 2: {
                     if (duration < 1) {
                         return SendFast(asns::NONSUPPORT_ERROR, pClient);
                     }
-                    int d = duration / (3600 * 24);
-                    int t = duration % (3600 * 24) / 3600;
-                    int m = duration % (3600 * 24) % 3600 / 60;
-                    int s = duration % (3600 * 24) % 3600 % 60;
-                    char buf[64] = {0};
-                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(), buf);
-                    std::cout << "cmd: " << command << std::endl;
-                    system(command);
+                    utils.audio_time_play(duration, cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 default:
@@ -511,13 +463,8 @@ namespace asns {
         if (time > 30 || time < 0) {
             return SendFast(asns::RECORD_TIME_ERROR, pClient);
         }
-        system("arecord -f cd /tmp/record.mp3 &");
-        std::this_thread::sleep_for(std::chrono::seconds(time));
-        system("killall -9 arecord");
-        utils.volume_gain(asns::RECORD_PATH, "mp3");
-        std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
+        std::string res = utils.record_upload(time,m_str[5],imei);
         std::cout << "result:" << res << std::endl;
-        system("rm /tmp/record.mp3");
         if (res.find("true") != std::string::npos) {
             return SendTrue(pClient);
         } else {

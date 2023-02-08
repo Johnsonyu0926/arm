@@ -57,27 +57,18 @@ namespace asns {
                 audioPlayResult.do_fail("no file");
             } else if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
                 if (utils.get_process_status("aplay")) {
-                    Singleton::getInstance().setStatus(0);
-                    system("killall -9 aplay");
+                    utils.audio_stop();
                 }
-                char command[256] = {0};
                 switch (playType) {
                     case 0:
-                        sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(),
-                                audioName.c_str());
+                        utils.audio_loop_play(cfg.getAudioFilePath() + audioName, ASYNC_START);
                         break;
                     case 1: {
                         if (duration < 1) {
                             audioPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        std::string cmd = "madplay ";
-                        for (int i = 0; i < duration; ++i) {
-                            cmd += cfg.getAudioFilePath() + audioName + ' ';
-                        }
-                        cmd += "&";
-                        std::cout << "cmd: " << cmd << std::endl;
-                        system(cmd.c_str());
+                        utils.audio_num_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
                         break;
                     }
                     case 2: {
@@ -85,21 +76,11 @@ namespace asns {
                             audioPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        int d = duration / (3600 * 24);
-                        int t = duration % (3600 * 24) / 3600;
-                        int m = duration % (3600 * 24) % 3600 / 60;
-                        int s = duration % (3600 * 24) % 3600 % 60;
-                        char buf[64] = {0};
-                        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                        sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
-                                audioName.c_str(), buf);
+                        utils.audio_time_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
                         break;
                     }
                 }
-                std::cout << "command: " << command << std::endl;
-                system(command);
             }
-
             json js = audioPlayResult;
             std::string str = js.dump();
             pClient->Send(str.c_str(), str.length());
