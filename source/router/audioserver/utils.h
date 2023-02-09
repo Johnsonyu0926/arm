@@ -639,13 +639,14 @@ public:
                 }
                 break;
             case asns::GPIO_PLAY_MODE:
-                async_wait(0, 0, 0, [&] {
-                    if (get_process_status("madplay") || get_process_status("aplay")) {
-                        CGpio::getInstance().set_gpio_on();
-                    } else {
-                        CGpio::getInstance().set_gpio_off();
+                async_wait(1, 0, 0, [&] {
+                    while(CGpio::getInstance().getGpioModel() == 2) {
+                        if (get_process_status("madplay") || get_process_status("aplay")) {
+                            CGpio::getInstance().set_gpio_on();
+                        } else {
+                            CGpio::getInstance().set_gpio_off();
+                        }
                     }
-                    if (CGpio::getInstance().getGpioModel() != 2)return;
                 });
                 break;
             default:
