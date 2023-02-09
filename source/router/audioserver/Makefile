@@ -117,4 +117,5 @@ romfs:
 	cp ./asctrl.sh $(ROOTFS_DIR)/sbin
 	cp ./vol.sh $(ROOTFS_DIR)/sbin
 	cp ./conv.sh $(ROOTFS_DIR)/sbin
+	cp ./dodownload.sh $(ROOTFS_DIR)/sbin
 	cp -a ./mp3/ $(ROOTFS_DIR)/usr/lib
