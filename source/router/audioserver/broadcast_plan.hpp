@@ -391,7 +391,7 @@ namespace asns
 					if(g_playing_priority < Operation.audioLevel) {
 						cout << "skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel<<endl;
 						continue;
-					} else { 
+					} else {
 						//playing it.
 						if (g_playing_priority != NON_PLAY_PRIORITY) {
 							cout << "stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority<<endl;
@@ -399,6 +399,7 @@ namespace asns
                             utils.audio_stop();
 						}
 					}
+                    std::cout<< "begin play audio priority: " << g_playing_priority <<std::endl;
 					g_playing_priority = Operation.audioLevel;
 					g_addAudioBusiness.play(id, TimeRange.endTime,g_playing_priority);
 					g_playing_priority = NON_PLAY_PRIORITY;
@@ -680,8 +681,8 @@ namespace asns
 				cout << "parseRequest for plan...the plan is plaing now, stop plan play first." << endl;
 				system("killall -9 madplay");
 			}
-			*/ 
-			
+			*/
+
 			//end modified by shidongxue . fix bug.2023.1.4
 
 			cout << data << endl;

@@ -88,7 +88,7 @@ HPR_VOID hexdump(unsigned const char *pSrc, int iLen, int iUpper, unsigned char 
 }
 
 void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *pDevSubSerial, unsigned char *pshare_key) {
-    // printf("code:%s, serial:%s\n", pDevVerificationCode, pDevSubSerial);
+    printf("code:%s, serial:%s\n", pDevVerificationCode, pDevSubSerial);
 
     unsigned char sharekey_src[512];
     HPR_UINT16 sharekey_src_len;
@@ -116,7 +116,7 @@ void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *
     memset(sharekey_src, 0, 512);
 
     const char *pShareKeySalt = "www.88075998.com";
-    // printf("salt:%s\n", pShareKeySalt);
+    printf("salt:%s\n", pShareKeySalt);
 
     const HPR_UINT32 dwShareKeySaltLen = strlen(pShareKeySalt);
 
@@ -154,7 +154,7 @@ void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *
     mbedtls_md_free(&sha1_ctx);
 
     memcpy(pshare_key, sharekey_sha256_dst_hex + 10, MAX_EHOME50_KEY_LEN);
-    // printf("success gen key: %s\n", pshare_key);
+    printf("success gen key: %s\n", pshare_key);
 }
 
 int state_machine = 0;
@@ -180,7 +180,7 @@ HPR_INT32 g_dwHandle = -1;
 
 void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HPR_UINT32 dwLen, HPR_VOIDPTR pData, HPR_VOIDPTR pUserData)
 {
-    // printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
+    printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
     if (dwType == DATATYPE_IOT)
     {
         g_dwHandle = dwHandle;
@@ -188,17 +188,17 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
         LPNET_EBASE_SERVER_DATA pTemp = (LPNET_EBASE_SERVER_DATA) pData;
 
         LPNET_IOT_SERVER_COMMAND cmd = (LPNET_IOT_SERVER_COMMAND)(pTemp->pCmdIdentify);
-        // printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
-        // printf("resource id:%s\n", cmd->byResourceID);
-        // printf("resource type:%s\n", cmd->byResourceType);
-        // printf("identifier:%s\n", cmd->byIdentifier);
+        printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
+        printf("resource id:%s\n", cmd->byResourceID);
+        printf("resource type:%s\n", cmd->byResourceType);
+        printf("identifier:%s\n", cmd->byIdentifier);
 
         memset(identifier, 0, sizeof(identifier));
         strncpy(identifier, (char *)cmd->byIdentifier, sizeof(identifier));
 
-        // printf("module:%s\n", cmd->byModule);
-        // printf("method:%s\n", cmd->byMethod);
-        // printf("msg type:%s\n", cmd->byMsgType);
+        printf("module:%s\n", cmd->byModule);
+        printf("method:%s\n", cmd->byMethod);
+        printf("msg type:%s\n", cmd->byMsgType);
 
         client_cmd.dwSize = sizeof(client_cmd);
         client_cmd.wModuleType = cmd->wModuleType;
@@ -258,7 +258,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
         struData.dwSequence = pTemp->dwSequence;
         struData.pCommandType = &client_cmd;
 
-        // printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
+        printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
 
         state_machine = dwType;
     }
@@ -268,7 +268,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
     }
     else if (dwType == DATATYPE_IOT_KERNEL_READY)
     {
-        // printf("KERNEL READY!\n");
+        printf("KERNEL READY!\n");
         g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
         g_ctalk.init();
     }
@@ -301,11 +301,11 @@ void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValu
     if (dwKeyValueType == KEYVALUE_DEVICE_ID)
     {
         memcpy(dev_id, pData, dwLen);
-        // printf("dev_id is got = %s\n", dev_id);
+        printf("dev_id is got = %s\n", dev_id);
     }else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
     {
         memcpy(master_key, pData, dwLen);
-    // printf("master key is got:%s\n", master_key);
+    printf("master key is got:%s\n", master_key);
 }
 
     // if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
@@ -358,19 +358,19 @@ int do_state_machine() {
 
 HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo)
 {
-    // cout << "loop work enter." << endl;
+    cout << "loop work enter." << endl;
     HPR_INT32 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
     HPR_BOOL bConnect = HPR_FALSE;
     while (1)
     {
         if (g_bException)
         {
-        // printf("exception !\n");
+            printf("exception !\n");
             if (iHandle >= 0)
             {
                 if (!NET_EBASE_DeystoryClient(iHandle))
                 {
-                // printf("destroy client error.\n");
+                   printf("destroy client error.\n");
                 }
                 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
             }
@@ -382,35 +382,35 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
         {
             do_state_machine();
 
-            // printf("connected. ok. \n");
+            printf("connected. ok. \n");
             HPR_Sleep(1000);
             continue;
         }
 
         if (iHandle < 0)
         {
-            // cout << "iot client is creating now." << endl;
+            cout << "iot client is creating now." << endl;
 
             iHandle = NET_EBASE_CreateIOTClient(dwClientType);
 
-            // cout << "iHandle is created:" << iHandle << endl;
+            cout << "iHandle is created:" << iHandle << endl;
 
             if (iHandle < 0)
             {
                 HPR_UINT32 dwError = NET_EBASE_GetLastError();
                 NET_EBASE_OTAP_ERROR_INFO err;
                 NET_EBASE_GetOTAPErrorMsg(dwError, &err);
-                // printf("failed to create iot client. type:%d, errno:%d, msg:%s, statusCode:%d\n", dwClientType, dwError, err.szErrorMsg, err.dwStatusCode);
+                printf("failed to create iot client. type:%d, errno:%d, msg:%s, statusCode:%d\n", dwClientType, dwError, err.szErrorMsg, err.dwStatusCode);
                 HPR_Sleep(1000);
                 continue;
             }
         }
-        // printf("connect to iot server by iot client...\n");
+        printf("connect to iot server by iot client...\n");
         bConnect = NET_EBASE_ConnectToIOTServer(iHandle, &struOTAPRegInfo);
         if (!bConnect)
         {
             HPR_UINT32 dwError = NET_EBASE_GetLastError();
-            // cout << "connect to iot server by iot client failed... dwError:" << dwError << endl;
+            cout << "connect to iot server by iot client failed... dwError:" << dwError << endl;
             HPR_Sleep(1000);
         } else if (strcmp(identifier, "")){
 
@@ -428,7 +428,7 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
                 HPR_UINT32 dwError = NET_EBASE_GetLastError();
             }
 
-        // cout << "connect to iot server by iot client success" << endl;
+            cout << "connect to iot server by iot client success" << endl;
             HPR_UINT16 wInterval = 10000;
             NET_EBASE_SetParam(iHandle, EBASE_PARAM_ALIVE_INTERVAL, &wInterval,
             sizeof(wInterval));

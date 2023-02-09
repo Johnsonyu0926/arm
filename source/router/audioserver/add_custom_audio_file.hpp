@@ -10,6 +10,7 @@
 #include "audiocfg.hpp"
 #include "playStatus.hpp"
 #include "public.hpp"
+
 using namespace std;
 using json = nlohmann::json;
 // extern vector<int> playing;
@@ -49,7 +50,7 @@ namespace asns {
 
         int getCustomAudioID() { return customAudioID; }
 
-        int play(string prefix, string endTime,const int priority) {
+        int play(string prefix, string endTime, const int priority) {
             if (strlen(filename) <= 0) {
                 parseFile();
             }
@@ -59,10 +60,11 @@ namespace asns {
             // background play. and monitor....
             //
             char cmd[256] = {0};
-            sprintf(cmd, "madplay %s/%s", prefix.c_str(), getFileName());
+            sprintf(cmd, "madplay %s%s", prefix.c_str(), getFileName());
             char background_cmd[256] = {0};
             sprintf(background_cmd, "%s&", cmd);
             system(background_cmd); // background play
+            std::cout << "cmd: " << background_cmd << std::endl;
             PlayStatus::getInstance().setPlayId(asns::TIMED_TASK_PLAYING);
             PlayStatus::getInstance().setPriority(priority);
 
@@ -207,17 +209,20 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            //cout << "load " << ADD_CUSTOM_AUDIO_FILE << "  success! " << endl;
-            //cout << "count:" << business.size() << endl;
+            cout << "load " << ADD_CUSTOM_AUDIO_FILE << "  success! " << endl;
+            cout << "count:" << business.size() << endl;
             return 0;
         }
 
-        int play(int id, string endtime,const int priority) {
-            //cout << "business count:" << business.size() << endl;
+        int play(int id, string endtime, const int priority) {
+            cout << "business count:" << business.size() << endl;
             for (unsigned int i = 0; i < business.size(); i++) {
                 CAddCustomAudioFileData data = business.at(i);
+                std::cout << "CustomAudioID： " << data.getCustomAudioID() << " id: " << id << std::endl;
                 if (data.getCustomAudioID() == id) {
-                    data.play(savePrefix, endtime,priority);
+                    std::cout << "savePrefix： " << savePrefix << " endtime " << endtime << "priority" << priority
+                              << std::endl;
+                    data.play(savePrefix, endtime, priority);
                 }
             }
             return 0;
