@@ -57,7 +57,7 @@ namespace asns {
             msg = "Obtaining information successfully";
             data.codeVersion = cfg.business[0].codeVersion;
             data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-            data.relayMode = 2;
+            data.relayMode = CGpio::getInstance().getGpioModel();
 
             CUtils util;
             data.ip = util.get_lan_addr();
@@ -66,7 +66,7 @@ namespace asns {
             data.playStatus = util.get_process_status("madplay");
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
-            data.relayStatus = 1;
+            data.relayStatus = CGpio::getInstance().getGpioStatus();
             data.hardwareReleaseTime = "2022.10.25";
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = 1305000;

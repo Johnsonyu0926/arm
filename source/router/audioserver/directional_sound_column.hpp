@@ -48,7 +48,7 @@ public:
         cfg.load();
         codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
         coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-        relayMode = 2;
+        relayMode = CGpio::getInstance().getGpioModel();
         CUtils util;
         ip = util.get_lan_addr();
         storageType = util.is_ros_platform() ? 0 : 1;
@@ -56,7 +56,7 @@ public:
         playStatus = 0;
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
-        relayStatus = 1;
+        relayStatus = CGpio::getInstance().getGpioStatus();
         hardwareReleaseTime = util.get_by_cmd_res("uname -a");
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");

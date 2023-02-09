@@ -223,7 +223,7 @@ int CClientThread::do_str_req(CSocket *pClient) {
             asns::GetAudioList(m_str, pClient);
             break;
         case LIGHTCONFIG:
-            std::cout << "闪灯配置" << std::endl;
+            std::cout << "FlashConfig" << std::endl;
             asns::FlashConfig(m_str,pClient);
             break;
         case RECORDBEGIN:

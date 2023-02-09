@@ -45,16 +45,16 @@ namespace asns {
             cfg.load();
             codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
             coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-            relayMode = 2;
+            relayMode = CGpio::getInstance().getGpioModel();
 
             CUtils util;
             ip = util.get_lan_addr();
             storageType = 0;
             port = 34508;
-            playStatus = 0;
+            playStatus = util.get_process_status("madplay");
             g_volumeSet.load();
             volume = g_volumeSet.getVolume();
-            relayStatus = 1;
+            relayStatus = CGpio::getInstance().getGpioStatus();
             hardwareReleaseTime = "2022.12.09";
             spiFreeSpace = 9752500;
             flashFreeSpace = util.get_available_Disk("/mnt");
@@ -66,7 +66,7 @@ namespace asns {
             address = "01";
             gateway = util.get_lan_gateway();
             userName = "admin";
-            imei = "11111";
+            imei = cfg.business[0].deviceID;
             functionVersion = "BROADCAST";
             deviceCode = cfg.business[0].deviceID;
             serverAddress = cfg.business[0].server;
