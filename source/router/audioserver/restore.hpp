@@ -61,24 +61,24 @@ namespace asns {
             data.relayMode = 2;
 
             CUtils util;
-            data.ip = "192.168.1.100";
+            data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = 0;
+            data.playStatus =util.get_process_status("madplay");
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
-            data.relayStatus = 1;
+            data.relayStatus = CGpio::getInstance().getGpioStatus();
             data.hardwareReleaseTime = "2022.10.25";
             data.spiFreeSpace = 9752500;
-            data.flashFreeSpace = 1305000;
+            data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = "4.2.1";
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = "255.255.255.0";
+            data.netmask = util.get_lan_netmask();
             data.address = "01";
-            data.gateway = "192.168.1.1";
+            data.gateway = util.get_lan_gateway();
             data.userName = "admin";
-            data.imei = "869298057534588";
+            data.imei = cfg.business[0].deviceID;
             data.functionVersion = "COMMON";
             data.deviceCode = cfg.business[0].deviceID;
             data.serverAddress = cfg.business[0].server;
@@ -104,6 +104,10 @@ namespace asns {
             cfg.load();
             if (utils.is_ros_platform()) {
                 system("cm default");
+                restoreResult.do_success();
+                json js = restoreResult;
+                std::string str = js.dump();
+                pClient->Send(str.c_str(), str.length());
                 system("reboot");
             } else {
                 cfg.business[0].serverPassword = "Aa123456";
