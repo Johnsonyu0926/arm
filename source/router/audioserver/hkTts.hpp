@@ -51,11 +51,13 @@ namespace asns {
             }
             CUtils utils;
             utils.txt_to_audio(data.ttscontent);
+            std::cout<< "hk tts:"<<data.ttscontent <<std::endl;
             utils.tts_num_play(1,ASYNC_START);
 
             CStartTTSAudioResult result;
             result.do_success();
             json s = result;
+            std::cout<< "hk tts res:" << s.dump() <<std::endl;
             return s.dump();
         }
 
