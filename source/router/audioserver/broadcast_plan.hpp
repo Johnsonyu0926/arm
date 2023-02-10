@@ -14,7 +14,7 @@
 using namespace std;
 using json = nlohmann::json;
 extern int g_bStop;
-
+static std::atomic_int g_updateJson;
 extern int g_playing_priority;
 extern asns::CAddCustomAudioFileBusiness g_addAudioBusiness;
 
@@ -353,7 +353,7 @@ namespace asns
 	private:
 		int do_loop()
 		{
-			while (1)
+			while (!g_updateJson)
 			{
 				if (!TimeRange.match())
 				{
@@ -739,6 +739,7 @@ namespace asns
 			cout << "broadcast plan, json content:" << j.dump() << endl;
 			try
 			{
+                g_updateJson = 1;
 				plan = j.at("data");
 			}
 			catch (json::parse_error &ex)
@@ -803,7 +804,7 @@ namespace asns
 
 					cout << "updating json.... current total daily plan: " << plan.DailySchedule.size() << endl;
 					saveToJson();
-
+                    g_updateJson = 0;
 					pthread_mutex_unlock(&g_ThreadsPlanLock);
 				}
 

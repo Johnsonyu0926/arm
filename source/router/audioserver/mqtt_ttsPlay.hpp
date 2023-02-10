@@ -2,7 +2,6 @@
 
 #include "json.hpp"
 #include "utils.h"
-#include "Singleton.hpp"
 #include "public.hpp"
 #include <thread>
 /**
@@ -42,45 +41,21 @@ namespace asns {
             if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
                 return 5;
             }
-            std::string txt = utils.hex_to_string(content);
-            utils.txt_to_audio(txt);
+            utils.txt_to_audio(content);
             switch (timeType) {
                 case 0: {
-                    Singleton::getInstance().setStatus(1);
-                    std::thread([&] {
-                        while (Singleton::getInstance().getStatus()) {
-                            system("aplay /tmp/output.wav");
-                        }
-                    }).detach();
+                   utils.tts_loop_play(ASYNC_START);
                     break;
                 }
                 case 1: {
-                    if (playCount < 1) {
-                        return 2;
-                    }
-                    std::string cmd = "aplay ";
-                    for (int i = 0; i < playCount; ++i) {
-                        cmd += "/tmp/output.wav ";
-                    }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
+                    utils.tts_num_play(playCount,ASYNC_START);
                     break;
                 }
                 case 2: {
                     if (playDuration < 1) {
                         return 2;
                     }
-                    Singleton::getInstance().setStatus(1);
-                    utils.async_wait(1,playDuration,0,[&]{
-                        Singleton::getInstance().setStatus(0);
-                        system("killall -9 aplay");
-                    });
-                    std::thread([&] {
-                        while (Singleton::getInstance().getStatus()) {
-                            system("aplay /tmp/output.wav");
-                        }
-                    }).detach();
+                    utils.tts_time_play(playDuration,ASYNC_START);
                     break;
                 }
                 default:

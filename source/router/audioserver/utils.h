@@ -509,22 +509,18 @@ public:
 
     void tts_num_play(const int num, const bool async = false) {
         if (async) {
-            async_wait(1, 0, 0, [&] {
-                std::string cmd = "aplay ";
-                for (int i = 0; i < num; ++i) {
-                    cmd += "/tmp/output.wav ";
-                }
+            async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                system(cmd.c_str());
+                for (int i = 0; i < num; ++i) {
+                    system("aplay /tmp/output.wav");
+                }
                 PlayStatus::getInstance().init();
             });
         } else {
-            std::string cmd = "aplay ";
-            for (int i = 0; i < num; ++i) {
-                cmd += "/tmp/output.wav ";
-            }
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            system(cmd.c_str());
+            for (int i = 0; i < num; ++i) {
+                system("/tmp/output.wav");
+            }
             PlayStatus::getInstance().init();
         }
     }
