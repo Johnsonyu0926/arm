@@ -191,7 +191,8 @@ namespace asns {
 
     int Reboot(CSocket *pClient) {
         SendTrue(pClient);
-        system("reboot");
+        CUtils utils;
+        utils.reboot();
         return 1;
     }
 
@@ -207,28 +208,12 @@ namespace asns {
         CUtils utils;
         CAudioCfgBusiness cfg;
         cfg.load();
-        if (utils.is_ros_platform()) {
-            cfg.business[0].serverPassword = "Aa123456";
-            cfg.business[0].server = "192.168.1.90";
-            cfg.business[0].port = 7681;
-            cfg.saveToJson();
-            SendTrue(pClient);
-            system("cm default");
-            cout << "restore ros platform config success. rebooting system now..." << endl;
-            system("reboot");
-            return 1;
-        } else {
-            cfg.business[0].serverPassword = "Aa123456";
-            cfg.business[0].server = "192.168.1.90";
-            cfg.business[0].port = 7681;
-            //clean(cfg.business[0].savePrefix.c_str());
-            utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
-            cfg.saveToJson();
-            SendTrue(pClient);
-            //network restore must be the last action!
-            utils.openwrt_restore_network();
-            cout << "restore success!\n" << endl;
-        }
+        cfg.business[0].serverPassword = "Aa123456";
+        cfg.business[0].server = "192.168.1.90";
+        cfg.business[0].port = 7681;
+        cfg.saveToJson();
+        SendTrue(pClient);
+        utils.restore(cfg.business[0].savePrefix);
     }
 
     int FlashConfig(const std::vector<std::string> &m_str, CSocket *pClient) {
@@ -359,36 +344,8 @@ namespace asns {
             return SendFast(asns::USER_PWD_ERROR, pClient);
         } else {
             CUtils utils;
-            const std::string &gateway = m_str[7];
-            const std::string &ipAddress = m_str[6];
-            const std::string &netMask = m_str[8];
-            if (utils.is_ros_platform()) {
-                SendTrue(pClient);
-                char cm[128] = {0};
-                sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                system("reboot");
-            } else {
-                char uci[128] = {0};
-                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
-                system(uci);
-                sprintf(uci, "uci commit network");
-                system(uci);
-                sprintf(uci, "/etc/init.d/network reload &");
-                SendTrue(pClient);
-                system(uci);
-            }
+            SendTrue(pClient);
+            utils.network_set(m_str[7], m_str[6], m_str[8]);
         }
     }
 
@@ -399,28 +356,8 @@ namespace asns {
             return SendFast(asns::USER_PWD_ERROR, pClient);
         } else {
             CUtils utils;
-            const std::string &gateway = m_str[7];
-            const std::string &ipAddress = m_str[6];
-            if (utils.is_ros_platform()) {
-                SendTrue(pClient);
-                char cm[128] = {0};
-                sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
-                system(cm);
-                system("reboot");
-            } else {
-                SendTrue(pClient);
-                char uci[128] = {0};
-                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-                system(uci);
-                sprintf(uci, "uci commit network");
-                system(uci);
-                sprintf(uci, "/etc/init.d/network reload");
-                system(uci);
-            }
+            SendTrue(pClient);
+            utils.network_set(m_str[7], m_str[6]);
             return 1;
         }
     }
@@ -463,7 +400,7 @@ namespace asns {
         if (time > 30 || time < 0) {
             return SendFast(asns::RECORD_TIME_ERROR, pClient);
         }
-        std::string res = utils.record_upload(time,m_str[5],imei);
+        std::string res = utils.record_upload(time, m_str[5], imei);
         std::cout << "result:" << res << std::endl;
         if (res.find("true") != std::string::npos) {
             return SendTrue(pClient);
@@ -477,13 +414,13 @@ namespace asns {
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
             return SendFast(asns::ALREADY_PLAYED, pClient);
         }
-        system("arecord -f cd /tmp/record.mp3 &");
+        utils.record_start(ASYNC_START);
         return SendTrue(pClient);
     }
 
     int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
-        system("killall -9 arecord");
         CUtils utils;
+        utils.record_stop();
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         if (file_size <= 0) {
             return SendFast(asns::RECORD_SIZE_ERROR, pClient);

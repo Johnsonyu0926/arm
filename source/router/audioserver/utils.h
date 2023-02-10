@@ -484,6 +484,8 @@ public:
     }
 
     void audio_stop() {
+        system("killall -9 ffplay");
+        system("killall -9 ffmpeg");
         system("killall -9 madplay");
         system("killall -9 aplay");
         PlayStatus::getInstance().init();
@@ -613,6 +615,24 @@ public:
         }
     }
 
+    void reboot() {
+        system("reboot");
+    }
+
+    void record_start(const bool async = false) {
+        if (async) {
+            async_wait(1, 0, 0, [&] {
+                system("arecord -f cd /tmp/record.mp3");
+            });
+        } else {
+            system("arecord -f cd /tmp/record.mp3");
+        }
+    }
+
+    void record_stop() {
+        system("killall -9 arecord");
+    }
+
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
         std::future <std::string> res = std::async(std::launch::async, [=] {
             std::this_thread::sleep_for(std::chrono::seconds(time));
@@ -640,7 +660,7 @@ public:
                 break;
             case asns::GPIO_PLAY_MODE:
                 async_wait(1, 0, 0, [&] {
-                    while(CGpio::getInstance().getGpioModel() == 2) {
+                    while (CGpio::getInstance().getGpioModel() == 2) {
                         if (get_process_status("madplay") || get_process_status("aplay")) {
                             CGpio::getInstance().set_gpio_on();
                         } else {
@@ -651,6 +671,62 @@ public:
                 break;
             default:
                 break;
+        }
+    }
+
+    void restore(const std::string &path) {
+        if (is_ros_platform()) {
+            system("cm default");
+            system("reboot");
+        } else {
+            clean_audio_server_file(path.c_str());
+            openwrt_restore_network();
+        }
+    }
+
+    void network_set(const std::string &gateway, const std::string &ipAddress, const std::string &netMask) {
+        if (is_ros_platform()) {
+            char cm[128] = {0};
+            sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
+            system(cm);
+            sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
+            system(cm);
+            sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
+            system(cm);
+            system("reboot");
+        } else {
+            char uci[128] = {0};
+            sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
+            system(uci);
+            sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
+            system(uci);
+            sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
+            system(uci);
+            sprintf(uci, "uci commit network");
+            system(uci);
+            sprintf(uci, "/etc/init.d/network reload &");
+            system(uci);
+        }
+    }
+
+    void network_set(const std::string &gateway, const std::string &ipAddress) {
+        if (is_ros_platform()) {
+            char cm[128] = {0};
+            sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
+            system(cm);
+            sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
+            system(cm);
+            system("reboot");
+        } else {
+            char uci[128] = {0};
+            sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
+            system(uci);
+            sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
+            system(uci);
+            sprintf(uci, "uci commit network");
+            system(uci);
+            sprintf(uci, "/etc/init.d/network reload");
+            system(uci);
         }
     }
 };

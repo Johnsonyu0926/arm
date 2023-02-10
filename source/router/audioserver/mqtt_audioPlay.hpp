@@ -81,33 +81,17 @@ namespace asns {
             } else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
                 switch (timeType) {
                     case 0: {
-                        if(playDuration < 1){
+                        if (playDuration < 1) {
                             return 2;
                         }
-                        char command[256] = {0};
-                        int d = playDuration / (3600 * 24);
-                        int t = playDuration % (3600 * 24) / 3600;
-                        int m = playDuration % (3600 * 24) % 3600 / 60;
-                        int s = playDuration % (3600 * 24) % 3600 % 60;
-                        char buf[64] = {0};
-                        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                        sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(),
-                                fileName.c_str(), buf);
-                        std::cout << "command: " << command << std::endl;
-                        system(command);
+                        utils.audio_time_play(playDuration, cfg.getAudioFilePath() + fileName, ASYNC_START);
                         break;
                     }
                     case 1: {
-                        if(playDuration < 1){
+                        if (playDuration < 1) {
                             return 2;
                         }
-                        std::string cmd = "madplay ";
-                        for (int i = 0; i < playCount; ++i) {
-                            cmd += cfg.getAudioFilePath() + fileName + ' ';
-                        }
-                        cmd += "&";
-                        std::cout << "cmd: " << cmd << std::endl;
-                        system(cmd.c_str());
+                        utils.audio_num_play(playCount, cfg.getAudioFilePath() + fileName, ASYNC_START);
                         break;
                     }
                 }

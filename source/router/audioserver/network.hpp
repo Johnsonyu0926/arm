@@ -37,41 +37,12 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CUtils utils;
-            if (utils.is_ros_platform()) {
-                char cm[128] = {0};
-                CNetworkSetResult res;
-                res.do_success();
-                json j = res;
-                std::string s = j.dump();
-                pClient->Send(s.c_str(), s.length());
-                sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                system("reboot");
-            } else {
-                char uci[128] = {0};
-                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
-                system(uci);
-                sprintf(uci, "uci commit network");
-                system(uci);
-                sprintf(uci, "/etc/init.d/network reload &");
-                CNetworkSetResult res;
-                res.do_success();
-                json j = res;
-                std::string s = j.dump();
-                pClient->Send(s.c_str(), s.length());
-                system(uci);
-            }
+            CNetworkSetResult res;
+            res.do_success();
+            json j = res;
+            std::string s = j.dump();
+            pClient->Send(s.c_str(), s.length());
+            utils.network_set(gateway, ipAddress, netMask);
             return 1;
         }
     };

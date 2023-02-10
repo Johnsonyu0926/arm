@@ -99,28 +99,20 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CUtils utils;
-            CRestoreResult restoreResult;
             CAudioCfgBusiness cfg;
             cfg.load();
-            if (utils.is_ros_platform()) {
-                system("cm default");
-                restoreResult.do_success();
-                json js = restoreResult;
-                std::string str = js.dump();
-                pClient->Send(str.c_str(), str.length());
-                system("reboot");
-            } else {
-                cfg.business[0].serverPassword = "Aa123456";
-                cfg.business[0].server = "192.168.1.90";
-                cfg.business[0].port = 7681;
-                cfg.saveToJson();
-                utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
-                restoreResult.do_success();
-                json js = restoreResult;
-                std::string str = js.dump();
-                pClient->Send(str.c_str(), str.length());
-                utils.openwrt_restore_network();
-            }
+            cfg.business[0].serverPassword = "Aa123456";
+            cfg.business[0].server = "192.168.1.90";
+            cfg.business[0].port = 7681;
+            cfg.saveToJson();
+
+            CRestoreResult restoreResult;
+            restoreResult.do_success();
+            json js = restoreResult;
+            std::string str = js.dump();
+            pClient->Send(str.c_str(), str.length());
+
+            utils.restore(cfg.business[0].savePrefix);
         }
 
     private:

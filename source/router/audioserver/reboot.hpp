@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.hpp"
+#include "utils.h"
 
 namespace asns {
 
@@ -25,7 +26,8 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CReboot, cmd)
 
         int do_req(CSocket *pClient) {
-            system("reboot");
+            CUtils utils;
+            utils.reboot();
             CRebootResult rebootResult;
             rebootResult.do_success();
             json js = rebootResult;
