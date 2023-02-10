@@ -10,7 +10,9 @@
 #include "talk.h"
 #include "playStatus.hpp"
 #include "utils.h"
+#include <atomic>
 
+static std::atomic<int> g_updateJson;
 using namespace std;
 using json = nlohmann::json;
 extern int g_bStop;
@@ -313,7 +315,7 @@ namespace asns
 
 	public:
 		// 2-del
-		int work(int level)
+		int work(int level,const int updateJson)
 		{
 			if (!TimeRange.match())
 			{
@@ -341,8 +343,9 @@ namespace asns
 			else if (playMode.compare("loop") == 0)
 			{
 				cout << "do loop" << endl;
-				do_loop();
-			}
+				do_loop(updateJson);
+                std::cout<< "endl;345"<<std::endl;
+            }
 			else
 			{
 				cout << "error play mode:" << playMode << endl;
@@ -351,9 +354,9 @@ namespace asns
 		}
 
 	private:
-		int do_loop()
+		int do_loop(const int updateJson)
 		{
-			while (1)
+			while (!g_updateJson)
 			{
 				if (!TimeRange.match())
 				{
@@ -362,6 +365,8 @@ namespace asns
 				}
 				do_operation();
 				sleep(1);
+                std::cout<< "endl;365"<<std::endl;
+                std::cout<< updateJson<<std::endl;
 			}
 			return 0;
 		}
@@ -402,9 +407,14 @@ namespace asns
                     std::cout<< "begin play audio priority: " << g_playing_priority <<std::endl;
 					g_playing_priority = Operation.audioLevel;
 					g_addAudioBusiness.play(id, TimeRange.endTime,g_playing_priority);
+                    std::cout<<"endl;407"<<std::endl;
 					g_playing_priority = NON_PLAY_PRIORITY;
+                    std::cout<< Operation.customAudioID.size()<<std::endl;
+                    std::cout<<"endl;409"<<std::endl;
+                    //return 0;
 				}
 			}
+            std::cout<<"endl;412"<<std::endl;
 			return 0;
 		}
 	};
@@ -534,7 +544,7 @@ namespace asns
 		vector<DayInfo> DayList;
 
 	public:
-		int work(int level)
+		int work(int level,const int updateJson)
 		{
 			int match = DateRange.match();
 			if (match == 0)
@@ -548,8 +558,10 @@ namespace asns
 
 			for (int i = 0; i != DayList.size(); i++)
 			{
-				int done = DayList[i].work(level);
+				int done = DayList[i].work(level,updateJson);
+                //return 0;
 				cout << "work ret:" << done << ",order_done:" << DayList[i].is_order_done() << endl;
+                //return 0;
 				if (done == ORDER_DONE && match == SAME_DAY)
 				{
 					cout << "erase dayinfo node i=" << i << endl;
@@ -557,7 +569,7 @@ namespace asns
 					i--;
 				}
 			}
-
+            std::cout<< "endl;570" <<std::endl;
 			cout << "DayList.size() = " << DayList.size() << endl;
 		}
 	};
@@ -663,7 +675,7 @@ namespace asns
 	private:
 		CBroadcastPlanData plan;
         std::string filePath;
-
+        int m_updateJson;
 	public:
         CBroadcastPlanBusiness(){
             CAudioCfgBusiness business;
@@ -692,7 +704,10 @@ namespace asns
 			{
 				// clear old plan?
 				plan.clear();
+                m_updateJson = 1;
+                g_updateJson = 1;
 				plan = j.at("data");
+                std::cout<< "-----j.at(data)"<<j.at("data")<<std::endl;
 			}
 			catch (json::parse_error &ex)
 			{
@@ -700,6 +715,7 @@ namespace asns
 				pthread_mutex_unlock(&g_ThreadsPlanLock);
 				return -1;
 			}
+            std::cout<< "-----save_plan"<<std::endl;
 			save_plan(data);
 
 			pthread_mutex_unlock(&g_ThreadsPlanLock);
@@ -788,7 +804,7 @@ namespace asns
 						{
 							for (int j = 0; j < plan.DailySchedule[i].DayList.size(); j++)
 							{
-								plan.DailySchedule[i].work(level); // DayList[j].work(level);
+								plan.DailySchedule[i].work(level,m_updateJson); // DayList[j].work(level);
 																   // plan.DailySchedule[i].DayList[j].work(level);
 							}
 						}
@@ -796,14 +812,15 @@ namespace asns
 						{
 							for (int j = 0; j < plan.WeeklySchedule[i].DayList.size(); j++)
 							{
-								plan.WeeklySchedule[i].work(level); // DayList[j].work(level);
+								plan.WeeklySchedule[i].work(level,m_updateJson); // DayList[j].work(level);
 							}
 						}
 					}
 
 					cout << "updating json.... current total daily plan: " << plan.DailySchedule.size() << endl;
 					saveToJson();
-
+                    m_updateJson = 0;
+                    g_updateJson = 0;
 					pthread_mutex_unlock(&g_ThreadsPlanLock);
 				}
 
