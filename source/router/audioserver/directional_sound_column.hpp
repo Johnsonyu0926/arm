@@ -46,10 +46,10 @@ public:
     void do_success() {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
-        coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-        relayMode = CGpio::getInstance().getGpioModel();
         CUtils util;
+        codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
+        coreVersion = util.get_by_cmd_res("webs -V");
+        relayMode = CGpio::getInstance().getGpioModel();
         ip = util.get_lan_addr();
         storageType = util.is_ros_platform() ? 0 : 1;
         port = 34508;

@@ -51,15 +51,14 @@ namespace asns {
         int do_success() {
             CAudioCfgBusiness cfg;
             cfg.load();
-
+            CUtils util;
             cmd = "GetDeviceBaseInfo";
             resultId = 1;
             msg = "Obtaining information successfully";
-            data.codeVersion = cfg.business[0].codeVersion;
-            data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-            data.relayMode = CGpio::getInstance().getGpioModel();
 
-            CUtils util;
+            data.codeVersion = cfg.business[0].codeVersion;
+            data.coreVersion = util.get_by_cmd_res("webs -V");
+            data.relayMode = CGpio::getInstance().getGpioModel();
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;

@@ -41,13 +41,12 @@ namespace asns {
         string serverPort;
 
         void do_success() {
+            CUtils util;
             CAudioCfgBusiness cfg;
             cfg.load();
             codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
-            coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
+            coreVersion = util.get_by_cmd_res("webs -V");
             relayMode = CGpio::getInstance().getGpioModel();
-
-            CUtils util;
             ip = util.get_lan_addr();
             storageType = 0;
             port = 34508;

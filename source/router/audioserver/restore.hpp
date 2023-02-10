@@ -51,16 +51,14 @@ namespace asns {
         int do_success() {
             CAudioCfgBusiness cfg;
             cfg.load();
-
+            CUtils util;
             cmd = "Restore";
             resultId = 1;
             msg = "restore success";
 
             data.codeVersion = "2.1.01";
-            data.coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
+            data.coreVersion = util.get_by_cmd_res("webs -V");
             data.relayMode = 2;
-
-            CUtils util;
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
