@@ -21,7 +21,7 @@ namespace asns {
         template<typename Quest, typename Result, typename T>
         void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             CUtils utils;
-            std::string res = utils.get_doupload_result(c.data.requestUrl, c.data.imei);
+            std::string res = utils.record_upload(c.data.recordDuration,c.data.requestUrl, c.data.imei);
             std::cout << "result:" << res << std::endl;
             if (res.empty() || res.find("error") != std::string::npos) {
                 uploadStatus = 0;
@@ -45,17 +45,6 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
 
         int do_req() {
-            system("killall -9 arecord");
-            CUtils utils;
-            if (utils.get_process_status("madplay")) {
-                return 5;
-            }
-            system("arecord -f cd /tmp/record.mp3 &");
-            std::thread([&] {
-                std::this_thread::sleep_for(std::chrono::seconds(recordDuration));
-                system("killall -9 arecord");
-                utils.volume_gain(asns::RECORD_PATH, "mp3");
-            }).join();
             return 1;
         }
 

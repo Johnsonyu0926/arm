@@ -2,6 +2,7 @@
 
 #include "json.hpp"
 #include "public.hpp"
+#include "utils.h"
 
 /**
  * {
@@ -40,36 +41,25 @@ namespace asns {
             if (utils.get_process_status("madplay")) {
                 return 5;
             }
-            char buf[256] = {0};
-            std::string fileName = "/tmp/record.mp3";
-            sprintf(buf, "curl --location --request GET %s --output %s", downloadUrl.c_str(), fileName.c_str());
-            std::cout << "cmd: " << buf << std::endl;
-            system(buf);
-            char cmd[64] = {0};
-            ::sprintf(cmd, "vol.sh %s", asns::RECORD_PATH);
-            system(cmd);
+            std::string path = "/tmp/";
+            std::string name = "record.mp3";
+            std::string res = utils.get_upload_result(downloadUrl.c_str(), path.c_str(), name.c_str());
+            std::cout << "res:-----" << res << std::endl;
+            if (res.find("error") != std::string::npos) {
+                return 3;
+            } else if (res.find("Failed to connect") != std::string::npos) {
+                return 3;
+            } else if (res.find("Couldn't connect to server") != std::string::npos) {
+                return 3;
+            }
+            utils.bit_rate_32_to_48(path + name);
             switch (timeType) {
                 case 0: {
-                    char command[256] = {0};
-                    int d = playCount / (3600 * 24);
-                    int t = playCount % (3600 * 24) / 3600;
-                    int m = playCount % (3600 * 24) % 3600 / 60;
-                    int s = playCount % (3600 * 24) % 3600 % 60;
-                    char buf[64] = {0};
-                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s -r -t %s &",fileName.c_str(), buf);
-                    std::cout << "command: " << command << std::endl;
-                    system(command);
+                    utils.audio_time_play(playCount, path + name, ASYNC_START);
                     break;
                 }
                 case 1: {
-                    std::string cmd = "madplay ";
-                    for (int i = 0; i < playCount; ++i) {
-                        cmd += fileName + ' ';
-                    }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
+                    utils.audio_num_play(playCount, path + name, ASYNC_START);
                     break;
                 }
             }
