@@ -69,6 +69,14 @@ public:
         return false;
     }
 
+    bool str_is_all_num(const std::string &str) {
+        for (const char &c: str) {
+            if (std::isdigit(c) == 0)
+                return false;
+        }
+        return true;
+    }
+
     unsigned long long get_available_Disk(const std::string &path) {
         struct statfs diskInfo;
         statfs(path.c_str(), &diskInfo);
@@ -484,11 +492,11 @@ public:
     }
 
     void audio_stop() {
+        PlayStatus::getInstance().init();
         system("killall -9 ffplay");
         system("killall -9 ffmpeg");
         system("killall -9 madplay");
         system("killall -9 aplay");
-        PlayStatus::getInstance().init();
     }
 
     void tts_loop_play(const bool async = false) {

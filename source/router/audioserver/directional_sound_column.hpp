@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "tcpTransferThread.hpp"
 #include "public.hpp"
+#include "playStatus.hpp"
 
 extern int g_playing_priority;
 extern asns::CVolumeSet g_volumeSet;
@@ -53,7 +54,7 @@ public:
         ip = util.get_lan_addr();
         storageType = util.is_ros_platform() ? 0 : 1;
         port = 34508;
-        playStatus = 0;
+        playStatus = PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         relayStatus = CGpio::getInstance().getGpioStatus();
@@ -89,16 +90,16 @@ public:
 
     int do_success() {
         CUtils utils;
-        relayStatus = std::to_string(utils.get_process_status("madplay"));
+        relayStatus = utils.get_process_status("madplay");
         g_volumeSet.load();
-        volume = std::to_string(g_volumeSet.getVolume());
-        storageType = "1";
+        volume = g_volumeSet.getVolume();
+        storageType = 1;
     }
 
 private:
-    std::string relayStatus;
-    std::string volume;
-    std::string storageType;
+    int relayStatus;
+    int volume;
+    int storageType;
 };
 
 namespace asns {
@@ -116,14 +117,6 @@ namespace asns {
         return 0;
     }
 
-    bool isNumber(const string &str) {
-        for (const char &c: str) {
-            if (std::isdigit(c) == 0)
-                return false;
-        }
-        return true;
-    }
-
     int Login(const std::vector<std::string> &m_str, CSocket *pClient) {
         CAudioCfgBusiness cfg;
         cfg.load();
@@ -137,9 +130,6 @@ namespace asns {
         }
     }
 
-    int SettingDeviceAddress(const std::vector<std::string> &m_str, CSocket *pClient) {
-    }
-
     // AA 04 01 01 23.mp3 BB EF
     int AudioPlay(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
@@ -148,7 +138,7 @@ namespace asns {
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         } else if (!busines.isNameEmpty(m_str[4])) {
@@ -288,7 +278,7 @@ namespace asns {
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
@@ -433,10 +423,11 @@ namespace asns {
     }
 
     int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
         std::string name = m_str[5].substr(0, m_str[5].find_first_of('.'));
         std::string suffix = m_str[5].substr(m_str[5].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         }
@@ -444,7 +435,6 @@ namespace asns {
             return SendFast(asns::AUDIO_SUFFIX_ERROR, pClient);
         }
         std::string temp = name + "." + suffix;
-        CUtils utils;
         CAudioCfgBusiness cfg;
         cfg.load();
         std::string path = cfg.getAudioFilePath() + temp;
@@ -476,10 +466,11 @@ namespace asns {
     }
 
     int AudioFileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+        CUtils utils;
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
             return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR, pClient);
         }

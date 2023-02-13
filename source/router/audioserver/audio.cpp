@@ -543,9 +543,9 @@ int main(int argc, char **argv) {
     });
 
     RSBusinessManage rs;
-    std::thread([&] {
+    utils.async_wait(1,0,0,[&]{
         rs.worker();
-    }).detach();
+    });
 
     CAudioCfgBusiness cfg;
     cfg.load();

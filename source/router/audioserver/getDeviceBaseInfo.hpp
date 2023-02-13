@@ -4,6 +4,7 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
+#include "playStatus.hpp"
 
 extern asns::CVolumeSet g_volumeSet;
 namespace asns {
@@ -62,13 +63,13 @@ namespace asns {
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = util.get_process_status("madplay");
+            data.playStatus = PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
             data.relayStatus = CGpio::getInstance().getGpioStatus();
-            data.hardwareReleaseTime = "2022.10.25";
+            data.hardwareReleaseTime = util.get_by_cmd_res("uname -a");
             data.spiFreeSpace = 9752500;
-            data.flashFreeSpace = 1305000;
+            data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = util.get_by_cmd_res("uname -r");
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
