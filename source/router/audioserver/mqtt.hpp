@@ -3,6 +3,7 @@
 #include "mosquittopp.h"
 #include "mqtt_serviceManage.hpp"
 #include "audiocfg.hpp"
+#include "public.hpp"
 
 class MQTT : public mosqpp::mosquittopp {
 public:
@@ -29,12 +30,12 @@ public:
 
     //断开Mqtt连接
     void on_disconnect(int rc) override {
-        std::cout << "rc:" << rc << std::endl;
+        std::cout << "on_disconnect rc:" << rc << std::endl;
     }
 
     //订阅指定topic
     void on_publish(int mid) override {
-        std::cout << "mid:" << mid << std::endl;
+        std::cout << "on_publish mid:" << mid << std::endl;
     }
 
     //订阅主题接收到消息
@@ -86,20 +87,11 @@ public:
     }
 
     void heartBeat() {
-        std::string reStr = ServiceManage::instance().heartBeat();
-        this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
-    }
-
-    void StartTimer(const int sec) {
-        auto begin = std::chrono::system_clock::now();
-        while (true) {
-            auto cur = std::chrono::system_clock::now();
-            auto end = std::chrono::duration_cast<std::chrono::seconds>(cur - begin).count();
-            if (end >= sec) {
-                heartBeat();
-                break;
-            }
-        }
+        CUtils utils;
+        utils.async_wait(0, asns::MQTT_HEART_BEAT_TIME, asns::MQTT_HEART_BEAT_TIME, [&] {
+            std::string reStr = ServiceManage::instance().heartBeat();
+            this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
+        });
     }
 
 public:

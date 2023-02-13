@@ -20,7 +20,6 @@ public:
         imei = cfg.business[0].serial;
         env = cfg.business[0].env;
 
-
         std::cout << "env:" << env << " imei:" << imei << std::endl;
         CVolumeSet volumeSet;
         volumeSet.setVolume(3);
@@ -39,7 +38,7 @@ public:
         std::cout << "begin connectting mqtt server :" << server << ", port:" << port << std::endl;
         int rc;
         while (true) {
-            rc = mqtt.connect(server.c_str(), port, 10);
+            rc = mqtt.connect(server.c_str(), port);
             if (MOSQ_ERR_ERRNO == rc) {
                 std::cerr << "mqtt connect error: " << mosqpp::strerror(rc) << std::endl;
                 std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -48,12 +47,10 @@ public:
             }
         }
         if (MOSQ_ERR_SUCCESS == rc) {
-            std::thread([&] {
-                while (true) mqtt.StartTimer(10);
-            }).detach();
             std::string reStr = ServiceManage::instance().boot();
             mqtt.publish(nullptr, mqtt.publish_topic.c_str(), reStr.length(), reStr.c_str());
             std::cout << "publish_topic:" << mqtt.publish_topic << std::endl;
+            mqtt.heartBeat();
             //订阅主题
             mqtt.request_topic += env;
             mqtt.request_topic += "/";
