@@ -1,7 +1,7 @@
 #pragma once
 
 #include "json.hpp"
-#include "rs485.c"
+#include "rs485.hpp"
 
 namespace asns {
 

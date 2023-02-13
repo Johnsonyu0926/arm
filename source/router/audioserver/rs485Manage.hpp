@@ -18,10 +18,10 @@
 #include "add_column_custom_audio_file.hpp"
 #include "talk.h"
 #include "login.hpp"
-#include "file_recv.hpp"
-#include "epoll.hpp"
 #include "utils.h"
-#include "Singleton.hpp"
+#include "gpio.hpp"
+#include "playStatus.hpp"
+#include "rsTcpTransferThread.hpp"
 
 
 extern int g_playing_priority;
@@ -60,18 +60,18 @@ public:
     void do_success() {
         asns::CAudioCfgBusiness cfg;
         cfg.load();
-        codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
-        coreVersion = "LuatOS-Air_V4010_RDA8910_BT_TTS_FLOAT";
-        relayMode = 2;
         CUtils util;
+        codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
+        coreVersion = util.get_by_cmd_res("webs -V");
+        relayMode = CGpio::getInstance().getGpioModel();
         ip = util.get_lan_addr();
         storageType = util.is_ros_platform() ? 0 : 1;
         port = 34508;
-        playStatus = 0;
+        playStatus = PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
-        relayStatus = 1;
-        hardwareReleaseTime = "2022.12.09";
+        relayStatus = CGpio::getInstance().getGpioStatus();
+        hardwareReleaseTime = util.get_by_cmd_res("uname -a");
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");
         hardwareVersion = "7621";
@@ -103,46 +103,20 @@ public:
 
     int do_success() {
         CUtils utils;
-        relayStatus = std::to_string(utils.get_process_status("madplay"));
+        relayStatus = utils.get_process_status("madplay");
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
-        storageType = "1";
+        storageType = 1;
     }
 
 private:
-    std::string relayStatus;
-    std::string volume;
-    std::string storageType;
+    int relayStatus;
+    int volume;
+    int storageType;
 };
 
 
 namespace rs {
-
-    const int TCPNETWORKSET = 101;
-    const int UPDATEPWD = 102;
-    const int NETWORKSET = 104;
-    const int LOGIN = 103;
-    const int SETDEVICEADDRRESS = 0;
-    const int AUDIOPLAY = 1;
-    const int AUDIOSTOP = 2;
-    const int VOLUMSET = 3;
-    const int REBOOT = 4;
-    const int GETDEVICESTATUS = 5;
-    const int TTSPLAY = 6;
-    const int LIGHTSWITCH = 7;
-    const int FILEUPLOAD = 8;
-    const int RESTORE = 9;
-    const int AUDIONUMORTPLAY = 10;
-    const int TTSNUMORTPLAY = 11;
-    const int GETRSDeviceBaseInfo = 12;
-    const int RECORD = 13;
-    const int REMOTEUPGRADE = 14;
-    const int GETAUDIOLIST = 15;
-    const int LIGHTCONFIG = 16;
-    const int RECORDBEGIN = 18;
-    const int RECORDEND = 19;
-    const int AUDIOFILEUPLOAD = 20;
-    const int REMOTEFILEUPGRADE = 21;
 
 #define MAX_SEND 12
 
@@ -197,16 +171,8 @@ namespace rs {
         return 0;
     }
 
-    bool isNumber(const string &str) {
-        for (const char &c: str) {
-            if (std::isdigit(c) == 0)
-                return false;
-        }
-        return true;
-    }
-
     int Login(const std::vector<std::string> &m_str) {
-        asns::CAudioCfgBusiness cfg;
+        CAudioCfgBusiness cfg;
         cfg.load();
         std::cout << m_str[4] << " " << cfg.business[0].serverPassword << " " << m_str[5] << std::endl;
         if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].serverPassword) {
@@ -214,51 +180,42 @@ namespace rs {
             return SendTrue();
         } else {
             std::cout << "return login error" << std::endl;
-            return SendFast("F6");
+            return SendFast(asns::USER_PWD_ERROR);
         }
-    }
-
-    int SettingDeviceAddress(const std::vector<std::string> &m_str) {
     }
 
     // AA 04 01 01 23.mp3 BB EF
     int AudioPlay(std::vector<std::string> &m_str) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21");
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR);
         } else if (!busines.isNameEmpty(m_str[4])) {
             //音频文件查询不存在
-            return SendFast("F23");
+            return SendFast(asns::AUDIO_FILE_NOT_EXITS);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
             /*设备正在播放中，触发失败*/
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         } else {
             if (utils.get_process_status("aplay")) {
-                Singleton::getInstance().setStatus(0);
-                system("killall -9 aplay");
+                utils.audio_stop();
             }
             char cmd[256] = {0};
             CAudioCfgBusiness cfg;
             cfg.load();
-            sprintf(cmd, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-            std::cout << "cmd: " << cmd << std::endl;
-            std::thread([&] { system(cmd); }).detach();
-
+            utils.audio_loop_play(cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
             return SendTrue();
         }
     }
 
     int AudioStop() {
-        system("killall -9 madplay");
-        Singleton::getInstance().setStatus(0);
-        system("killall -9 aplay");
-        g_playing_priority = NON_PLAY_PRIORITY;
+        CUtils utils;
+        utils.audio_stop();
         return SendTrue();
     }
 
@@ -266,9 +223,9 @@ namespace rs {
         int volume = std::stoi(m_str[4]);
         if (volume > 7 || volume < 0) {
             //音量值不在范围
-            return SendFast("F31");
+            return SendFast(asns::VOLUME_RANGE_ERROR);
         } else {
-            asns::CVolumeSet volumeSet;
+            CVolumeSet volumeSet;
             volumeSet.setVolume(volume);
             volumeSet.addj(volume);
             volumeSet.saveToJson();
@@ -278,7 +235,8 @@ namespace rs {
 
     int Reboot() {
         SendTrue();
-        system("reboot");
+        CUtils utils;
+        utils.reboot();
         return 1;
     }
 
@@ -290,205 +248,132 @@ namespace rs {
         rs::_uart_write(str.c_str(), str.length());
     }
 
-    int restore_network() {
-        char uci[128] = {0};
-        CUtils utils;
-        if (utils.is_ros_platform()) {
-            sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
-            system(uci);
-            sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
-            system(uci);
-            sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
-            system(uci);
-            sprintf(uci, "uci commit network");
-            system(uci);
-            sprintf(uci, "/etc/init.d/network reload");
-            system(uci);
-        }
-    }
-
-    int clean(const char *prefix) {
-        char cmd[128];
-        sprintf(cmd, "rm %s/audiodata/*", prefix);
-        system(cmd);
-        sprintf(cmd, "rm %s/cfg/*.json", prefix);
-        system(cmd);
-    }
-
     int Restore() {
         CUtils utils;
-        if (utils.is_ros_platform()) {
-            asns::CAudioCfgBusiness cfg;
-            cfg.load();
-            cfg.business[0].serverPassword = "Aa123456";
-            cfg.business[0].server = "192.168.1.90";
-            cfg.business[0].port = 7681;
-            clean(cfg.business[0].savePrefix.c_str());
-            cfg.saveToJson();
-            SendTrue();
-            utils.ros_restore_allcfg();
-            system("reboot");
-
-        } else {
-            //return SendFast("F35");
-            //bugfix shidongxue .2022.12.20
-            asns::CAudioCfgBusiness cfg;
-            cfg.load();
-            cfg.business[0].serverPassword = "Aa123456";
-            cfg.business[0].server = "192.168.1.90";
-            cfg.business[0].port = 7681;
-            //clean(cfg.business[0].savePrefix.c_str());
-            utils.clean_audio_server_file(cfg.business[0].savePrefix.c_str());
-            cfg.saveToJson();
-            SendTrue();
-
-            //network restore must be the last action!
-            utils.openwrt_restore_network();
-            cout << "restore success!\n" << endl;
-        }
+        CAudioCfgBusiness cfg;
+        cfg.load();
+        cfg.business[0].serverPassword = "Aa123456";
+        cfg.business[0].server = "192.168.1.90";
+        cfg.business[0].port = 7681;
+        cfg.saveToJson();
+        SendTrue();
+        utils.restore(cfg.business[0].savePrefix);
         return 1;
+    }
+
+    int FlashConfig(const std::vector<std::string> &m_str) {
+        CUtils utils;
+        utils.gpio_set(std::stoi(m_str[4].c_str()), std::stoi(m_str[5].c_str()));
+        return SendTrue();
     }
 
     int TtsPlay(const std::vector<std::string> &m_str) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         }
         std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-        system(cmd.c_str());
+        if (utils.statistical_character_count(txt) > 100) {
+            return SendFast(asns::TTS_TXT_LENGTH_ERROR);
+        }
+        utils.txt_to_audio(txt);
         SendTrue();
-        Singleton::getInstance().setStatus(1);
-        std::thread([&] {
-            while (Singleton::getInstance().getStatus()) {
-                system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
-            }
-        }).detach();
+        utils.tts_loop_play(asns::ASYNC_START);
     }
 
-    int TtsNumTimePlay(const std::vector<std::string> &m_str) {
+    int tts(const int playType, const int duration, const std::string &txt) {
         CUtils utils;
-        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22");
-        }
-
-        int playType = std::stoi(m_str[5]);
-        int duration = std::stoi(m_str[6]);
-
-        std::string txt = utils.hex_to_string(m_str[4]);
-        std::string cmd = "tts -t " + txt + " -f /tmp/output.pcm";
-        system(cmd.c_str());
+        utils.txt_to_audio(txt);
         switch (playType) {
             case 0: {
-                Singleton::getInstance().setStatus(1);
-                std::thread([&] {
-                    while (Singleton::getInstance().getStatus()) {
-                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
-                    }
-                }).detach();
-                break;
+                SendTrue();
+                utils.tts_loop_play();
+                return 0;
             }
             case 1: {
                 if (duration < 1) {
-                    return SendFast("F4");
+                    return SendFast(asns::NONSUPPORT_ERROR);
                 }
-                std::string cmd = "aplay -t raw -c 1 -f S16_LE -r 16000 ";
-                for (int i = 0; i < duration; ++i) {
-                    cmd += "/tmp/output.pcm ";
-                }
-                cmd += "&";
-                std::cout << "cmd: " << cmd << std::endl;
-                system(cmd.c_str());
+                utils.tts_num_play(duration);
                 break;
             }
             case 2: {
                 if (duration < 1) {
-                    return SendFast("F4");
+                    return SendFast(asns::NONSUPPORT_ERROR);
                 }
-                Singleton::getInstance().setStatus(1);
-                utils.async_wait(1, duration, 0, [&] {
-                    Singleton::getInstance().setStatus(0);
-                    system("killall -9 aplay");
-                });
-                std::thread([&] {
-                    while (Singleton::getInstance().getStatus()) {
-                        system("aplay -t raw -c 1 -f S16_LE -r 16000 /tmp/output.pcm");
-                    }
-                }).detach();
+                utils.tts_time_play(duration);
                 break;
             }
             default:
-                return SendFast("F4");
+                return SendFast(asns::NONSUPPORT_ERROR);
         }
-        return SendTrue();
+        SendTrue();
+    }
+
+    int TtsNumTimePlay(const std::vector<std::string> &m_str) {
+        CUtils utils;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay") ||
+            utils.get_process_status("tts")) {
+            return SendFast(asns::ALREADY_PLAYED);
+        }
+        std::string txt = utils.hex_to_string(m_str[4]);
+        if (utils.statistical_character_count(txt) > 100) {
+            return SendFast(asns::TTS_TXT_LENGTH_ERROR);
+        }
+        std::cout << "tts size:" << txt.length() << "txt: " << txt << std::endl;
+        int playType = std::stoi(m_str[5]);
+        int duration = std::stoi(m_str[6]);
+        utils.async_wait(1, 0, 0, tts, playType, duration, txt);
     }
 
     int AudioNumberOrTimePlay(const std::vector<std::string> &m_str) {
         CUtils utils;
         if (utils.get_process_status("madplay")) {
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         }
         std::string name = m_str[4].substr(0, m_str[4].find_first_of('.'));
         CAddColumnCustomAudioFileBusiness busines;
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21");
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR);
         } else if (g_playing_priority != NON_PLAY_PRIORITY) {
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         } else if (!busines.isNameEmpty(m_str[4])) {
-            return SendFast("F23");
+            return SendFast(asns::AUDIO_FILE_NOT_EXITS);
         } else {
-            char command[256] = {0};
             int duration = std::stoi(m_str[6]);
             CAudioCfgBusiness cfg;
             cfg.load();
             if (utils.get_process_status("aplay")) {
-                Singleton::getInstance().setStatus(0);
-                system("killall -9 aplay");
+                utils.audio_stop();
             }
             switch (std::stoi(m_str[5])) {
                 case 0: {
-                    sprintf(command, "madplay %s%s -r &", cfg.getAudioFilePath().c_str(), m_str[4].c_str());
-                    std::cout << "cmd: " << command << std::endl;
-                    system(command);
+                    utils.audio_loop_play(cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 case 1: {
                     if (duration < 1) {
-                        return SendFast("F4");
+                        return SendFast(asns::NONSUPPORT_ERROR);
                     }
-                    std::string cmd = "madplay ";
-                    for (int i = 0; i < duration; ++i) {
-                        cmd += cfg.getAudioFilePath() + m_str[4] + ' ';
-                    }
-                    cmd += "&";
-                    std::cout << "cmd: " << cmd << std::endl;
-                    system(cmd.c_str());
+                    utils.audio_num_play(duration, cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 case 2: {
                     if (duration < 1) {
-                        return SendFast("F4");
+                        return SendFast(asns::NONSUPPORT_ERROR);
                     }
-                    int d = duration / (3600 * 24);
-                    int t = duration % (3600 * 24) / 3600;
-                    int m = duration % (3600 * 24) % 3600 / 60;
-                    int s = duration % (3600 * 24) % 3600 % 60;
-                    char buf[64] = {0};
-                    sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-                    sprintf(command, "madplay %s%s -r -t %s &", cfg.getAudioFilePath().c_str(), m_str[4].c_str(), buf);
-                    std::cout << "cmd: " << command << std::endl;
-                    system(command);
+                    utils.audio_time_play(duration, cfg.getAudioFilePath() + m_str[4], asns::ASYNC_START);
                     break;
                 }
                 default:
-                    return SendFast("F4");
+                    return SendFast(asns::NONSUPPORT_ERROR);
             }
             return SendTrue();
         }
     }
 
-    int GetRSDeviceBaseInfo() {
+    int GetDeviceBaseInfo() {
         RSDeviceBaseInfo devInfo;
         devInfo.do_success();
         json res = devInfo;
@@ -501,39 +386,11 @@ namespace rs {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6");
+            return SendFast(asns::USER_PWD_ERROR);
         } else {
             CUtils utils;
-            const std::string &gateway = m_str[7];
-            const std::string &ipAddress = m_str[6];
-            const std::string &netMask = m_str[8];
-            if (utils.is_ros_platform()) {
-                SendTrue();
-                char cm[128] = {0};
-                sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
-                std::cout << cm << std::endl;
-                system(cm);
-                system("reboot");
-            } else {
-                char uci[128] = {0};
-                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
-                system(uci);
-                sprintf(uci, "uci commit network");
-                system(uci);
-                sprintf(uci, "/etc/init.d/network reload &");
-                SendTrue();
-                system(uci);
-            }
+            SendTrue();
+            utils.network_set(m_str[7], m_str[6], m_str[8]);
         }
     }
 
@@ -541,31 +398,11 @@ namespace rs {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6");
+            return SendFast(asns::USER_PWD_ERROR);
         } else {
             CUtils utils;
-            const std::string &gateway = m_str[7];
-            const std::string &ipAddress = m_str[6];
-            if (utils.is_ros_platform()) {
-                SendTrue();
-                char cm[128] = {0};
-                sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
-                system(cm);
-                sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
-                system(cm);
-                system("reboot");
-            } else {
-                SendTrue();
-                char uci[128] = {0};
-                sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
-                system(uci);
-                sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-                system(uci);
-                sprintf(uci, "uci commit network");
-                system(uci);
-                sprintf(uci, "/etc/init.d/network reload");
-                system(uci);
-            }
+            SendTrue();
+            utils.network_set(m_str[7], m_str[6]);
             return 1;
         }
     }
@@ -574,14 +411,14 @@ namespace rs {
         CAudioCfgBusiness cfg;
         cfg.load();
         if (m_str[6].length() < 8) {
-            return SendFast("F25");
+            return SendFast(asns::OPERATION_NEW_PWD_COMPLEXITY_ERROR);
         } else if (m_str[4].compare("admin") != 0 || m_str[5] != cfg.business[0].serverPassword) {
-            return SendFast("F6");
+            return SendFast(asns::USER_PWD_ERROR);
         } else {
             cfg.business[0].serverPassword = m_str[6];
             cfg.saveToJson();
             CUtils utils;
-			utils.change_password(m_str[6].c_str());
+            utils.change_password(m_str[6].c_str());
             return SendTrue();
         }
     }
@@ -598,254 +435,116 @@ namespace rs {
     // AA 05 01 13 5 http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload BB EF
     int Record(const std::vector<std::string> &m_str) {
         CUtils utils;
-        std::string imei = "11111";
-        if (utils.get_process_status("madplay")) {
-            return SendFast("F22");
+        CAudioCfgBusiness bus;
+        bus.load();
+        std::string imei = bus.business[0].deviceID;
+        if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+            return SendFast(asns::ALREADY_PLAYED);
         }
         int time = std::stod(m_str[4]);
         if (time > 30 || time < 0) {
-            return SendFast("F5");
+            return SendFast(asns::RECORD_TIME_ERROR);
         }
-        system("arecord -f cd /tmp/record.mp3 &");
-        std::thread([&] {
-            std::this_thread::sleep_for(std::chrono::seconds(time));
-            system("killall -9 arecord");
-        }).join();
-        std::string res = utils.get_doupload_result(m_str[5].c_str(), imei);
+        std::string res = utils.record_upload(time, m_str[5], imei);
         std::cout << "result:" << res << std::endl;
-        if (res.empty() || res.find("error") != std::string::npos) {
-            return SendFast("F5");
-        } else if (res.find("true") != std::string::npos) {
-            json js;
-            js["downloadUrl"] = m_str[5];
-            std::string res = "01 E1 " + js.dump();
-            return rs::_uart_write(res.c_str(), res.length());
+        if (res.find("true") != std::string::npos) {
+            return SendTrue();
         } else {
-            return SendFast("F5");
+            return SendFast(asns::POST_ERROR);
         }
     }
 
     int RecordBegin(const std::vector<std::string> &m_str) {
         CUtils utils;
         if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-            return SendFast("F22");
+            return SendFast(asns::ALREADY_PLAYED);
         }
-        system("arecord -f cd /tmp/record.mp3 &");
+        utils.record_start(ASYNC_START);
         return SendTrue();
     }
 
     int RecordEnd(const std::vector<std::string> &m_str) {
-        std::string audioPath = "/tmp/record.mp3";
-        system("killall -9 arecord");
-        std::ifstream fs(audioPath, std::fstream::in | std::fstream::binary);
         CUtils utils;
-        int file_size = utils.get_file_size(audioPath);
-        Server server(34509);
-        int port = server.bind();
-        if (port < 0) {
-            SendFast("F5");
-            return 0;
+        utils.record_stop();
+        int file_size = utils.get_file_size(asns::RECORD_PATH);
+        if (file_size <= 0) {
+            return SendFast(asns::RECORD_SIZE_ERROR);
         }
-        server.listen();
-        Epoll epoll;
-        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
-        std::string res = "01 E1 " + m_str[4] + " " + std::to_string(file_size) + " " + std::to_string(port);
-        rs::_uart_write(res.c_str(), res.length());
-        while (true) {
-            int num = epoll.wait(30 * 1000);
-            if (num == 0) {
-                std::cout << "timeout" << std::endl;
-                break;
-            }
-            for (int i = 0; i < num; ++i) {
-                int cur_fd = epoll.get_event_fd(i);
-                if (cur_fd == server.get_fd()) {
-                    int connfd = server.accept();
-                    epoll.set_no_blocking(connfd);
-                    bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
-                    if (flag == false) {
-                        std::cout << "Connection error" << std::endl;
-                        break;
-                    }
-                } else if (epoll.get_event(i) & EPOLLIN) {
-                    char buf[8192] = {0};
-                    while (!fs.eof()) {
-                        fs.read(buf, sizeof(buf));
-                        std::cout << buf << std::endl;
-                        server.write(cur_fd, buf, fs.gcount());
-                    }
-                    fs.close();
-                    return SendTrue();
-                } else {
-                    std::cout << "..." << std::endl;
-                }
-            }
-        }
+        RsTcpTransferThread *pServer = new RsTcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
     }
 
-    int FileUpload(std::vector<std::string> &m_str, CSocket *pClient) {
+    int FileUpload(std::vector<std::string> &m_str) {
+        CUtils utils;
         std::string name = m_str[5].substr(0, m_str[5].find_first_of('.'));
         std::string suffix = m_str[5].substr(m_str[5].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21");
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast("F27");
+            return SendFast(asns::AUDIO_SUFFIX_ERROR);
         }
         std::string temp = name + "." + suffix;
-        CUtils utils;
         CAudioCfgBusiness cfg;
         cfg.load();
         std::string path = cfg.getAudioFilePath() + temp;
         std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
         std::cout << "res:-----" << res << std::endl;
         if (res.find("error") != std::string::npos) {
-            return SendFast("F5");
+            return SendFast(asns::OPERATION_FAIL_ERROR);
         } else if (res.find("Failed to connect") != std::string::npos) {
-            return SendFast("F5");
+            return SendFast(asns::OPERATION_FAIL_ERROR);
         } else if (res.find("Couldn't connect to server") != std::string::npos) {
-            return SendFast("F5");
+            return SendFast(asns::OPERATION_FAIL_ERROR);
         } else {
-            CAddColumnCustomAudioFileData node;
-            node.type = 32;
-            node.setName(temp);
-            node.size = utils.get_file_size(path);
+            utils.bit_rate_32_to_48(path);
             CAddColumnCustomAudioFileBusiness business;
-            business.business.push_back(node);
-            business.saveJson();
+            if (!business.exist(temp)) {
+                CAddColumnCustomAudioFileData node;
+                node.type = 32;
+                node.setName(temp);
+                node.size = utils.get_file_size(path);
+                business.business.push_back(node);
+                business.saveJson();
+            } else {
+                int size = utils.get_file_size(path);
+                business.updateSize(temp, size);
+            }
             SendTrue();
             return 1;
         }
     }
 
     int AudioFileUpload(std::vector<std::string> &m_str) {
+        CUtils utils;
         std::string name = m_str[6].substr(0, m_str[6].find_first_of('.'));
         std::string suffix = m_str[6].substr(m_str[6].find_first_of('.') + 1);
         std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
-        if (!isNumber(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
+        if (!utils.str_is_all_num(name) || std::stoi(name) > 100 || std::stoi(name) < 0) {
             //音频文件名校验失败
-            return SendFast("F21");
+            return SendFast(asns::OPERATION_NEW_AUDIO_FILE_NAME_ERROR);
         }
         if (suffix.compare("mp3") != 0) {
-            return SendFast("F27");
+            return SendFast(asns::AUDIO_SUFFIX_ERROR);
         }
-        std::string temp = name + "." + suffix;
-        CUtils utils;
-        CAudioCfgBusiness cfg;
-        cfg.load();
-        std::string path = cfg.getAudioFilePath() + temp;
-        Server server(34509);
-        int port = server.bind();
-        if (port < 0) {
-            return SendFast("F5");
-        }
-        server.listen();
-        Epoll epoll;
-        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
-        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
-        rs::_uart_write(res.c_str(), res.length());
-        while (true) {
-            int num = epoll.wait(30 * 1000);
-            if (num == 0) {
-                std::cout << "timeout..." << std::endl;
-                break;
-            }
-            for (int i = 0; i < num; ++i) {
-                int cur_fd = epoll.get_event_fd(i);
-                if (cur_fd == server.get_fd()) {
-                    int connfd = server.accept();
-                    epoll.set_no_blocking(connfd);
-                    bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
-                    if (!flag) {
-                        std::cout << "Connection error" << std::endl;
-                        break;
-                    }
-                } else if (epoll.get_event(i) & EPOLLIN) {
-                    std::fstream fs(path, std::fstream::out | std::fstream::binary);
-                    int file_size = std::atoi(m_str[4].c_str());
-                    char buf[8192] = {0};
-                    while (true) {
-                        int len = server.read(cur_fd, buf, sizeof(buf));
-                        if (len > 0) {
-                            fs.write(buf, len);
-                            file_size -= len;
-                            if (file_size <= 0) {
-                                break;
-                            }
-                        }
-                    }
-                    fs.close();
-                    CAddColumnCustomAudioFileData node;
-                    node.type = 32;
-                    node.setName(temp);
-                    node.size = utils.get_file_size(path);
-                    CAddColumnCustomAudioFileBusiness business;
-                    business.business.push_back(node);
-                    business.saveJson();
-                    SendTrue();
-                    return 1;
-                } else {
-                    std::cout << "..." << std::endl;
-                }
-            }
-        }
+
+        RsTcpTransferThread *pServer = new RsTcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
+        std::cout << "AudioFileUpload end....." << std::endl;
         return 1;
     }
 
     int RemoteFileUpgrade(std::vector<std::string> &m_str) {
-        Server server(34509);
-        int port = server.bind();
-        if (port < 0) {
-            return SendFast("F5");
-        }
-        server.listen();
-        Epoll epoll;
-        epoll.insert(server.get_fd(), EPOLLIN | EPOLLET, false);
-        std::string res = "01 E1 " + m_str[5] + " " + std::to_string(port);
-        rs::_uart_write(res.c_str(), res.length());
-        while (true) {
-            int num = epoll.wait(30 * 1000);
-            if (num == 0) {
-                std::cout << "timeout" << std::endl;
-                break;
-            }
-            for (int i = 0; i < num; ++i) {
-                int cur_fd = epoll.get_event_fd(i);
-                if (cur_fd == server.get_fd()) {
-                    int connfd = server.accept();
-                    epoll.set_no_blocking(connfd);
-                    bool flag = epoll.insert(connfd, EPOLLET | EPOLLIN, true);
-                    if (!flag) {
-                        std::cout << "Connection error" << std::endl;
-                        break;
-                    }
-                } else if (epoll.get_event(i) & EPOLLIN) {
-                    std::fstream fs("/var/run/version/SONICCOREV100R001.bin", std::fstream::out | std::fstream::binary);
-                    int file_size = std::atoi(m_str[4].c_str());
-                    char buf[1024] = {0};
-                    while (true) {
-                        int len = server.read(cur_fd, buf, sizeof(buf));
-                        if (len > 0) {
-                            fs.write(buf, len);
-                            file_size -= len;
-                            if (file_size <= 0)break;
-                        }
-                    }
-                    fs.close();
-                    SendTrue();
-                    thread([&] {
-                        system("webs -U /var/run/version/SONICCOREV100R001.bin");
-                        system("reboot");
-                    }).detach();
-                    return 0;
-                } else {
-                    std::cout << "..." << std::endl;
-                }
-            }
-        }
-        return 1;
+        RsTcpTransferThread *pServer = new RsTcpTransferThread();
+        pServer->SetPort(asns::BEGINPORT);
+        pServer->SetVecStr(m_str);
+        pServer->CreateThread();
     }
 
 
@@ -964,103 +663,107 @@ public:
         int opcode = std::stoi(m_str[3]);
         cout << "opcode: " << opcode << endl;
         switch (opcode) {
-            case rs::TCPNETWORKSET:
+            case asns::TCPNETWORKSET:
                 std::cout << "TCPNetworkSet" << std::endl;
                 rs::TCPNetworkSet(m_str);
                 break;
-            case rs::UPDATEPWD:
+            case asns::UPDATEPWD:
                 std::cout << "UpdatePwd" << std::endl;
                 rs::UpdatePwd(m_str);
                 break;
-            case rs::NETWORKSET:
+            case asns::NETWORKSET:
                 std::cout << "NetworkSet" << std::endl;
                 rs::NetworkSet(m_str);
                 break;
-            case rs::LOGIN:
+            case asns::LOGIN:
                 std::cout << "LOGIN" << std::endl;
                 rs::Login(m_str);
                 break;
-            case rs::SETDEVICEADDRRESS:
+            case SETDEVICEADDRRESS:
                 std::cout << "设置设备地址" << std::endl;
-                rs::SettingDeviceAddress(m_str);
                 break;
-            case rs::AUDIOPLAY:
+            case asns::AUDIOPLAY:
                 std::cout << "AudioPlay" << std::endl;
                 rs::AudioPlay(m_str);
                 break;
-            case rs::AUDIOSTOP:
+            case asns::AUDIOSTOP:
                 std::cout << "AudioStop" << std::endl;
                 rs::AudioStop();
                 break;
-            case rs::VOLUMSET:
+            case asns::VOLUMSET:
                 std::cout << "VolumeSet" << std::endl;
                 rs::VolumeSet(m_str);
                 break;
-            case rs::REBOOT:
+            case asns::REBOOT:
                 std::cout << "Reboot" << std::endl;
                 rs::Reboot();
                 break;
-            case rs::GETDEVICESTATUS:
+            case asns::GETDEVICESTATUS:
                 std::cout << "GetDeviceStatus" << std::endl;
                 rs::GetDeviceStatus();
                 break;
-            case rs::TTSPLAY:
-                std::cout << "TTS语音播报" << std::endl;
+            case asns::TTSPLAY:
+                std::cout << "TtsPlay" << std::endl;
+                rs::TtsPlay(m_str);
                 break;
-            case rs::LIGHTSWITCH:
+            case LIGHTSWITCH:
                 std::cout << "闪灯开关" << std::endl;
                 break;
-            case rs::FILEUPLOAD:
-                std::cout << "FileUpload" << std::endl;
+            case asns::FILEUPLOAD:
+                std::cout << "fileUpload" << std::endl;
+                rs::FileUpload(m_str);
                 break;
-            case rs::RESTORE:
+            case asns::RESTORE:
                 std::cout << "Restore" << std::endl;
                 rs::Restore();
                 break;
-            case rs::AUDIONUMORTPLAY:
+            case asns::AUDIONUMORTPLAY:
                 std::cout << "AudioNumberOrTimePlay" << std::endl;
                 rs::AudioNumberOrTimePlay(m_str);
                 break;
-            case rs::TTSNUMORTPLAY:
-                std::cout << "文字时长/次数播报" << std::endl;
+            case asns::TTSNUMORTPLAY:
+                std::cout << "Tts Number or Time Play" << std::endl;
+                rs::TtsNumTimePlay(m_str);
                 break;
-            case rs::GETRSDeviceBaseInfo:
-                std::cout << "GetRSDeviceBaseInfo" << std::endl;
-                rs::GetRSDeviceBaseInfo();
+            case asns::GETDEVICEBASEINFO:
+                std::cout << "GetDeviceBaseInfo" << std::endl;
+                rs::GetDeviceBaseInfo();
                 break;
-            case rs::RECORD:
+            case asns::RECORD:
                 std::cout << "Record" << std::endl;
-                //rs::Record(m_str);
+                rs::Record(m_str);
                 break;
-            case rs::REMOTEUPGRADE:
+            case asns::REMOTEUPGRADE:
                 std::cout << "远程升级" << std::endl;
                 break;
-            case rs::GETAUDIOLIST:
+            case asns::GETAUDIOLIST:
                 std::cout << "GetAudioList" << std::endl;
                 rs::GetAudioList(m_str);
                 break;
-            case rs::LIGHTCONFIG:
-                std::cout << "闪灯配置" << std::endl;
+            case asns::LIGHTCONFIG:
+                std::cout << "FlashConfig" << std::endl;
+                rs::FlashConfig(m_str);
                 break;
-            case rs::RECORDBEGIN:
+            case asns::RECORDBEGIN:
                 std::cout << "RecordBegin" << std::endl;
                 rs::RecordBegin(m_str);
                 break;
-            case rs::RECORDEND:
+            case asns::RECORDEND:
                 std::cout << "RecordEnd" << std::endl;
                 rs::RecordEnd(m_str);
                 break;
-            case rs::AUDIOFILEUPLOAD:
+            case asns::AUDIOFILEUPLOAD:
                 std::cout << "AudioFileUpload" << std::endl;
                 rs::AudioFileUpload(m_str);
                 break;
-            case rs::REMOTEFILEUPGRADE:
+            case asns::REMOTEFILEUPGRADE:
                 std::cout << "RemoteFileUpgrade" << std::endl;
+                CUtils utils;
                 rs::RemoteFileUpgrade(m_str);
                 break;
             default:
                 std::cout << "switch F4" << std::endl;
-                rs::SendFast("F4");
+                rs::SendFast(asns::NONSUPPORT_ERROR);
                 break;
         }
         return 1;
@@ -1074,13 +777,13 @@ public:
             m_str.push_back(token);
         }
         if (m_str[0].compare("AA") != 0 || m_str[m_str.size() - 1].compare("EF") != 0) {
-            rs::SendFast("F1");
+            rs::SendFast(asns::BEGIN_END_CODE_ERROR);
             return 0;
         } else if (std::stoi(m_str[1]) != (m_str.size() - 3)) {
-            rs::SendFast("F2");
+            rs::SendFast(asns::LENGTH_ERROR);
             return 0;
         } else if (m_str[m_str.size() - 2].compare("BB") != 0) {
-            rs::SendFast("F3");
+            rs::SendFast(asns::CHECK_CODE_ERROR);
             return 0;
         }
         return do_str_req();
