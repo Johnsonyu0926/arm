@@ -25,7 +25,55 @@ namespace asns {
 
     public:
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                r.resultId = 2;
+                r.result = "Already played";
+                return 2;
+            }
+            std::string path = "/tmp/";
+            std::string name = "record.mp3";
+            std::string res = utils.get_upload_result(c.data.downloadUrl.c_str(), path.c_str(), name.c_str());
+            std::cout << "res:-----" << res << std::endl;
+            if (res.find("error") != std::string::npos) {
+                r.resultId = 2;
+                r.result = "download error";
+                return 2;
+            } else if (res.find("Failed to connect") != std::string::npos) {
+                r.resultId = 2;
+                r.result = "download Failed to connect error";
+                return 2;
+            } else if (res.find("Couldn't connect to server") != std::string::npos) {
+                r.resultId = 2;
+                r.result = "download Couldn't connect to server error";
+                return 2;
+            }
+            utils.bit_rate_32_to_48(path + name);
+            switch (c.data.timeType) {
+                case 0: {
+                    if (c.data.playCount < 1) {
+                        r.resultId = 2;
+                        r.result = "play time error";
+                        return 2;
+                    }
+                    utils.audio_time_play(c.data.playCount, path + name, ASYNC_START);
+                    break;
+                }
+                case 1: {
+                    if (c.data.playCount < 1) {
+                        r.resultId = 2;
+                        r.result = "play count error";
+                        return 2;
+                    }
+                    utils.audio_num_play(c.data.playCount, path + name, ASYNC_START);
+                    break;
+                }
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -36,37 +84,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT (CRecordPlayData, downloadUrl, playCount, playType, storageType,
                                                      timeType)
 
-        int do_req() {
-            CUtils utils;
-            if (utils.get_process_status("madplay")) {
-                return 5;
-            }
-            std::string path = "/tmp/";
-            std::string name = "record.mp3";
-            std::string res = utils.get_upload_result(downloadUrl.c_str(), path.c_str(), name.c_str());
-            std::cout << "res:-----" << res << std::endl;
-            if (res.find("error") != std::string::npos) {
-                return 3;
-            } else if (res.find("Failed to connect") != std::string::npos) {
-                return 3;
-            } else if (res.find("Couldn't connect to server") != std::string::npos) {
-                return 3;
-            }
-            utils.bit_rate_32_to_48(path + name);
-            switch (timeType) {
-                case 0: {
-                    utils.audio_time_play(playCount, path + name, ASYNC_START);
-                    break;
-                }
-                case 1: {
-                    utils.audio_num_play(playCount, path + name, ASYNC_START);
-                    break;
-                }
-            }
-            return 1;
-        }
-
-    private:
+    public:
         std::string downloadUrl;// 音频文件下载路径
         int playCount;// 播放次数，单位次；当timeType为次数播放时生效
         int playType;// 播放模式：0-音频文件，1-文字播报，2-录音文件播放

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.hpp"
+#include "utils.h"
 
 namespace asns {
     template<typename Quest, typename Result>
@@ -12,7 +13,13 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRebootResultData, null)
 
         template<typename Quest, typename Result,typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            utils.reboot();
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -21,11 +28,6 @@ namespace asns {
     class CRebootData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CRebootData, null)
-
-        int do_req() {
-            system("reboot");
-            return 1;
-        }
 
     private:
         std::nullptr_t null;

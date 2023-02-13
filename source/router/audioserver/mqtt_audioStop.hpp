@@ -15,7 +15,13 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopResultData, null)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            utils.audio_stop();
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -24,12 +30,6 @@ namespace asns {
     class CAudioStopData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopData, null)
-
-        int do_req() {
-            CUtils utils;
-            utils.audio_stop();
-            return 1;
-        }
 
     private:
         std::nullptr_t null;

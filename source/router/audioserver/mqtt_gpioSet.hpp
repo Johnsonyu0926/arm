@@ -15,10 +15,25 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CGpioSetResultData, v5, v12, v24)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            switch (c.data.portList[0].val) {
+                case 0:
+                    CGpio::getInstance().set_gpio_off();
+                    break;
+                case 1:
+                    CGpio::getInstance().set_gpio_on();
+                    break;
+                default:
+                    r.resultId = 2;
+                    r.result = "Protocol error";
+                    return 2;
+            }
             v5 = CGpio::getInstance().getGpioStatus();
             v12 = 0;
             v24 = 0;
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
         }
 
     public:
@@ -39,18 +54,6 @@ namespace asns {
     class CGpioSet {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CGpioSet, portList)
-
-        int do_req() {
-            switch (portList[0].val) {
-                case 0:
-                    CGpio::getInstance().set_gpio_off();
-                    break;
-                case 1:
-                    CGpio::getInstance().set_gpio_on();
-                    break;
-            }
-            return 1;
-        }
 
     public:
         std::vector<CGpioSetData> portList;

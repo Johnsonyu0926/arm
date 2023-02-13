@@ -46,7 +46,55 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayResultData, null)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+                r.resultId = 2;
+                r.result = "Already played";
+                return 2;
+            }
+            CAudioCfgBusiness cfg;
+            cfg.load();
+
+            CAddMqttCustomAudioFileBusiness business;
+            if (business.exist(c.data.fileName) &&
+                utils.find_dir_file_exists(cfg.getAudioFilePath(), c.data.fileName) == false) {
+                business.deleteData(c.data.fileName);
+                r.resultId = 2;
+                r.result = "audio file exist";
+                return 2;
+            } else if (business.exist(c.data.fileName) &&
+                       utils.find_dir_file_exists(cfg.getAudioFilePath(), c.data.fileName)) {
+                switch (c.data.timeType) {
+                    case 0: {
+                        if (c.data.playDuration < 1) {
+                            r.resultId = 2;
+                            r.result = "play time error";
+                            return 2;
+                        }
+                        utils.audio_time_play(c.data.playDuration, cfg.getAudioFilePath() + c.data.fileName,
+                                              ASYNC_START);
+                        break;
+                    }
+                    case 1: {
+                        if (c.data.playCount < 1) {
+                            r.resultId = 2;
+                            r.result = "play count error";
+                            return 2;
+                        }
+                        utils.audio_num_play(c.data.playCount, cfg.getAudioFilePath() + c.data.fileName, ASYNC_START);
+                        break;
+                    }
+                }
+            } else {
+                r.resultId = 2;
+                r.result = "audio file exist";
+                return 2;
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     public:
         std::nullptr_t null;
@@ -57,47 +105,7 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioPlayData, fileName, audioUploadRecordId, playCount,
                                                     playDuration,
-                                                    playStatus, playType, storageType, timeType
-        )
-
-        int do_req() {
-            CUtils utils;
-            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-                return 5;
-            }
-            CAudioCfgBusiness cfg;
-            cfg.load();
-
-            CAddMqttCustomAudioFileBusiness business;
-            if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName) == false) {
-                business.deleteData(fileName);
-                return 3;
-            } else if (business.exist(fileName) == false &&
-                       utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
-                return 3;
-            } else if (business.exist(fileName) == false &&
-                       utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName) == false) {
-                return 3;
-            } else if (business.exist(fileName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), fileName)) {
-                switch (timeType) {
-                    case 0: {
-                        if (playDuration < 1) {
-                            return 2;
-                        }
-                        utils.audio_time_play(playDuration, cfg.getAudioFilePath() + fileName, ASYNC_START);
-                        break;
-                    }
-                    case 1: {
-                        if (playDuration < 1) {
-                            return 2;
-                        }
-                        utils.audio_num_play(playCount, cfg.getAudioFilePath() + fileName, ASYNC_START);
-                        break;
-                    }
-                }
-                return 1;
-            }
-        }
+                                                    playStatus, playType, storageType, timeType)
 
     public:
         std::string fileName;

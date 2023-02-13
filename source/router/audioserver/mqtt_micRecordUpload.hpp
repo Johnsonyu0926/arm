@@ -19,19 +19,25 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadResultData, uploadStatus, micRecordId)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             CUtils utils;
             std::string res = utils.record_upload(c.data.recordDuration,c.data.requestUrl, c.data.imei);
             std::cout << "result:" << res << std::endl;
             if (res.empty() || res.find("error") != std::string::npos) {
                 uploadStatus = 0;
                 micRecordId = 0;
+                r.resultId = 2;
+                r.result = "download error";
+                return 2;
             } else if (res.find("uploadStatus") != std::string::npos) {
                 res = res.substr(res.find_first_of('{'), res.find_last_of('}') - res.find_first_of('{') + 1);
                 json js = json::parse(res);
                 uploadStatus = js.at("uploadStatus");
                 micRecordId = js.at("micRecordId");
             }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
         }
 
     public:
@@ -43,10 +49,6 @@ namespace asns {
     class CMicRecordUploadData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CMicRecordUploadData, imei, requestUrl, recordDuration)
-
-        int do_req() {
-            return 1;
-        }
 
     public:
         std::string imei;

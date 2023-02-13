@@ -12,7 +12,13 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayResultData, null)
 
         template<typename Quest, typename Result,typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            std::cout << "command:" << c.data.command << std::endl;
+            system(c.data.command.c_str());
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -22,13 +28,7 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayData, cmd, command)
 
-        int do_req() {
-            std::cout << "command:" << command << std::endl;
-            system(command.c_str());
-            return 1;
-        }
-
-    private:
+    public:
         std::string cmd;
         std::string command;
     };

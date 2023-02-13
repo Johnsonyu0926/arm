@@ -29,8 +29,46 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadResultData, audioUploadRecordId)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             audioUploadRecordId = c.data.audioUploadRecordId;
+            CUtils utils;
+            CAudioCfgBusiness cfg;
+            unsigned long long availableDisk = utils.get_available_Disk(cfg.getAudioFilePath());
+            std::cout << "disk size:" << availableDisk << "kb" << std::endl;
+            int disk = availableDisk - 500;
+            if (!c.data.fileSize.empty()) {
+                int size = std::atoll(c.data.fileSize.c_str());
+                if (size != 0 && size > disk) {
+                    r.resultId = 2;
+                    r.result = "Lack of space";
+                    return 2;
+                }
+            }
+            std::string res = utils.get_upload_result(c.data.downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
+                                                      c.data.fileName.c_str());
+            std::cout << "res:-----" << res << std::endl;
+            if (res.find("error") != std::string::npos) {
+                r.resultId = 2;
+                r.result = "file upload error";
+                return 2;
+            } else if (res.find("Failed writing body") != std::string::npos) {
+                r.resultId = 2;
+                r.result = "file upload Failed writing body error";
+                return 2;
+            } else {
+                CAddMqttCustomAudioFileData data;
+                data.setName(c.data.fileName);
+                data.setAudioUploadRecordId(c.data.audioUploadRecordId);
+                CAddMqttCustomAudioFileBusiness business;
+                utils.bit_rate_32_to_48(cfg.getAudioFilePath() + c.data.fileName);
+                if (!business.exist(c.data.fileName)) {
+                    business.business.push_back(data);
+                    business.saveJson();
+                }
+                r.resultId = 1;
+                r.result = "success";
+                return 1;
+            }
         }
 
     private:
@@ -41,38 +79,6 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CFileUploadData, downloadUrl, fileName, audioUploadRecordId,
                                                     storageType, fileSize)
-
-        int do_req() {
-            CUtils utils;
-            CAudioCfgBusiness cfg;
-            unsigned long long availableDisk = utils.get_available_Disk(cfg.getAudioFilePath());
-            std::cout << "disk size:" << availableDisk << "kb" << std::endl;
-            int disk = availableDisk -500;
-            if (!fileSize.empty()) {
-                int size = std::atoll(fileSize.c_str());
-                if (size != 0 && size > disk) {
-                    return 4;
-                }
-            }
-            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(), fileName.c_str());
-            std::cout << "res:-----" << res << std::endl;
-            if (res.find("error") != std::string::npos) {
-                return 3;
-            } else if (res.find("Failed writing body") != std::string::npos){
-                return 4;
-            }else{
-                CAddMqttCustomAudioFileData data;
-                data.setName(fileName);
-                data.setAudioUploadRecordId(audioUploadRecordId);
-                CAddMqttCustomAudioFileBusiness business;
-                utils.bit_rate_32_to_48(cfg.getAudioFilePath() + fileName);
-                if (!business.exist(fileName)) {
-                    business.business.push_back(data);
-                    business.saveJson();
-                }
-                return 1;
-            }
-        }
 
     public:
         std::string downloadUrl;

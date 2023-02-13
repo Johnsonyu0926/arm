@@ -20,8 +20,22 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetResultData, volume);
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             volume = c.data.volume;
+            int volume = std::stoi(this->volume);
+            if (volume > 7 || volume < 0) {
+                r.resultId = 2;
+                r.result = "volume size error";
+                return 2;
+            } else {
+                CVolumeSet volumeSet;
+                volumeSet.setVolume(volume);
+                volumeSet.addj(volume);
+                volumeSet.saveToJson();
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
         }
 
     private:
@@ -31,20 +45,6 @@ namespace asns {
     class CVolumeSetData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CVolumeSetData, volume)
-
-        int do_req() {
-            int volume = std::stoi(this->volume);
-            if (volume > 7 || volume < 0) {
-                return 2;
-            } else {
-                CVolumeSet volumeSet;
-                volumeSet.setVolume(volume);
-                volumeSet.addj(volume);
-                volumeSet.saveToJson();
-                return 1;
-            }
-            return 0;
-        }
 
     public:
         std::string volume;

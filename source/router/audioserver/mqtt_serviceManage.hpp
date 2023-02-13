@@ -76,80 +76,80 @@ private:
     explicit ServiceManage() {
         m_fn.insert(std::make_pair("audioPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioPlayData, asns::CAudioPlayResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ttsPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CTtsPlayData, asns::CTtsPlayResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("recordPlay", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CRecordPlayData, asns::CRecordPlayResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("fileUpload", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CFileUploadData, asns::CFileUploadResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
         m_fn.insert(std::make_pair("volumeSet", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CVolumeSetData, asns::CVolumeSetResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
         m_fn.insert(std::make_pair("fileDelete", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CFileDeleteData, asns::CFileDeleteResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
         m_fn.insert(std::make_pair("reboot", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CRebootData, asns::CRebootResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("audioStreamTest", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CPlanPlayData, asns::CPlanPlayResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("audioStop", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioStopData, asns::CAudioStopResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("audioStreamStart", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CAudioStreamStartData, asns::CAudioStreamStartResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ptzOperate", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CPtzOperateData, asns::CPtzOperateResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             reStr.erase(reStr.find(DEL_STR), DEL_SIZE);
             return reStr;
         }));
         m_fn.insert(std::make_pair("ledShowSet", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CLedShowSetData, asns::CLedShowSetResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
         m_fn.insert(std::make_pair("micRecordUpload", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CMicRecordUploadData, asns::CMicRecordUploadResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
         m_fn.insert(std::make_pair("gpioSet", [&](const json &js) -> std::string {
             asns::CReQuest<asns::CGpioSet, asns::CGpioSetResultData> req = js;
-            std::string reStr = req.do_req();
+            std::string reStr = req.do_fail_success();
             return reStr;
         }));
     }

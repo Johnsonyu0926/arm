@@ -25,7 +25,46 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CTtsPlayResultData, null)
 
         template<typename Quest, typename Result,typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
+                r.resultId = 2;
+                r.result = "Already played";
+                return 2;
+            }
+            utils.txt_to_audio(c.data.content);
+            switch (c.data.timeType) {
+                case 0: {
+                    utils.tts_loop_play(ASYNC_START);
+                    break;
+                }
+                case 1: {
+                    if (c.data.playCount < 1) {
+                        r.resultId = 2;
+                        r.result = "play count error";
+                        return 2;
+                    }
+                    utils.tts_num_play(c.data.playCount, ASYNC_START);
+                    break;
+                }
+                case 2: {
+                    if (c.data.playDuration < 1) {
+                        r.resultId = 2;
+                        r.result = "play time error";
+                        return 2;
+                    }
+                    utils.tts_time_play(c.data.playDuration, ASYNC_START);
+                    break;
+                }
+                default:
+                    r.resultId = 2;
+                    r.result = "play error";
+                    return 2;
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -36,35 +75,7 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CTtsPlayData, content, playCount, playDuration, playStatus, playType, priority,
                                        timeType)
 
-        int do_req() {
-            CUtils utils;
-            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-                return 5;
-            }
-            utils.txt_to_audio(content);
-            switch (timeType) {
-                case 0: {
-                   utils.tts_loop_play(ASYNC_START);
-                    break;
-                }
-                case 1: {
-                    utils.tts_num_play(playCount,ASYNC_START);
-                    break;
-                }
-                case 2: {
-                    if (playDuration < 1) {
-                        return 2;
-                    }
-                    utils.tts_time_play(playDuration,ASYNC_START);
-                    break;
-                }
-                default:
-                    return 2;
-            }
-            return 1;
-        }
-
-    private:
+    public:
         std::string content;
         int playCount;
         int playDuration;

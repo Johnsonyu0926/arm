@@ -18,7 +18,35 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartResultData, null)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
+            if (utils.get_process_status("madplay")) {
+                r.resultId = 2;
+                r.result = "Already played";
+                return 2;
+            }
+            TestFileBusiness bus;
+            std::cout << "volume:" << c.data.volume << std::endl;
+            if (c.data.volume > 0) {
+                CVolumeSet volumeSet;
+                volumeSet.addj(c.data.volume);
+                std::string streamUrl = c.data.streamPath + c.data.roomId;
+                char buf[256] = {0};
+                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
+                std::cout << "system:" << buf << std::endl;
+                system(buf);
+
+            } else {
+                std::string streamUrl = c.data.streamPath + c.data.roomId;
+                char buf[256] = {0};
+                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
+                std::cout << "system:" << buf << std::endl;
+                system(buf);
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     private:
         std::nullptr_t null;
@@ -28,33 +56,7 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStreamStartData, streamPath, roomId, priority, volume)
 
-        int do_req() {
-            CUtils utils;
-            if (utils.get_process_status("madplay")) {
-                return 5;
-            }
-            TestFileBusiness bus;
-            std::cout << "volume:" << volume << std::endl;
-            if (volume > 0) {
-                CVolumeSet volumeSet;
-                volumeSet.addj(volume);
-                std::string streamUrl = streamPath + roomId;
-                char buf[256] = {0};
-                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
-                std::cout << "system:" << buf << std::endl;
-                system(buf);
-
-            } else {
-                std::string streamUrl = streamPath + roomId;
-                char buf[256] = {0};
-                sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
-                std::cout << "system:" << buf << std::endl;
-                system(buf);
-            }
-            return 1;
-        }
-
-    private:
+    public:
         std::string streamPath;
         std::string roomId;
         int priority;

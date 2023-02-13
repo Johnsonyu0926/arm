@@ -18,8 +18,18 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetResultData, ledShowRecordId)
 
         template<typename Quest, typename Result, typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            json js = c.data.ledCommand;
+            std::string str = js.dump();
             ledShowRecordId = c.data.ledShowRecordId;
+            if(rs::_uart_work(str.c_str(), str.length()) != 1){
+                r.resultId = 2;
+                r.result = "failed to open ttyS";
+                return 2;
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
         }
 
     public:
@@ -30,12 +40,6 @@ namespace asns {
     class CLedShowSetData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CLedShowSetData, ledCommand, showContent, ledShowRecordId)
-
-        int do_req() {
-            json js = ledCommand;
-            std::string str = js.dump();
-            return rs::_uart_work(str.c_str(), str.length());
-        }
 
     public:
         std::vector<std::string> ledCommand;

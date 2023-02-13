@@ -18,7 +18,16 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateResultData, null)
 
         template<typename Quest, typename Result,typename T>
-        void do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {}
+        int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            if(rs::_uart_work(c.data.operateCmd.c_str(), c.data.operateCmd.length()) != 1){
+                r.resultId = 2;
+                r.result = "failed to open ttyS";
+                return 2;
+            }
+            r.resultId = 1;
+            r.result = "success";
+            return 1;
+        }
 
     public:
         std::nullptr_t null;
@@ -28,10 +37,6 @@ namespace asns {
     class CPtzOperateData {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateData, operateCmd)
-
-        int do_req() {
-            return rs::_uart_work(operateCmd.c_str(), operateCmd.length());
-        }
 
     public:
         std::string operateCmd;
