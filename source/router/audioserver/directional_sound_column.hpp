@@ -411,6 +411,7 @@ namespace asns {
     int RecordEnd(const std::vector<std::string> &m_str, CSocket *pClient) {
         CUtils utils;
         utils.record_stop();
+        utils.volume_gain(asns::RECORD_PATH, "mp3");
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         if (file_size <= 0) {
             return SendFast(asns::RECORD_SIZE_ERROR, pClient);

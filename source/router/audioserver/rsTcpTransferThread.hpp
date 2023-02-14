@@ -103,7 +103,6 @@ private:
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
         std::cout << "record file size:" << file_size << std::endl;
-        utils.volume_gain(asns::RECORD_PATH, "mp3");
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
