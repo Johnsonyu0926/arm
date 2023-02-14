@@ -12,7 +12,6 @@
 #include "serverset.hpp"
 #include "volume.hpp"
 #include "getaudiolist.hpp"
-#include "delaudio.hpp"
 #include "unsupport.hpp"
 
 #include "getDeviceBaseInfo.hpp"
@@ -23,7 +22,6 @@
 #include "audioPlay.hpp"
 #include "ttsPlay.hpp"
 #include "fileUpload.hpp"
-#include "record.hpp"
 #include "ptzOperate.hpp"
 #include "directional_sound_column.hpp"
 #include "relaySet.hpp"
@@ -53,14 +51,7 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         cout << "do VolumeSet business." << endl;
         CVolumeSet volumeSet = m_json;
         volumeSet.do_req(pClient);
-    }
-        // else if (strstr(buf, "AudioDelete"))
-        // {
-        //     cout << "AudioDelete command." << endl;
-        //     CDelAudio delAudio = m_json;
-        //     delAudio.do_req(pClient);
-        // }
-    else if (strstr(buf, "GetAudioList")) {
+    } else if (strstr(buf, "GetAudioList")) {
         cout << "GetAudioList cmd." << endl;
         CGetAudioList getAudioList = m_json;
         getAudioList.do_req(pClient);
@@ -96,12 +87,7 @@ int CClientThread::do_req(char *buf, CSocket *pClient) {
         std::cout << "UpdatePwd cmd" << std::endl;
         CUpdate update = m_json;
         update.do_req(pClient);
-    }/* else if (strstr(buf, "record")) {
-        std::cout << "record cmd" << std::endl;
-        CRecord recod = m_json;
-        recod.do_req(pClient);
-    }*/
-        //{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
+    }//{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
     else if (strstr(buf, "MicRecord")) {
         std::cout << "MicRecord cmd" << std::endl;
         CMicRecord res = m_json;

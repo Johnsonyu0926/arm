@@ -6,8 +6,6 @@
 #include "add_column_custom_audio_file.hpp"
 #include "talk.h"
 #include "login.hpp"
-#include "file_recv.hpp"
-#include "epoll.hpp"
 #include "utils.h"
 #include "tcpTransferThread.hpp"
 #include "public.hpp"

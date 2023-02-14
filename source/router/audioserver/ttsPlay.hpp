@@ -2,7 +2,6 @@
 
 #include "json.hpp"
 #include "utils.h"
-#include "Singleton.hpp"
 #include "public.hpp"
 #include <thread>
 
