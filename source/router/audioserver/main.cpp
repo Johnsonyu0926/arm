@@ -22,7 +22,6 @@
 #include "doorsbase.h"
 #include "serverthread.h"
 
-#include "udpclient.hpp"
 #include "login.hpp"
 
 #include "audiocfg.hpp"
@@ -224,13 +223,6 @@ int main(int argc, char **argv) {
     // printf("Checksum = %d\n",g_nCheckSum);
     CSTime t;
     t.TickStart();
-
-    CSUdpClient udpClient("239.255.255.235", 5099);
-    asns::CLoginResult loginRes;
-    loginRes.do_success();
-    json js = loginRes;
-    std::string str = js.dump();
-    udpClient.Send(str);
 
     CServerThread *pServer = new CServerThread();
     // DS_TRACE("Set port:" << nPort << ",Upper server ip:" << szUpperServer << ", upper server port:" << nUpperServerPort);

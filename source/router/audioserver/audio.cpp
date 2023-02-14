@@ -15,7 +15,6 @@
 #include "audiocfg.hpp"
 #include "doorsbase.h"
 #include "serverthread.h"
-#include "udpclient.hpp"
 #include "login.hpp"
 
 #include "hkVolume.hpp"
