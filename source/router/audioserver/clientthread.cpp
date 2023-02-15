@@ -27,6 +27,7 @@
 #include "relaySet.hpp"
 #include "audio_del.hpp"
 #include "micRecord.hpp"
+#include "public.hpp"
 
 using namespace asns;
 
@@ -127,132 +128,128 @@ int CClientThread::do_verify(char *buf) {
 }
 
 int CClientThread::do_str_req(CSocket *pClient) {
+    CBusiness bus;
     int opcode = std::stoi(m_str[3]);
     cout << "opcode: " << opcode << endl;
     switch (opcode) {
         case TCPNETWORKSET:
             std::cout << "TCPNetworkSet" << std::endl;
-            asns::TCPNetworkSet(m_str, pClient);
+            bus.TCPNetworkSet(m_str, pClient);
             break;
         case UPDATEPWD:
             std::cout << "UpdatePwd" << std::endl;
-            asns::UpdatePwd(m_str, pClient);
+            bus.UpdatePwd(m_str, pClient);
             break;
         case NETWORKSET:
             std::cout << "NetworkSet" << std::endl;
-            asns::NetworkSet(m_str, pClient);
+            bus.NetworkSet(m_str, pClient);
             break;
         case LOGIN:
             std::cout << "LOGIN" << std::endl;
-            asns::Login(m_str, pClient);
+            bus.Login(m_str, pClient);
             break;
         case SETDEVICEADDRRESS:
             std::cout << "设置设备地址" << std::endl;
-            //SettingDeviceAddress(m_str, pClient);
             break;
         case AUDIOPLAY:
             std::cout << "AudioPlay" << std::endl;
-            asns::AudioPlay(m_str, pClient);
+            bus.AudioPlay(m_str, pClient);
             break;
         case AUDIOSTOP:
             std::cout << "AudioStop" << std::endl;
-            asns::AudioStop(pClient);
+            bus.AudioStop(pClient);
             break;
         case VOLUMSET:
             std::cout << "VolumeSet" << std::endl;
-            asns::VolumeSet(m_str, pClient);
+            bus.VolumeSet(m_str, pClient);
             break;
         case REBOOT:
             std::cout << "Reboot" << std::endl;
-            asns::Reboot(pClient);
+            bus.Reboot(pClient);
             break;
         case GETDEVICESTATUS:
             std::cout << "GetDeviceStatus" << std::endl;
-            asns::GetDeviceStatus(pClient);
+            bus.GetDeviceStatus(pClient);
             break;
         case TTSPLAY:
             std::cout << "TtsPlay" << std::endl;
-            asns::TtsPlay(m_str, pClient);
+            bus.TtsPlay(m_str, pClient);
             break;
         case LIGHTSWITCH:
             std::cout << "闪灯开关" << std::endl;
             break;
         case FILEUPLOAD:
             std::cout << "fileUpload" << std::endl;
-            asns::FileUpload(m_str, pClient);
+            bus.FileUpload(m_str, pClient);
             break;
         case RESTORE:
             std::cout << "Restore" << std::endl;
-            asns::Restore(pClient);
+            bus.Restore(pClient);
             break;
         case AUDIONUMORTPLAY:
             std::cout << "AudioNumberOrTimePlay" << std::endl;
-            asns::AudioNumberOrTimePlay(m_str, pClient);
+            bus.AudioNumberOrTimePlay(m_str, pClient);
             break;
         case TTSNUMORTPLAY:
             std::cout << "Tts Number or Time Play" << std::endl;
-            asns::TtsNumTimePlay(m_str, pClient);
+            bus.TtsNumTimePlay(m_str, pClient);
             break;
         case GETDEVICEBASEINFO:
             std::cout << "GetDeviceBaseInfo" << std::endl;
-            asns::GetDeviceBaseInfo(pClient);
+            bus.GetDeviceBaseInfo(pClient);
             break;
         case RECORD:
             std::cout << "Record" << std::endl;
-            asns::Record(m_str, pClient);
+            bus.Record(m_str, pClient);
             break;
         case REMOTEUPGRADE:
             std::cout << "远程升级" << std::endl;
             break;
         case GETAUDIOLIST:
             std::cout << "GetAudioList" << std::endl;
-            asns::GetAudioList(m_str, pClient);
+            bus.GetAudioList(m_str, pClient);
             break;
         case LIGHTCONFIG:
             std::cout << "FlashConfig" << std::endl;
-            asns::FlashConfig(m_str,pClient);
+            bus.FlashConfig(m_str, pClient);
             break;
         case RECORDBEGIN:
             std::cout << "RecordBegin" << std::endl;
-            asns::RecordBegin(m_str, pClient);
+            bus.RecordBegin(m_str, pClient);
             break;
         case RECORDEND:
             std::cout << "RecordEnd" << std::endl;
-            asns::RecordEnd(m_str, pClient);
+            bus.RecordEnd(m_str, pClient);
             break;
         case AUDIOFILEUPLOAD:
             std::cout << "AudioFileUpload" << std::endl;
-            asns::AudioFileUpload(m_str, pClient);
+            bus.AudioFileUpload(m_str, pClient);
             std::cout << "do_str_req end ..." << std::endl;
             break;
         case REMOTEFILEUPGRADE:
             std::cout << "RemoteFileUpgrade" << std::endl;
-            CUtils utils;
-            asns::RemoteFileUpgrade(m_str, pClient);
+            bus.RemoteFileUpgrade(m_str, pClient);
             break;
         default:
             std::cout << "switch F4" << std::endl;
-            asns::SendFast("F4", pClient);
+            bus.SendFast(asns::NONSUPPORT_ERROR, pClient);
             break;
     }
     return 1;
 }
 
 int CClientThread::do_str_verify(char *buf, CSocket *pClient) {
-    std::istringstream ss(buf);
-    std::string token;
-    m_str.clear();
-    while (std::getline(ss, token, ' ')) {
-        m_str.push_back(token);
-    }
+    CBusiness bus;
+    CUtils utils;
+    m_str = utils.string_split(buf);
     if (m_str[0].compare("AA") != 0 || m_str[m_str.size() - 1].compare("EF") != 0) {
-        asns::SendFast("F1", pClient);
+        bus.SendFast(asns::BEGIN_END_CODE_ERROR, pClient);
         return 0;
     } else if (std::stoi(m_str[1]) != (m_str.size() - 3)) {
-        asns::SendFast("F2", pClient);
+        bus.SendFast(asns::LENGTH_ERROR, pClient);
         return 0;
     } else if (m_str[m_str.size() - 2].compare("BB") != 0) {
-        asns::SendFast("F3", pClient);
+        bus.SendFast(asns::CHECK_CODE_ERROR, pClient);
         return 0;
     }
     return 1;
@@ -267,7 +264,7 @@ BOOL CClientThread::InitInstance() {
     char *p = buf;
     int offset = 0;
     while (1) {
-        std::cout<<"audioserver begin ..."<<std::endl;
+        std::cout << "audioserver begin ..." << std::endl;
         FD_ZERO(&rset);
         FD_SET(m_pClient->m_hSocket, &rset);
 
@@ -289,7 +286,7 @@ BOOL CClientThread::InitInstance() {
                         p = buf;
                         offset = 0;
                         do_str_req(m_pClient);
-                        std::cout<<"InitInstance do_str_req end"<<std::endl;
+                        std::cout << "InitInstance do_str_req end" << std::endl;
                         memset(buf, 0, sizeof(buf));
                     } else {
                         offset += n1;

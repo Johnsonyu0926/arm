@@ -4,7 +4,6 @@
 #include "volume.hpp"
 #include "json.hpp"
 #include "utils.h"
-#include "gpio.hpp"
 /**
  * {
         "cmd":"hello",
@@ -37,7 +36,7 @@ namespace asns {
             sdcardSpace = "7684500";
             flashSpace = "7684500";
             storageType = 1;
-            v5 = CGpio::getInstance().getGpioStatus();
+            v5 = utils.get_gpio_state();
             v12 = 0;
             v24 = 0;
             return 1;

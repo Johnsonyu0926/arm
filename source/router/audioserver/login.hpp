@@ -6,7 +6,6 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
-#include "playStatus.hpp"
 
 using namespace std;
 
@@ -47,14 +46,14 @@ namespace asns {
             cfg.load();
             codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
             coreVersion = util.get_by_cmd_res("webs -V");
-            relayMode = CGpio::getInstance().getGpioModel();
+            relayMode = util.get_gpio_model();
             ip = util.get_lan_addr();
             storageType = 0;
             port = 34508;
-            playStatus = PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
+            playStatus = util.get_play_state();
             g_volumeSet.load();
             volume = g_volumeSet.getVolume();
-            relayStatus = CGpio::getInstance().getGpioStatus();
+            relayStatus = util.get_gpio_state();
             hardwareReleaseTime = util.get_by_cmd_res("uname -a");
             spiFreeSpace = 9752500;
             flashFreeSpace = util.get_available_Disk("/mnt");

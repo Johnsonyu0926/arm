@@ -24,12 +24,22 @@ public:
                 m_nPort = i;
                 if (std::stoi(m_vecStr[3]) != asns::RECORDEND) {
                     std::string res = "01 E1 " + m_vecStr[5] + " " + std::to_string(m_nPort);
-                    pClient->Send(res.c_str(), res.length());
+                    if(pClient == nullptr){
+                        CUtils utils;
+                        utils.uart_write(res);
+                    }else{
+                        pClient->Send(res.c_str(), res.length());
+                    }
                 } else {
                     CUtils utils;
                     int file_size = utils.get_file_size(asns::RECORD_PATH);
                     std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
-                    pClient->Send(res.c_str(), res.length());
+                    if(pClient == nullptr){
+                        CUtils utils;
+                        utils.uart_write(res);
+                    }else{
+                        pClient->Send(res.c_str(), res.length());
+                    }
                 }
                 break;
             } else if (i == asns::ENDPORT) {
@@ -209,14 +219,21 @@ private:
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
         std::cout << "return: " << res << std::endl;
+        if(pClient == nullptr){
+            CUtils utils;
+            return utils.uart_write(res);
+        }
         return pClient->Send(res.c_str(), res.length());
     }
 
     int SendFast(const std::string &err_code, CSocket *pClient) {
         std::string buf = "01 " + err_code;
         std::cout << "return: " << buf << std::endl;
-        pClient->Send(buf.c_str(), buf.length());
-        return 0;
+        if(pClient == nullptr){
+            CUtils utils;
+            return utils.uart_write(buf);
+        }
+        return pClient->Send(buf.c_str(), buf.length());
     }
 
 private:

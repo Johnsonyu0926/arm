@@ -4,7 +4,6 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
-#include "playStatus.hpp"
 
 extern asns::CVolumeSet g_volumeSet;
 namespace asns {
@@ -59,14 +58,14 @@ namespace asns {
 
             data.codeVersion = cfg.business[0].codeVersion;
             data.coreVersion = util.get_by_cmd_res("webs -V");
-            data.relayMode = CGpio::getInstance().getGpioModel();
+            data.relayMode = util.get_gpio_model();
             data.ip = util.get_lan_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
+            data.playStatus = util.get_play_state();
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
-            data.relayStatus = CGpio::getInstance().getGpioStatus();
+            data.relayStatus = util.get_gpio_state();
             data.hardwareReleaseTime = util.get_by_cmd_res("uname -a");
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "json.hpp"
-#include "rs485.hpp"
+#include "utils.h"
 
 namespace asns {
 
@@ -10,7 +10,8 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CPtzOperate, cmd, operateCmd)
 
         int do_req() {
-            _uart_work(operateCmd.c_str(),operateCmd.length());
+            CUtils utils;
+            utils.uart_write(operateCmd);
         }
 
     private:

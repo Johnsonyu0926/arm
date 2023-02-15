@@ -1,125 +1,157 @@
 #pragma once
+#include "directional_sound_column.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-
-#include "audiocfg.hpp"
-
-static int g_rs485 = -1;
-static int g_rsTty = 1; //ttyUSB1 as default.
-const int MAX_SEND = 12;
-
-void set_send_dir() {
-    system("echo 1 > /sys/class/gpio/gpio3/value");
-    printf("set send dir! gpio is 1\n");
-}
-
-void set_receive_dir() {
-    system("echo 0 > /sys/class/gpio/gpio3/value");
-    printf("set receive dir! gpio is 0\n");
-}
-
-static int _uart_open(void) {
-    int iFd = -1;
-    struct termios opt;
-    asns::CAudioCfgBusiness cfg;
-    cfg.load();
-    int iBdVal = cfg.business[0].iBdVal;
-
-    system("echo 3 > /sys/class/gpio/export");
-    system("echo out > /sys/class/gpio/gpio3/direction");
-
-    char name[32];
-    sprintf(name, "/dev/ttyS%d", g_rsTty);
-
-    iFd = open(name, O_RDWR | O_NOCTTY);  /* 读写方式打开串口 */
-
-    if (iFd < 0) {
-        return -1;
-    }
-
-    tcgetattr(iFd, &opt);
-    cfmakeraw(&opt);
-
-    cfsetispeed(&opt, iBdVal);
-    cfsetospeed(&opt, iBdVal);
-
-    tcsetattr(iFd, TCSANOW, &opt);
-    char cmd[64];
-    sprintf(cmd, "stty -F /dev/ttyS%d %d", g_rsTty, iBdVal);
-    system(cmd);
-
-    return iFd;
-}
-
-/* Write data to uart dev, return 0 means OK */
-static int _uart_write(const char *pcData, int iLen) {
-    int iFd = g_rs485;
-    int iRet = -1;
-    int len = 0;
-    printf("to write :%s, len:%d\n", pcData, iLen);
-    int count = iLen / MAX_SEND;
-    if (iLen % MAX_SEND) {
-        count++;
-    }
-    int offset = 0;
-    printf("count=%d\n", count);
-    for (int i = 0; i < count; i++) {
-        if ((i + 1) * MAX_SEND > iLen) {
-            len = iLen - i * MAX_SEND;
-        } else {
-            len = MAX_SEND;
+class RSBusinessManage {
+public:
+    int do_str_req() {
+        CBusiness bus;
+        int opcode = std::stoi(m_str[3]);
+        cout << "opcode: " << opcode << endl;
+        switch (opcode) {
+            case asns::TCPNETWORKSET:
+                std::cout << "TCPNetworkSet" << std::endl;
+                bus.TCPNetworkSet(m_str);
+                break;
+            case asns::UPDATEPWD:
+                std::cout << "UpdatePwd" << std::endl;
+                bus.UpdatePwd(m_str);
+                break;
+            case asns::NETWORKSET:
+                std::cout << "NetworkSet" << std::endl;
+                bus.NetworkSet(m_str);
+                break;
+            case asns::LOGIN:
+                std::cout << "LOGIN" << std::endl;
+                bus.Login(m_str);
+                break;
+            case SETDEVICEADDRRESS:
+                std::cout << "设置设备地址" << std::endl;
+                break;
+            case asns::AUDIOPLAY:
+                std::cout << "AudioPlay" << std::endl;
+                bus.AudioPlay(m_str);
+                break;
+            case asns::AUDIOSTOP:
+                std::cout << "AudioStop" << std::endl;
+                bus.AudioStop();
+                break;
+            case asns::VOLUMSET:
+                std::cout << "VolumeSet" << std::endl;
+                bus.VolumeSet(m_str);
+                break;
+            case asns::REBOOT:
+                std::cout << "Reboot" << std::endl;
+                bus.Reboot();
+                break;
+            case asns::GETDEVICESTATUS:
+                std::cout << "GetDeviceStatus" << std::endl;
+                bus.GetDeviceStatus();
+                break;
+            case asns::TTSPLAY:
+                std::cout << "TtsPlay" << std::endl;
+                bus.TtsPlay(m_str);
+                break;
+            case LIGHTSWITCH:
+                std::cout << "闪灯开关" << std::endl;
+                break;
+            case asns::FILEUPLOAD:
+                std::cout << "fileUpload" << std::endl;
+                bus.FileUpload(m_str);
+                break;
+            case asns::RESTORE:
+                std::cout << "Restore" << std::endl;
+                bus.Restore();
+                break;
+            case asns::AUDIONUMORTPLAY:
+                std::cout << "AudioNumberOrTimePlay" << std::endl;
+                bus.AudioNumberOrTimePlay(m_str);
+                break;
+            case asns::TTSNUMORTPLAY:
+                std::cout << "Tts Number or Time Play" << std::endl;
+                bus.TtsNumTimePlay(m_str);
+                break;
+            case asns::GETDEVICEBASEINFO:
+                std::cout << "GetDeviceBaseInfo" << std::endl;
+                bus.GetDeviceBaseInfo();
+                break;
+            case asns::RECORD:
+                std::cout << "Record" << std::endl;
+                bus.Record(m_str);
+                break;
+            case asns::REMOTEUPGRADE:
+                std::cout << "远程升级" << std::endl;
+                break;
+            case asns::GETAUDIOLIST:
+                std::cout << "GetAudioList" << std::endl;
+                bus.GetAudioList(m_str);
+                break;
+            case asns::LIGHTCONFIG:
+                std::cout << "FlashConfig" << std::endl;
+                bus.FlashConfig(m_str);
+                break;
+            case asns::RECORDBEGIN:
+                std::cout << "RecordBegin" << std::endl;
+                bus.RecordBegin(m_str);
+                break;
+            case asns::RECORDEND:
+                std::cout << "RecordEnd" << std::endl;
+                bus.RecordEnd(m_str);
+                break;
+            case asns::AUDIOFILEUPLOAD:
+                std::cout << "AudioFileUpload" << std::endl;
+                bus.AudioFileUpload(m_str);
+                break;
+            case asns::REMOTEFILEUPGRADE:
+                std::cout << "RemoteFileUpgrade" << std::endl;
+                bus.RemoteFileUpgrade(m_str);
+                break;
+            default:
+                std::cout << "switch F4" << std::endl;
+                CUtils utils;
+                utils.uart_write(asns::NONSUPPORT_ERROR);
+                break;
         }
-        printf("no.%d : offset:%d len:%d \n", i, offset, len);
-        const char *data = pcData + offset;
-        for (int j = 0; j < len; j++) {
-            printf("%02x ", data[j]);
-        }
-        iRet = write(iFd, data, len);
-        if (iRet < 0) {
-            close(iFd);
-            g_rs485 = -1;
-            printf("error write %d , len:%d\n", iFd, len);
-        } else {
-            printf("no.%d : write len:%d success, iRet:%d\n", i, len, iRet);
-        }
-
-        offset += MAX_SEND;
-
-        usleep(100 * 1000);
+        return 1;
     }
-    return iRet;
-}
 
-int _uart_work(const char *buf, int len) {
-    int fd = _uart_open();
-    if (fd < 0) {
-        printf("failed to open ttyS%d to read write.\n", g_rsTty);
-        return 2;
+    int handle_receive(const char *buf) {
+        CUtils utils;
+        m_str = utils.string_split(buf);
+        if (m_str[0].compare("AA") != 0 || m_str[m_str.size() - 1].compare("EF") != 0) {
+            utils.uart_write(asns::BEGIN_END_CODE_ERROR);
+            return 0;
+        } else if (std::stoi(m_str[1]) != (m_str.size() - 3)) {
+            utils.uart_write(asns::LENGTH_ERROR);
+            return 0;
+        } else if (m_str[m_str.size() - 2].compare("BB") != 0) {
+            utils.uart_write(asns::CHECK_CODE_ERROR);
+            return 0;
+        }
+        return do_str_req();
     }
-    g_rs485 = fd;
-    set_send_dir();
-    _uart_write(buf, len);
-    return 1;
-}
 
+    int worker() {
+        Rs485 rs;
+        int fd = rs._uart_open();
+        if (fd < 0) {
+            return -1;
+        }
 
-int SendTrue() {
-    std::string res = "01 E1";
-    return _uart_write(res.c_str(), res.length());
-}
+        int read_count = 0;
+        char buf[1024] = {0};
+        while (1) {
+            memset(buf, 0, sizeof(buf));
+            read_count = rs._uart_read(buf, sizeof(buf));
 
-int SendFast(const char *err_code) {
-    std::string code = err_code;
-    std::string buf = "01 " + code;
-    _uart_write(buf.c_str(), buf.length());
-    return 0;
-}
+            if (read_count < 0) {
+                printf("failed to read ! errno = %d, strerror=%s\n", errno, strerror(errno));
+                return 0;
+            }
+            printf("recv request:%s, len:%d, handle it...\n", buf, read_count);
+            handle_receive(buf);
+        }
+    }
+
+private:
+    std::vector<std::string> m_str;
+};

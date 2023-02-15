@@ -1,19 +1,19 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <termios.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include <sys/statfs.h>
 #include <string>
-#include <stdio.h>
 #include <dirent.h>
 #include <cstring>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -24,14 +24,308 @@
 #include <thread>
 #include <future>
 #include "public.hpp"
-#include "gpio.hpp"
-#include "playStatus.hpp"
+#include "audiocfg.hpp"
+
+static int m_rs485{-1};
+static int m_rsTty{1};
+
+class Rs485 {
+public:
+    const int MAX_SEND = 12;
+
+    void set_send_dir() const {
+        system("echo 1 > /sys/class/gpio/gpio3/value");
+        printf("set send dir! gpio is 1\n");
+    }
+
+    void set_receive_dir() const {
+        system("echo 0 > /sys/class/gpio/gpio3/value");
+        printf("set receive dir! gpio is 0\n");
+    }
+
+    int _uart_read(char *pcBuf, int iBufLen) {
+        set_receive_dir();
+        int iFd = m_rs485, iLen = 0;
+        int i;
+
+        *pcBuf = '\0';
+        printf("reading... from fd:%d\n", iFd);
+        iLen = read(iFd, pcBuf, iBufLen);
+        if (iLen < 0) {
+            close(iFd);
+            m_rs485 = -1;
+            printf("error read from fd %d\n", iFd);
+            return iLen;
+        }
+
+        //ignore 0x0
+        while (iLen == 1 && pcBuf[0] == 0x0) {
+            printf("ignore the 0x0 .\n");
+            iLen = read(iFd, pcBuf, iBufLen);
+        }
+
+        printf("read success: iLen= %d , hex dump:\n", iLen);
+        for (i = 0; i < iLen; i++) {
+            printf("%02x ", pcBuf[i]);
+        }
+        printf("\nhex dump end.\n");
+
+        while (1) {
+            if ((iLen > 5) &&
+                ('B' == pcBuf[iLen - 5]) &&
+                ('B' == pcBuf[iLen - 4]) &&
+                (' ' == pcBuf[iLen - 3]) &&
+                ('E' == pcBuf[iLen - 2]) &&
+                ('F' == pcBuf[iLen - 1])) {
+                printf("receive completed.\n");
+                break;
+            }
+
+            printf("continue to read...\n");
+            int next = read(iFd, pcBuf + iLen, iBufLen - iLen);
+            iLen += next;
+            printf("read next :%d, iLen:%d, buf:%s\n", next, iLen, pcBuf);
+
+        }
+        printf("total len = %d\n", iLen);
+
+        for (i = 0; i < iLen; i++) {
+            printf("%02x ", pcBuf[i]);
+        }
+        printf("\nhex dump end.\n");
+        return iLen;
+    }
+
+    int _uart_open(void) {
+        int iFd = -1;
+        struct termios opt;
+        asns::CAudioCfgBusiness cfg;
+        cfg.load();
+        int iBdVal = cfg.business[0].iBdVal;
+
+        system("echo 3 > /sys/class/gpio/export");
+        system("echo out > /sys/class/gpio/gpio3/direction");
+
+        char name[32];
+        sprintf(name, "/dev/ttyS%d", m_rsTty);
+
+        iFd = open(name, O_RDWR | O_NOCTTY);  /* 读写方式打开串口 */
+
+        if (iFd < 0) {
+            return -1;
+        }
+
+        tcgetattr(iFd, &opt);
+        cfmakeraw(&opt);
+
+        cfsetispeed(&opt, iBdVal);
+        cfsetospeed(&opt, iBdVal);
+
+        tcsetattr(iFd, TCSANOW, &opt);
+        char cmd[64];
+        sprintf(cmd, "stty -F /dev/ttyS%d %d", m_rsTty, iBdVal);
+        system(cmd);
+        m_rs485 = iFd;
+        return iFd;
+    }
+
+    /* Write data to uart dev, return 0 means OK */
+    int _uart_write(const char *pcData, int iLen) {
+        set_send_dir();
+        int iFd = m_rs485;
+        int iRet = -1;
+        int len = 0;
+        printf("to write :%s, len:%d\n", pcData, iLen);
+        int count = iLen / MAX_SEND;
+        if (iLen % MAX_SEND) {
+            count++;
+        }
+        int offset = 0;
+        printf("count=%d\n", count);
+        for (int i = 0; i < count; i++) {
+            if ((i + 1) * MAX_SEND > iLen) {
+                len = iLen - i * MAX_SEND;
+            } else {
+                len = MAX_SEND;
+            }
+            printf("no.%d : offset:%d len:%d \n", i, offset, len);
+            const char *data = pcData + offset;
+            for (int j = 0; j < len; j++) {
+                printf("%02x ", data[j]);
+            }
+            iRet = write(iFd, data, len);
+            if (iRet < 0) {
+                close(iFd);
+                m_rs485 = -1;
+                printf("error write %d , len:%d\n", iFd, len);
+            } else {
+                printf("no.%d : write len:%d success, iRet:%d\n", i, len, iRet);
+            }
+
+            offset += MAX_SEND;
+
+            usleep(100 * 1000);
+        }
+        return iRet;
+    }
+
+    int _uart_work(const char *buf, int len) {
+        int fd = _uart_open();
+        if (fd < 0) {
+            printf("failed to open ttyS%d to read write.\n", m_rsTty);
+            return 2;
+        }
+        m_rs485 = fd;
+        _uart_write(buf, len);
+        set_receive_dir();
+        return 1;
+    }
+
+
+    int SendTrue() {
+        std::string res = "01 E1";
+        return _uart_write(res.c_str(), res.length());
+    }
+
+    int SendFast(const std::string &err_code) {
+        std::string buf = "01 " + err_code;
+        return _uart_write(buf.c_str(), buf.length());
+    }
+};
+
+
+class PlayStatus {
+public:
+    PlayStatus(const PlayStatus &) = delete;
+
+    PlayStatus &operator=(const PlayStatus &) = delete;
+
+    static PlayStatus &getInstance() {
+        static PlayStatus instance;
+        return instance;
+    }
+
+    void init() {
+        m_playId = asns::STOP_TASK_PLAYING;
+        m_priority = asns::STOP_TASK_PLAYING;
+        m_pId = asns::STOP_TASK_PLAYING;
+    }
+
+    int getPlayState() const {
+        return m_playId == asns::STOP_TASK_PLAYING;
+    }
+
+    int getPlayId() const {
+        return m_playId;
+    }
+
+    void setPlayId(const int id) {
+        m_playId = id;
+    }
+
+    int getPriority() const {
+        return m_priority;
+    }
+
+    void setPriority(const int id) {
+        m_priority = id;
+    }
+
+    pid_t getProcessId() const {
+        return m_pId;
+    }
+
+    void setProcessId(pid_t id) {
+        m_pId = id;
+    }
+
+    ~PlayStatus() = default;
+
+private:
+    PlayStatus() = default;
+
+private:
+    int m_playId{-1};
+    int m_priority{-1};
+    pid_t m_pId{-1};
+};
+
+
+class CGpio {
+public:
+    ~CGpio() = default;
+
+    CGpio(const CGpio &) = delete;
+
+    CGpio &operator=(const CGpio &) = delete;
+
+    static CGpio &getInstance() {
+        static CGpio instance;
+        return instance;
+    }
+
+    int getGpioStatus() const {
+        return m_gpioStatus;
+    }
+
+    void set_gpio_on() {
+        system("echo 1 > /sys/class/gpio/gpio16/value");
+        m_gpioStatus = 1;
+        printf("set send dir! gpio is 1\n");
+    }
+
+    void set_gpio_off() {
+        system("echo 0 > /sys/class/gpio/gpio16/value");
+        m_gpioStatus = 0;
+        printf("set receive dir! gpio is 0\n");
+    }
+
+    void setGpioModel(const int model) {
+        m_gpioModel = model;
+    }
+
+    int getGpioModel() const {
+        return m_gpioModel;
+    }
+
+private:
+    CGpio() = default;
+
+private:
+    int m_gpioStatus;
+    int m_gpioModel;
+};
 
 class CUtils {
 private:
     char m_lan[1024];
 
 public:
+
+    int uart_write(const std::string &cmd) {
+        Rs485 rs;
+        return rs._uart_work(cmd.c_str(), cmd.length());
+    }
+
+    int get_play_state() const {
+        return PlayStatus::getInstance().getPlayState();
+    }
+
+    int get_gpio_state() const {
+        return CGpio::getInstance().getGpioStatus();
+    }
+
+    int get_gpio_model() const {
+        return CGpio::getInstance().getGpioModel();
+    }
+
+    void set_gpio_on() {
+        CGpio::getInstance().set_gpio_on();
+    }
+
+    void set_gpio_off() {
+        CGpio::getInstance().set_gpio_off();
+    }
 
     size_t get_file_size(const std::string &path) {
         int fd = open(path.c_str(), O_RDWR);
@@ -45,7 +339,7 @@ public:
         return st.st_size;
     }
 
-    void get_dir_file_names(const std::string &path, std::vector <std::string> &files) {
+    void get_dir_file_names(const std::string &path, std::vector<std::string> &files) {
         DIR *pDir;
         dirent *ptr;
         if (!(pDir = opendir(path.c_str()))) return;
@@ -58,7 +352,7 @@ public:
     }
 
     bool find_dir_file_exists(const std::string &path, const std::string &name) {
-        std::vector <std::string> files_name;
+        std::vector<std::string> files_name;
         get_dir_file_names(path, files_name);
         for (auto iter = files_name.cbegin(); iter != files_name.cend(); ++iter) {
             std::cout << *iter << " ";
@@ -400,8 +694,8 @@ public:
     * @param del_ims
     * @return
     */
-    std::vector <std::string> string_split(std::string str_v, std::string del_ims = " ") {
-        std::vector <std::string> output;
+    std::vector<std::string> string_split(std::string str_v, std::string del_ims = " ") {
+        std::vector<std::string> output;
         size_t first = 0;
         while (first < str_v.size()) {
             const auto second = str_v.find_first_of(del_ims, first);
@@ -638,16 +932,17 @@ public:
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
-        std::future <std::string> res = std::async(std::launch::async, [=] {
+        std::future<std::string> res = std::async(std::launch::async, [=] {
             std::this_thread::sleep_for(std::chrono::seconds(time));
-            system("killall -9 arecord");
+            record_stop();
             volume_gain(asns::RECORD_PATH, "mp3");
             std::string res = get_doupload_result(url, imei);
             system("rm /tmp/record.mp3");
+            system("rm /tmp/vol.mp3");
             return res;
         });
         async_wait(1, 0, 0, [&] {
-            system("arecord -f cd /tmp/record.mp3");
+            record_start();
         });
         return res.get();
     }

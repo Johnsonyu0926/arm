@@ -1,7 +1,7 @@
 #pragma once
 
 #include "json.hpp"
-#include "gpio.hpp"
+#include "utils.h"
 
 namespace asns {
     template<typename Quest, typename Result>
@@ -16,19 +16,20 @@ namespace asns {
 
         template<typename Quest, typename Result, typename T>
         int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
+            CUtils utils;
             switch (c.data.portList[0].val) {
                 case 0:
-                    CGpio::getInstance().set_gpio_off();
+                    utils.set_gpio_off();
                     break;
                 case 1:
-                    CGpio::getInstance().set_gpio_on();
+                    utils.set_gpio_on();
                     break;
                 default:
                     r.resultId = 2;
                     r.result = "Protocol error";
                     return 2;
             }
-            v5 = CGpio::getInstance().getGpioStatus();
+            v5 = utils.get_gpio_state();
             v12 = 0;
             v24 = 0;
             r.resultId = 1;

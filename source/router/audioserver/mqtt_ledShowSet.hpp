@@ -2,7 +2,7 @@
 
 #include "json.hpp"
 #include "mqtt_reTemp.hpp"
-#include "rs485Manage.hpp"
+#include "utils.h"
 
 using json = nlohmann::json;
 
@@ -22,7 +22,8 @@ namespace asns {
             json js = c.data.ledCommand;
             std::string str = js.dump();
             ledShowRecordId = c.data.ledShowRecordId;
-            if(rs::_uart_work(str.c_str(), str.length()) != 1){
+            CUtils utils;
+            if(utils.uart_write(str) != 1){
                 r.resultId = 2;
                 r.result = "failed to open ttyS";
                 return 2;

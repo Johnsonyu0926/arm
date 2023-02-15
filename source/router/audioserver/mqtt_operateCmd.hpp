@@ -2,7 +2,7 @@
 
 #include "json.hpp"
 #include "mqtt_reTemp.hpp"
-#include "rs485Manage.hpp"
+#include "utils.h"
 
 using json = nlohmann::json;
 
@@ -17,9 +17,10 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPtzOperateResultData, null)
 
-        template<typename Quest, typename Result,typename T>
+        template<typename Quest, typename Result, typename T>
         int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
-            if(rs::_uart_work(c.data.operateCmd.c_str(), c.data.operateCmd.length()) != 1){
+            CUtils utils;
+            if (utils.uart_write(c.data.operateCmd) != 1) {
                 r.resultId = 2;
                 r.result = "failed to open ttyS";
                 return 2;

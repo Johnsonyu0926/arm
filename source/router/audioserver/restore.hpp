@@ -4,8 +4,6 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
-#include "playStatus.hpp"
-#include "gpio.hpp"
 
 extern asns::CVolumeSet g_volumeSet;
 namespace asns {
@@ -60,23 +58,23 @@ namespace asns {
 
             data.codeVersion = "2.1.01";
             data.coreVersion = util.get_by_cmd_res("webs -V");
-            data.relayMode = CGpio::getInstance().getGpioModel();
-            data.ip = util.get_lan_addr();
+            data.relayMode = util.get_gpio_model();
+            data.ip = "192.168.1.100";
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus =PlayStatus::getInstance().getPlayId() == asns::STOP_TASK_PLAYING ? 0 : 1;
+            data.playStatus = util.get_play_state();
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
-            data.relayStatus = CGpio::getInstance().getGpioStatus();
+            data.relayStatus = util.get_gpio_state();
             data.hardwareReleaseTime = util.get_by_cmd_res("uname -a");
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = util.get_by_cmd_res("uname -r");
-            data.password = cfg.business[0].serverPassword;
+            data.password = "Aa123456";
             data.temperature = 12;
-            data.netmask = util.get_lan_netmask();
+            data.netmask = "255.255.255.0";
             data.address = "01";
-            data.gateway = util.get_lan_gateway();
+            data.gateway = "192.168.1.1";
             data.userName = "admin";
             data.imei = cfg.business[0].deviceID;
             data.functionVersion = "COMMON";

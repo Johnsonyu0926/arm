@@ -1,7 +1,6 @@
 #pragma once
 
 #include "json.hpp"
-#include "gpio.hpp"
 #include "utils.h"
 
 namespace asns {
