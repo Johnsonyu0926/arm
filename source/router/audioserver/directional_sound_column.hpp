@@ -46,7 +46,7 @@ public:
         cfg.load();
         CUtils util;
         codeVersion = cfg.business[0].codeVersion; //"2.1.01"; //"1.2";
-        coreVersion = util.get_by_cmd_res("webs -V");
+        coreVersion = util.get_core_version();
         relayMode = util.get_gpio_model();
         ip = util.get_lan_addr();
         storageType = util.is_ros_platform() ? 0 : 1;
@@ -55,7 +55,7 @@ public:
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         relayStatus = util.get_gpio_state();
-        hardwareReleaseTime = util.get_by_cmd_res("uname -a");
+        hardwareReleaseTime = util.gethardware_release_time();
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");
         hardwareVersion = "7621";
@@ -217,7 +217,7 @@ namespace asns {
 
         int FlashConfig(const std::vector<std::string> &m_str, CSocket *pClient = nullptr) {
             CUtils utils;
-            utils.gpio_set(std::stoi(m_str[4].c_str()), std::stoi(m_str[5].c_str()));
+            utils.set_gpio_model(std::stoi(m_str[4].c_str()), std::stoi(m_str[5].c_str()));
             return SendTrue(pClient);
         }
 

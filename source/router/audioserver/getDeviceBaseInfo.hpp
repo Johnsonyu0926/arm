@@ -57,7 +57,7 @@ namespace asns {
             msg = "Obtaining information successfully";
 
             data.codeVersion = cfg.business[0].codeVersion;
-            data.coreVersion = util.get_by_cmd_res("webs -V");
+            data.coreVersion = util.get_core_version();
             data.relayMode = util.get_gpio_model();
             data.ip = util.get_lan_addr();
             data.storageType = 1;
@@ -66,7 +66,7 @@ namespace asns {
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
             data.relayStatus = util.get_gpio_state();
-            data.hardwareReleaseTime = util.get_by_cmd_res("uname -a");
+            data.hardwareReleaseTime = util.gethardware_release_time();
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = util.get_by_cmd_res("uname -r");

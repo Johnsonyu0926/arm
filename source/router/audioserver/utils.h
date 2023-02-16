@@ -173,7 +173,7 @@ public:
         int fd = _uart_open();
         if (fd < 0) {
             printf("failed to open ttyS%d to read write.\n", m_rsTty);
-            return 2;
+            return 0;
         }
         m_rs485 = fd;
         _uart_write(buf, len);
@@ -299,7 +299,18 @@ private:
 class CUtils {
 private:
     char m_lan[1024];
-
+    std::map<std::string, std::string> m_month = {{"Jan", "01"},
+                                                  {"Feb", "02"},
+                                                  {"Mar", "03"},
+                                                  {"Apr", "04"},
+                                                  {"May", "05"},
+                                                  {"Jun", "06"},
+                                                  {"Jul", "07"},
+                                                  {"Aug", "08"},
+                                                  {"Sep", "09"},
+                                                  {"Oct", "10"},
+                                                  {"Nov", "11"},
+                                                  {"Dec", "12"}};
 public:
 
     int uart_write(const std::string &cmd) {
@@ -594,10 +605,6 @@ public:
         system(uci);
     }
 
-    int ros_restore_allcfg() {
-        system("cm default");
-    }
-
     std::string hex_to_string(const std::string &str) {
         std::string result;
         //十六进制两个字符为原始字符一个字符
@@ -783,6 +790,8 @@ public:
         system("rm /tmp/output.wav");
         system("rm /tmp/output.pcm");
         system("rm /tmp/vol.wav");
+        system("rm /tmp/x.pcm");
+        system("rm /tmp/new_mp3");
     }
 
     void audio_stop() {
@@ -947,7 +956,7 @@ public:
         return res.get();
     }
 
-    void gpio_set(const int model, const int status) {
+    void set_gpio_model(const int model, const int status = 0) {
         CGpio::getInstance().setGpioModel(model);
         switch (model) {
             case asns::GPIO_CUSTOM_MODE:
@@ -973,7 +982,7 @@ public:
         }
     }
 
-    void restore(const std::string &path) {
+    void restore(const std::string &path = "") {
         if (is_ros_platform()) {
             system("cm default");
             system("reboot");
@@ -1027,5 +1036,26 @@ public:
             sprintf(uci, "/etc/init.d/network reload");
             system(uci);
         }
+    }
+
+    std::string get_core_version() {
+        return string_split(get_by_cmd_res("webs -V"), ":")[1];
+    }
+
+    std::string get_hardware_release_time() {
+        std::string ver = get_by_cmd_res("webs -V");
+        std::string name = get_by_cmd_res("uname -a");
+        std::vector<std::string> vecVer = string_split(ver, ":");
+        std::vector<std::string> vecName = string_split(name, " ");
+        std::vector<std::string> vecTime = string_split(vecName[8], ":");
+
+        std::string v = vecVer[1].substr(0, vecVer[1].find_last_of('V'));
+        std::string vn = vecVer[1].substr(vecVer[1].find_last_of('V'));
+
+        std::string year = vecName[10].substr(vecName[10].length() - 2, 2);
+        std::string month = m_month[vecName[6]];
+        std::string day = vecName[7];
+
+        return vn + '_' + v + '_' + year + month + day + "_" + vecTime[0] + vecTime[1] + vecTime[2];
     }
 };
