@@ -32,7 +32,7 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CUtils utils;
-            utils.gpio_set(model, status);
+            utils.set_gpio_model(model, status);
             CRelaySetResult relaySetResult;
             relaySetResult.do_success();
             json js = relaySetResult;
