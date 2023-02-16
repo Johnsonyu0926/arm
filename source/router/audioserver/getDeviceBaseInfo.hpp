@@ -66,7 +66,7 @@ namespace asns {
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
             data.relayStatus = util.get_gpio_state();
-            data.hardwareReleaseTime = util.gethardware_release_time();
+            data.hardwareReleaseTime = util.get_hardware_release_time();
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");
             data.hardwareVersion = util.get_by_cmd_res("uname -r");
