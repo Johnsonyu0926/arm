@@ -55,7 +55,7 @@ public:
         g_volumeSet.load();
         volume = g_volumeSet.getVolume();
         relayStatus = util.get_gpio_state();
-        hardwareReleaseTime = util.gethardware_release_time();
+        hardwareReleaseTime = util.get_hardware_release_time();
         spiFreeSpace = storageType ? 9752500 : 0;
         flashFreeSpace = util.get_available_Disk("/mnt");
         hardwareVersion = "7621";
