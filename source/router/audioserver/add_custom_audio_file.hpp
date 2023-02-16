@@ -185,7 +185,7 @@ namespace asns {
         int download(CAddCustomAudioFileData node) {
             char cmd[1024];
             node.parseFile();
-            sprintf(cmd, "/usr/bin/dodownload.sh \"%s\" \"%s/%s\"",
+            sprintf(cmd, "dodownload.sh \"%s\" \"%s/%s\"",
                     (char *) node.getFilePath(),
                     savePrefix.c_str(),
                     (char *) node.getFileName());
