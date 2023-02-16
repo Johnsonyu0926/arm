@@ -60,7 +60,7 @@ namespace asns {
                 std::cout << "mqtt load json:" << js.dump() << std::endl;
                 business = js;
             } catch (json::parse_error &ex) {
-                std::cout << "json parse error" << std::endl;
+                std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
         }

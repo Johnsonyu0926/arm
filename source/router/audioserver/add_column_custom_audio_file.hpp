@@ -73,7 +73,7 @@ namespace asns {
                 std::cout << js.dump() << std::endl;
                 business = js;
             } catch (json::parse_error &ex) {
-                std::cout << "json parse error" << std::endl;
+                std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
         }
@@ -88,7 +88,7 @@ namespace asns {
                 i >> js;
                 business = js;
             } catch (json::parse_error &ex) {
-                std::cout << "json parse error" << std::endl;
+                std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
             CUtils utils;
