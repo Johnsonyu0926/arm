@@ -4,6 +4,7 @@
 #include "ezDevSDK_talk.h"
 #include "talk.h"
 #include "utils.h"
+#include "log.h"
 
 extern HPR_VOIDPTR g_pKernel;
 extern HPR_BOOL g_bAccessEz;
@@ -30,12 +31,12 @@ HPR_BOOL CTalk::init()
 {
     if (m_bInit)
     {
-        printf("ctalk is inited.\n");
+        DS_TRACE("ctalk is inited.\n");
         return HPR_TRUE;
     }
     if (!g_pKernel)
     {
-        printf("ctalk init skip since kernel is not ready\n");
+        DS_TRACE("ctalk init skip since kernel is not ready\n");
         return HPR_FALSE;
     }
 
@@ -129,11 +130,11 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
     {
         if (g_bStop)
         {
-            printf("skip stop.\n");
+            DS_TRACE("skip stop.\n");
             return -1;
         }
         g_bStop = 1;
-        printf("ezdevsdk talk on stop talk msg type is incoming.\n");
+        DS_TRACE("ezdevsdk talk on stop talk msg type is incoming.\n");
         CUtils utils;
         utils.audio_stop();
         g_playing_priority = NON_PLAY_PRIORITY;
@@ -141,7 +142,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
     break;
 
     case EZDEVSDK_TALK_ON_RECV_OTAP_MSG:
-        printf("ezdevsdk talk on recv otap msg msg type is incoming.\n");
+        DS_TRACE("ezdevsdk talk on recv otap msg msg type is incoming.\n");
         //  bRet = g_ctalk.ProcessTalk(msg);
         break;
     default:
@@ -177,7 +178,7 @@ int CTalk::RecvTalkData(int channel, char *data, int len)
     printf("data =====%d writing to %d\n", len, g_ctalk.pipefd[1]);
     if (g_ctalk.pipefd[1] < 0)
     {
-        printf("pipe is not open.\n");
+        DS_TRACE("pipe is not open.\n");
         return -1;
     }
 
@@ -195,7 +196,7 @@ int CTalk::do_fork()
 {
     if (pipe(g_ctalk.pipefd) == -1)
     {
-        printf("error open pipe.\n");
+        DS_TRACE("error open pipe.\n");
         return -1;
     }
 
@@ -203,7 +204,7 @@ int CTalk::do_fork()
     pid = fork();
     if (pid == -1)
     {
-        printf("failed to fork.\n");
+        DS_TRACE("failed to fork.\n");
         return -1;
     }
 
@@ -229,7 +230,7 @@ int CTalk::initMp3()
     fp = fopen("/audiodata/test.mp3", "wb");
     if (!fp)
     {
-        printf("error open test.mp3");
+        DS_TRACE("error open test.mp3");
         return -1;
     }
     return 0;
@@ -250,7 +251,7 @@ int CTalk::saveMp3(unsigned char *data, int len)
     }
     else
     {
-        printf("error write, fp is null.\n");
+        DS_TRACE("error write, fp is null.\n");
         return -1;
     }
     return 0;

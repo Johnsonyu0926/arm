@@ -22,7 +22,7 @@ namespace asns {
         int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
             CUtils utils;
             std::string res = utils.record_upload(c.data.recordDuration,c.data.requestUrl, c.data.imei);
-            std::cout << "result:" << res << std::endl;
+            DS_TRACE("result:" << res.c_str());
             if (res.empty() || res.find("error") != std::string::npos) {
                 uploadStatus = 0;
                 micRecordId = 0;

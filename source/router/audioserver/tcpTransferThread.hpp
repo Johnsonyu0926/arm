@@ -70,11 +70,10 @@ public:
         do_req(pTcp);
         socket.Close();
         delete pTcp;
-        std::cout << "task end" << std::endl;
     }
 
     virtual BOOL ExitInstance() {
-        std::cout << "exit tcp transfer thread." << std::endl;
+        DS_TRACE("exit tcp transfer thread.");
         return TRUE;
     }
 
@@ -89,19 +88,15 @@ private:
         int condition = std::stoi(m_vecStr[3]);
         switch (condition) {
             case asns::RECORDEND:
-                std::cout << "RecordEnd" << std::endl;
                 Record(pTcp);
                 break;
             case asns::AUDIOFILEUPLOAD:
-                std::cout << "AudioFileUpload" << std::endl;
                 FileUpload(pTcp);
                 break;
             case asns::REMOTEFILEUPGRADE:
-                std::cout << "RemoteFileUpgrade" << std::endl;
                 FileUpgrade(pTcp);
                 break;
             default:
-                std::cout << "switch F4" << std::endl;
                 SendFast(asns::NONSUPPORT_ERROR, pClient);
                 break;
         }
@@ -111,25 +106,25 @@ private:
     int Record(CSocket *pTcp) {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
-        std::cout << "record file size:" << file_size << std::endl;
+        DS_TRACE("record file size:" << file_size);
         char buf[asns::BUFSIZE] = {0};
         std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
         while (!fs.eof()) {
             fs.read(buf, sizeof(buf));
             std::cout << fs.gcount() << " ";
             if (fs.gcount() <= 0) {
-                std::cout << "read count < 0" << std::endl;
+                DS_TRACE("read count < 0");
                 break;
             }
             pTcp->Send(buf, fs.gcount());
             file_size -= fs.gcount();
             if (file_size <= 0) {
-                std::cout << "file size < 0" << std::endl;
+                DS_TRACE("file size < 0");
                 break;
             }
         }
         fs.close();
-        std::cout << "Send ok" << std::endl;
+        DS_TRACE("Send ok");
         system("rm /tmp/record.mp3");
         return SendTrue(pClient);
     }
@@ -148,16 +143,16 @@ private:
 
         while (true) {
             int len = pTcp->Recv(buf, sizeof(buf));
-            std::cout << "recv len :" << len << std::endl;
+            DS_TRACE("recv len :" << len);
             if (len > 0) {
                 fs.write(buf, len);
                 file_size -= len;
                 if (file_size <= 0) {
-                    std::cout << "read end" << std::endl;
+                    DS_TRACE("read end");
                     break;
                 }
             } else if (len == 0) {
-                std::cout << "read end" << std::endl;
+                DS_TRACE("read end");
                 break;
             } else if (len < 0) {
                 fs.close();
@@ -167,7 +162,7 @@ private:
             }
         }
         fs.close();
-        std::cout << "begin json" << std::endl;
+        DS_TRACE("begin json");
         CUtils utils;
         utils.bit_rate_32_to_48(path);
         asns::CAddColumnCustomAudioFileBusiness business;
@@ -204,12 +199,12 @@ private:
             }
         }
         fs.close();
-        std::cout << "begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH) << std::endl;
+        DS_TRACE("begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH));
         std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/SONICCOREV100R001.bin");
-        std::cout << "cmd res:" << cmdRes << std::endl;
+        DS_TRACE("cmd res:" << cmdRes.c_str());
         if (cmdRes.find("OK") != std::string::npos) {
             SendTrue(pClient);
-            system("reboot");
+            utils.reboot();
         } else {
             system("rm /var/run/SONICCOREV100R001.bin");
             return SendFast(asns::TCP_UPGRADE_ERROR, pClient);
@@ -218,7 +213,7 @@ private:
 
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
-        std::cout << "return: " << res << std::endl;
+        DS_TRACE("return: " << res.c_str());
         if(pClient == nullptr){
             CUtils utils;
             return utils.uart_write(res);
@@ -228,7 +223,7 @@ private:
 
     int SendFast(const std::string &err_code, CSocket *pClient) {
         std::string buf = "01 " + err_code;
-        std::cout << "return: " << buf << std::endl;
+        DS_TRACE("return: " << buf.c_str());
         if(pClient == nullptr){
             CUtils utils;
             return utils.uart_write(buf);

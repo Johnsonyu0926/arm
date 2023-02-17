@@ -33,14 +33,14 @@ namespace asns {
                 std::string streamUrl = c.data.streamPath + c.data.roomId;
                 char buf[256] = {0};
                 sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
-                std::cout << "system:" << buf << std::endl;
+                DS_TRACE("system:" << buf);
                 system(buf);
 
             } else {
                 std::string streamUrl = c.data.streamPath + c.data.roomId;
                 char buf[256] = {0};
                 sprintf(buf, bus.getFfmpegCmd().c_str(), streamUrl.c_str());
-                std::cout << "system:" << buf << std::endl;
+                DS_TRACE("system:" << buf);
                 system(buf);
             }
             r.resultId = 1;

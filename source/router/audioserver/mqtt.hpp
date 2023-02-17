@@ -13,29 +13,29 @@ public:
 
     //连接Mqtt服务器
     void on_connect(int rc) override {
-        std::cout << "on_connect in mqtt , rc = " << rc << std::endl;
+        DS_TRACE("on_connect in mqtt , rc = " << rc);
         if (MOSQ_ERR_ERRNO == rc) {
-            std::cerr << "mqtt connect err:" << mosqpp::strerror(rc) << std::endl;
+            DS_TRACE("mqtt connect err:" << mosqpp::strerror(rc));
             //如果由于任何原因连接失败，在本例中我们不想继续重试，所以断开连接。否则，客户端将尝试重新连接。
             this->disconnect();
         } else if (MOSQ_ERR_SUCCESS == rc) {
             subscribe(nullptr, request_topic.c_str());
-            std::cout << "Subscribe to:" << request_topic << std::endl;
+            DS_TRACE("Subscribe to:" << request_topic.c_str());
         }
     }
 
     void on_connect_with_flags(int rc, int flags) override {
-        std::cout << "on connect with flags return rc :" << rc << ", flags:" << flags << std::endl;
+        DS_TRACE("on connect with flags return rc :" << rc << ", flags:" << flags);
     }
 
     //断开Mqtt连接
     void on_disconnect(int rc) override {
-        std::cout << "on_disconnect rc:" << rc << std::endl;
+        DS_TRACE("on_disconnect rc:" << rc);
     }
 
     //订阅指定topic
     void on_publish(int mid) override {
-        std::cout << "on_publish mid:" << mid << std::endl;
+        DS_TRACE("on_publish mid:" << mid);
     }
 
     //订阅主题接收到消息
@@ -43,15 +43,14 @@ public:
         bool res = false;
         std::string str = static_cast<char *>(message->payload);
         json js = json::parse(str);
-        std::cout << message->topic << " " << js.dump() << std::endl;
+        DS_TRACE(message->topic << " " << js.dump().c_str());
         //检查主题是否与订阅匹配。
         mosqpp::topic_matches_sub(request_topic.c_str(), message->topic, &res);
         if (res) {
             std::string reStr = ServiceManage::instance().getHandler(js["cmd"].get<std::string>())(js);
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
         } else {
-            std::cout << "request_topic:" << request_topic << ", message topic:" << message->topic << " , not match."
-                      << std::endl;
+            DS_TRACE("request_topic:" << request_topic.c_str() << ", message topic:" << message->topic << " , not match.");
         }
     }
 
@@ -68,23 +67,20 @@ public:
             fprintf(stderr, "Error: All subscriptions rejected.\n");
             this->disconnect();
         }
-        std::cout << "Subscribe mid:" << mid << " qos_count: " << qos_count << " granted_qos:" << *granted_qos
-                  << std::endl;
+        DS_TRACE("Subscribe mid:" << mid << " qos_count: " << qos_count << " granted_qos:" << *granted_qos);
     }
 
     //取消订阅
     void on_unsubscribe(int mid) override {
         //mid消息序号ID
-        std::cout << "Unsubscribe:" << mid << std::endl;
+        DS_TRACE("Unsubscribe:" << mid);
     }
 
     void on_log(int level, const char *str) override {
-        std::cout << "level: " << level << " " << str << std::endl;
+        DS_TRACE("level: " << level << " " << str);
     }
 
-    void on_error() override {
-        std::cout << "error:" << std::endl;
-    }
+    void on_error() override {}
 
     void heartBeat() {
         CUtils utils;

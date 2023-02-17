@@ -22,7 +22,7 @@ namespace asns {
             filePath = business.business[0].savePrefix + TEST_FILE;
             std::ifstream ifs(filePath);
             if (!ifs.is_open()) {
-                std::cout << "open test.json fail" << std::endl;
+                DS_TRACE("open test.json fail");
             }
             json js;
             ifs >> js;
@@ -32,7 +32,7 @@ namespace asns {
         void load() {
             std::ifstream ifs(filePath);
             if (!ifs.is_open()) {
-                std::cout << "open test.json fail" << std::endl;
+                DS_TRACE("open test.json fail");
                 return;
             }
             json js;

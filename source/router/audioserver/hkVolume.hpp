@@ -40,7 +40,7 @@ namespace asns {
             } else {
                 sprintf(buf, "amixer set Headphone Playback %d", vo[volume]);
             }
-            std::cout << buf << std::endl;
+            DS_TRACE(buf);
             system(buf);
         }
 

@@ -37,7 +37,7 @@ namespace asns
 		void setCmd(string unsupport_cmd) { cmd = unsupport_cmd; }
 		int do_req(CSocket *pClient)
 		{
-			cout << "unsuport cmd:" << cmd << endl;
+            DS_TRACE("unsuport cmd:" << cmd.c_str());
 			CUnsupport res;
 			res.do_success(cmd);
 			json j = res;

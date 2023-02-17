@@ -53,19 +53,19 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
-            std::cout << "g_playing_priority:" << g_playing_priority << "TTS level:" << data.audioLevel << std::endl;
+            DS_TRACE("g_playing_priority:" << g_playing_priority << "TTS level:" << data.audioLevel);
             if (g_playing_priority < data.audioLevel) {
                 CStartTTSAudioResult result;
                 result.do_success("A high-priority play task has been created");
                 json s = result;
-                std::cout << "hk tts res:" << s.dump() << std::endl;
+                DS_TRACE("hk tts res:" << s.dump().c_str());
                 return s.dump();
             }
             CUtils utils;
             utils.audio_stop();
             g_playing_priority = data.audioLevel;
             utils.txt_to_audio(data.ttscontent);
-            std::cout << "hk tts:" << data.ttscontent << std::endl;
+            DS_TRACE("hk tts:" << data.ttscontent.c_str());
             utils.tts_num_play(1);
             g_playing_priority = NON_PLAY_PRIORITY;
         }

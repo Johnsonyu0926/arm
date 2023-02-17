@@ -46,7 +46,7 @@ namespace asns {
             }
             std::string res = utils.get_upload_result(c.data.downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
                                                       c.data.fileName.c_str());
-            std::cout << "res:-----" << res << std::endl;
+            DS_TRACE("res: " << res.c_str());
             if (res.find("error") != std::string::npos) {
                 r.resultId = 2;
                 r.result = "file upload error";

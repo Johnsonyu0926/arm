@@ -62,8 +62,9 @@ namespace asns {
 
             system("killall -9 audio");
             system("audio&");
-            cout << "serverAddress" << serverAddress << ",serverPort:" << serverPort << ",deviceCode:" << deviceCode
-                 << ",password:" << password << endl;
+            DS_TRACE("serverAddress" << serverAddress.c_str() << ",serverPort:" << serverPort.c_str() << ",deviceCode:"
+                                     << deviceCode.c_str()
+                                     << ",password:" << password.c_str());
             CServerSetResult res;
             res.do_success();
             json j = res;

@@ -104,7 +104,7 @@ namespace asns {
     public:
         int SendTrue(CSocket *pClient = nullptr) {
             std::string res = "01 E1";
-            std::cout << "return: " << res << std::endl;
+            DS_TRACE("return: " << res.c_str());
             if (pClient == nullptr) {
                 Rs485 rs;
                 return rs._uart_write(res.c_str(),res.length());
@@ -114,7 +114,7 @@ namespace asns {
 
         int SendFast(const std::string &err_code, CSocket *pClient = nullptr) {
             std::string buf = "01 " + err_code;
-            std::cout << "return: " << buf << std::endl;
+            DS_TRACE("return: " << buf.c_str());
             if (pClient == nullptr) {
                 Rs485 rs;
                 return rs._uart_write(buf.c_str(),buf.length());
@@ -127,10 +127,10 @@ namespace asns {
             cfg.load();
             std::cout << m_str[4] << " " << cfg.business[0].serverPassword << " " << m_str[5] << std::endl;
             if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].serverPassword) {
-                std::cout << "return login ok" << std::endl;
+                DS_TRACE("return login ok");
                 return SendTrue(pClient);
             } else {
-                std::cout << "return login error" << std::endl;
+                DS_TRACE("return login error");
                 return SendFast(asns::USER_PWD_ERROR, pClient);
             }
         }
@@ -245,7 +245,7 @@ namespace asns {
             if (utils.statistical_character_count(txt) > 100) {
                 return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
             }
-            std::cout << "tts size:" << txt.length() << "txt: " << txt << std::endl;
+            DS_TRACE("tts size:" << txt.length() << "txt: " << txt.c_str());
             int playType = std::stoi(m_str[5]);
             int duration = std::stoi(m_str[6]);
             utils.async_wait(1, 0, 0, [=] {
@@ -330,7 +330,7 @@ namespace asns {
             devInfo.do_success();
             json res = devInfo;
             std::string str = "01 E1 " + res.dump();
-            std::cout << "GetDeviceBaseInfo Res: " << str << std::endl;
+            DS_TRACE("GetDeviceBaseInfo Res: " << str.c_str());
             if (pClient == nullptr) {
                 CUtils utils;
                 return utils.uart_write(str);
@@ -384,7 +384,7 @@ namespace asns {
             busines.load();
             json res = busines.business;
             std::string str = "01 E1 " + res.dump();
-            std::cout << str << std::endl;
+            DS_TRACE(str.c_str());
             if (pClient == nullptr) {
                 CUtils utils;
                 return utils.uart_write(str);
@@ -406,7 +406,7 @@ namespace asns {
                 return SendFast(asns::RECORD_TIME_ERROR, pClient);
             }
             std::string res = utils.record_upload(time, m_str[5], imei);
-            std::cout << "result:" << res << std::endl;
+            DS_TRACE("result:" << res.c_str());
             if (res.find("true") != std::string::npos) {
                 return SendTrue(pClient);
             } else {
@@ -455,7 +455,7 @@ namespace asns {
             cfg.load();
             std::string path = cfg.getAudioFilePath() + temp;
             std::string res = utils.get_upload_result(m_str[4].c_str(), cfg.getAudioFilePath().c_str(), temp.c_str());
-            std::cout << "res:-----" << res << std::endl;
+            DS_TRACE("res: " << res.c_str());
             if (res.find("error") != std::string::npos) {
                 return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
             } else if (res.find("Failed to connect") != std::string::npos) {
@@ -499,7 +499,6 @@ namespace asns {
             pServer->SetClient(pClient);
             pServer->SetVecStr(m_str);
             pServer->CreateThread();
-            std::cout << "AudioFileUpload end....." << std::endl;
             return 1;
         }
 

@@ -38,7 +38,7 @@ namespace asns {
             CAudioCfgBusiness cfg;
             std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
                                                       fileName.c_str());
-            std::cout << "res:-----" << res << std::endl;
+            DS_TRACE("res: " << res.c_str());
             if (res.empty()) {
                 fileUploadResult.do_fail("fail");
             } else if (res.find("error") != std::string::npos) {
@@ -69,7 +69,7 @@ namespace asns {
             }
             json js = fileUploadResult;
             std::string str = js.dump();
-            std::cout << "return json: " << str << std::endl;
+            DS_TRACE("return json: " << str.c_str());
             pClient->Send(str.c_str(), str.length());
         }
 

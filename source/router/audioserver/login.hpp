@@ -126,7 +126,6 @@ namespace asns {
                 pClient->Send(s.c_str(), s.length());
                 return 1;
             } else {
-                cout << "failed compare password." << endl;
                 CLoginResult res;
                 res.do_fail();
                 json j = res;
