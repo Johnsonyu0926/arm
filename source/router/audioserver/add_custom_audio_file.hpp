@@ -98,6 +98,47 @@ namespace asns {
         }
     };
 
+    class CSpeechSynthesisBusiness {
+    public:
+        int play(string endTime, const int priority, const std::string &txt, const std::string &voiceType) {
+            CUtils utils;
+            if (txt.compare("male") == 0) {
+                utils.txt_to_audio(txt, 50, MALE);
+            } else {
+                utils.txt_to_audio(txt, 50, FEMALE);
+            }
+            utils.tts_loop_play(ASYNC_START);
+            PlayStatus::getInstance().setPlayId(asns::TIMED_TASK_PLAYING);
+            PlayStatus::getInstance().setPriority(priority);
+            CSTime tnow;
+
+            tnow.GetCurTime();
+            int h, m, s;
+            sscanf(endTime.c_str(), "%d:%d:%d", &h, &m, &s);
+            CSTime t1(tnow.m_nYear, tnow.m_nMon, tnow.m_nDay, h, m, s);
+
+            while (1) {
+                tnow.GetCurTime();
+                int exist = utils.get_process_status("aplay");
+                if (!exist) {
+                    cout << "play finish of tts" << endl;
+                    break;
+                }
+                if (tnow.m_time <= t1.m_time) {
+                    // current time is match. waiting
+                    cout << "playing tts" << endl;
+                    sleep(1);
+                } else {
+                    // out of time. stop if it is playing...
+                    cout << "out of time. play stop! last tts" << endl;
+                    utils.audio_stop();
+                }
+                sleep(2);
+            }
+            return 0;
+        }
+    };
+
     class CAddCustomAudioFileBusiness {
     public:
         vector <CAddCustomAudioFileData> business;

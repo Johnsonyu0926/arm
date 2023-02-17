@@ -52,7 +52,7 @@ namespace asns {
         int load() {
             std::ifstream i(AUDIOCFG_FILE_NAME);
             if (!i) {
-                cout << "error in load! failed to open:" << AUDIOCFG_FILE_NAME << endl;
+                std::cerr << "error in load! failed to open:" << AUDIOCFG_FILE_NAME << std::endl;
                 return -1;
             }
             json j;
@@ -64,8 +64,6 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            //cout << "success load cfg from :" << AUDIOCFG_FILE_NAME << endl;
-            //cout << "count:" << business.size() << endl;
             return 0;
         }
 

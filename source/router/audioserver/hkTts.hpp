@@ -4,6 +4,7 @@
 #include "json.hpp"
 #include "utils.h"
 #include "public.hpp"
+
 #define NON_PLAY_PRIORITY 100
 
 extern int g_playing_priority;
@@ -52,6 +53,7 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
+            std::cout << "g_playing_priority:" << g_playing_priority << "TTS level:" << data.audioLevel << std::endl;
             if (g_playing_priority < data.audioLevel) {
                 CStartTTSAudioResult result;
                 result.do_success("A high-priority play task has been created");

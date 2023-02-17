@@ -81,15 +81,15 @@ namespace asns
 
 			if (tnow.m_time >= t2.m_time && tnow.m_time <= t1.m_time)
 			{
-				cout << "endDate:" << endDate << ",startDate:" << startDate << ",match." << endl;
+				DS_TRACE("endDate:" << endDate.c_str() << ",startDate:" << startDate.c_str() << ",match.");
 				if (tnow.m_nDay == t1.m_nDay && tnow.m_nDay == t2.m_nDay)
 				{
-					cout << "same day:" << tnow.m_nDay << endl;
+					DS_TRACE("same day:" << tnow.m_nDay);
 					return SAME_DAY;
 				}
 				return MATCH;
 			}
-			cout << "endDate:" << endDate << ",startDate:" << startDate << ",not match." << endl;
+			DS_TRACE("endDate:" << endDate.c_str() << ",startDate:" << startDate.c_str() << ",not match.");
 			return 0;
 		}
 	};
@@ -257,10 +257,10 @@ namespace asns
 
 			if (tnow.m_time <= t1.m_time && tnow.m_time >= t2.m_time)
 			{
-				cout << "endTime:" << endTime << ",startTime:" << startTime << ",match." << endl;
+				DS_TRACE("endTime:" << endTime.c_str() << ",startTime:" << startTime.c_str() << ",match.");
 				return 1;
 			}
-			cout << "endTime:" << endTime << ",startTime:" << startTime << ",not match." << endl;
+			DS_TRACE("endTime:" << endTime.c_str() << ",startTime:" << startTime.c_str() << ",not match.");
 			return 0;
 		}
 	};
@@ -293,7 +293,7 @@ namespace asns
 		{
 			orderExecDone = 0;
 			dayOfWeek = INVALID_DAYOFWEEK; // 0-6 is ok.
-			cout << "DayInfo construct called." << endl;
+			DS_TRACE("DayInfo construct called.");
 		}
 		int is_order_done()
 		{
@@ -316,35 +316,35 @@ namespace asns
 		{
 			if (!TimeRange.match())
 			{
-				cout<<"time range not match."<<endl;
+				DS_TRACE("time range not match.");
 				return 0;
 			}
 			if (Operation.audioLevel != level)
 			{
-				cout<<"level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel<<endl;
+				DS_TRACE("level not match.level:"<<level<<",audioLevel:"<<Operation.audioLevel);
 				return 0;
 			}
 			// dayofweek check.
 
 			if (!checkDayOfWeek())
 			{
-				cout << "day of week mot match:" << dayOfWeek << endl;
+				DS_TRACE("day of week mot match:" << dayOfWeek);
 				return 0;
 			}
 
 			if (playMode.compare("order") == 0)
 			{
-				cout << "do order" << endl;
+				DS_TRACE("do order");
 				return do_order();
 			}
 			else if (playMode.compare("loop") == 0)
 			{
-				cout << "do loop" << endl;
+				DS_TRACE("do loop");
 				do_loop();
 			}
 			else
 			{
-				cout << "error play mode:" << playMode << endl;
+				DS_TRACE("error play mode:" << playMode.c_str());
 			}
 			return 1;
 		}
@@ -356,7 +356,7 @@ namespace asns
 			{
 				if (!TimeRange.match())
 				{
-					cout << "skip ! time range not match. loop done for planExecID:" << planExecID << endl;
+					DS_TRACE("skip ! time range not match. loop done for planExecID:" << planExecID);
 					break;
 				}
 				do_operation();
@@ -366,44 +366,59 @@ namespace asns
 		}
 		int do_order()
 		{
-			cout << "orderExecDone:" << orderExecDone << endl;
+			DS_TRACE("orderExecDone:" << orderExecDone);
 			if (orderExecDone)
 			{
-				cout << "skip ! order exec done for planExecID:" << planExecID << endl;
+				DS_TRACE("skip ! order exec done for planExecID:" << planExecID);
 				return 0;
 			}
 			do_operation();
 			orderExecDone = 1;
-			cout << "orderExecDone:" << orderExecDone << ", remove it ..." << endl;
+			DS_TRACE("orderExecDone:" << orderExecDone << ", remove it ...");
 			return 2;
 		}
 		int do_operation()
 		{
-
-			cout << "really exec plan exec id:" << planExecID << endl;
+			DS_TRACE("really exec plan exec id:" << planExecID);
 			if (Operation.audioSource.compare("customAudio") == 0)
 			{
 				for (unsigned int i = 0; i < Operation.customAudioID.size(); i++)
 				{
 					int id = Operation.customAudioID.at(i);
-					cout << "playing audio id:" << id << endl;
+					DS_TRACE("playing audio id:" << id);
 					if(g_playing_priority < Operation.audioLevel) {
-						cout << "skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel<<endl;
+						DS_TRACE("skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel);
 						continue;
 					} else {
 						//playing it.
 						if (g_playing_priority != NON_PLAY_PRIORITY) {
-							cout << "stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority<<endl;
+							DS_TRACE("stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority);
                             CUtils utils;
                             utils.audio_stop();
 						}
 					}
-                    std::cout<< "begin play audio priority: " << g_playing_priority <<std::endl;
+                    DS_TRACE("begin play audio priority: " << g_playing_priority);
 					g_playing_priority = Operation.audioLevel;
 					g_addAudioBusiness.play(id, TimeRange.endTime,g_playing_priority);
 					g_playing_priority = NON_PLAY_PRIORITY;
 				}
-			}
+			} else if (Operation.audioSource.compare("speechSynthesis") == 0) {
+                if(g_playing_priority < Operation.audioLevel) {
+                    DS_TRACE("skip playing since g_playing_priority = "<<g_playing_priority <<", < operataion audioLevel="<<Operation.audioLevel);
+                    return 0;
+                } else {
+                    if (g_playing_priority != NON_PLAY_PRIORITY) {
+                        DS_TRACE("stop madplay because the low level priority talking is inprocess , g_playing_priority = "<< g_playing_priority);
+                        CUtils utils;
+                        utils.audio_stop();
+                    }
+                }
+                DS_TRACE("begin play audio priority: " << g_playing_priority);
+                g_playing_priority = Operation.audioLevel;
+                asns::CSpeechSynthesisBusiness bus;
+                bus.play(TimeRange.endTime,g_playing_priority,Operation.speechSynthesisContent,Operation.voiceType);
+                g_playing_priority = NON_PLAY_PRIORITY;
+            }
 			return 0;
 		}
 	};
@@ -538,26 +553,26 @@ namespace asns
 			int match = DateRange.match();
 			if (match == 0)
 			{
-				cout << "date range not match." << endl;
+				DS_TRACE("date range not match.");
 
 				return 0;
 			}
 
-			cout << "DayList.size() = " << DayList.size() << endl;
+			DS_TRACE("DayList.size() = " << DayList.size());
 
 			for (int i = 0; i != DayList.size(); i++)
 			{
 				int done = DayList[i].work(level);
-				cout << "work ret:" << done << ",order_done:" << DayList[i].is_order_done() << endl;
+				DS_TRACE("work ret:" << done << ",order_done:" << DayList[i].is_order_done());
 				if (done == ORDER_DONE && match == SAME_DAY)
 				{
-					cout << "erase dayinfo node i=" << i << endl;
+					DS_TRACE("erase dayinfo node i=" << i);
 					DayList.erase(DayList.begin() + i);
 					i--;
 				}
 			}
 
-			cout << "DayList.size() = " << DayList.size() << endl;
+			DS_TRACE("DayList.size() = " << DayList.size());
 		}
 	};
 
@@ -677,14 +692,14 @@ namespace asns
 			//Begin modified by shidongxue . fix bug.2023.1.4
 			/*if (g_playing_priority != NON_PLAY_PRIORITY)
 			{ // the plan is playing...
-				cout << "parseRequest for plan...the plan is plaing now, stop plan play first." << endl;
+				DS_TRACE("parseRequest for plan...the plan is plaing now, stop plan play first.");
 				system("killall -9 madplay");
 			}
 			*/
 
 			//end modified by shidongxue . fix bug.2023.1.4
 
-			cout << data << endl;
+			DS_TRACE(data.c_str());
 			pthread_mutex_lock(&g_ThreadsPlanLock);
 			json j = json::parse(data, nullptr, false);
 			try
@@ -730,12 +745,12 @@ namespace asns
 			json j;
 			if (!i)
 			{
-				cout << "error read json file for broadcast plan." << filePath << endl;
+				DS_TRACE("error read json file for broadcast plan." << filePath.c_str());
 				return -1;
 			}
 
 			i >> j;
-			cout << "broadcast plan, json content:" << j.dump() << endl;
+			DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
 			try
 			{
                 g_updateJson = 1;
@@ -746,7 +761,7 @@ namespace asns
 				std::cerr << "parse error at byte " << ex.byte << std::endl;
 				return -1;
 			}
-			cout << "load " << filePath << " success! total plan count:" << plan.DailySchedule.size() << endl;
+			DS_TRACE("load " << filePath.c_str() << " success! total plan count:" << plan.DailySchedule.size());
 			return 0;
 		}
 		int dump()
@@ -757,7 +772,7 @@ namespace asns
 				for (int j = 0; j < dailySchedule.DayList.size(); j++)
 				{
 					DayInfo day = dailySchedule.DayList.at(j);
-					cout << "planExecID:" << day.planExecID << endl;
+					DS_TRACE("planExecID:" << day.planExecID);
 				}
 			}
 
@@ -767,14 +782,14 @@ namespace asns
 				for (int j = 0; j < dailySchedule.DayList.size(); j++)
 				{
 					DayInfo day = dailySchedule.DayList.at(j);
-					cout << "planExecID:" << day.planExecID << endl;
+					DS_TRACE("planExecID:" << day.planExecID);
 				}
 			}
 		}
 
 		int execPlanThreadStart()
 		{
-			cout << "plan thread starting. init total daily plan: " << plan.DailySchedule.size() << endl;
+			DS_TRACE("plan thread starting. init total daily plan: " << plan.DailySchedule.size());
 			while (1)
 			{
 				if (g_bStop)
@@ -801,7 +816,7 @@ namespace asns
 						}
 					}
 
-					cout << "updating json.... current total daily plan: " << plan.DailySchedule.size() << endl;
+					DS_TRACE("updating json.... current total daily plan: " << plan.DailySchedule.size());
 					saveToJson();
                     g_updateJson = 0;
 					pthread_mutex_unlock(&g_ThreadsPlanLock);

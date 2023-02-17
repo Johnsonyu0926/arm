@@ -779,8 +779,19 @@ public:
         system(cmd.c_str());
     }
 
-    void txt_to_audio(const std::string &txt, const int speed = 50) {
-        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed) + " -f /tmp/output.pcm";
+    void txt_to_audio(const std::string &txt, const int speed = 50, const int gender = 0) {
+        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
+        switch (gender) {
+            case 0:
+                cmd += " -l xiaoyan ";
+                break;
+            case 1:
+                cmd += " -l xiaofeng ";
+                break;
+            default:
+                break;
+        }
+        cmd += +"-f /tmp/output.pcm";
         system(cmd.c_str());
         system("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
         volume_gain(asns::TTS_PATH, "wav");
@@ -830,7 +841,7 @@ public:
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             for (int i = 0; i < num; ++i) {
-                system("/tmp/output.wav");
+                system("aplay /tmp/output.wav");
             }
             PlayStatus::getInstance().init();
         }

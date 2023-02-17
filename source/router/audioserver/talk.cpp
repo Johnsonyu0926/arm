@@ -136,6 +136,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         printf("ezdevsdk talk on stop talk msg type is incoming.\n");
         CUtils utils;
         utils.audio_stop();
+        g_playing_priority = NON_PLAY_PRIORITY;
     }
     break;
 

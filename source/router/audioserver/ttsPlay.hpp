@@ -39,7 +39,7 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                utils.txt_to_audio(txt, speed);
+                utils.txt_to_audio(txt, speed, voiceType);
                 switch (playType) {
                     case 0:
                         utils.tts_loop_play(ASYNC_START);

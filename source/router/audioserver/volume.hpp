@@ -89,7 +89,7 @@ namespace asns {
         int load() {
             std::ifstream i(filePath);
             if (!i) {
-                cout << "no volume file , use default volume. file name is:" << filePath << endl;
+                DS_TRACE("no volume file , use default volume. file name is:" << filePath.c_str());
                 return 0;
             }
             json j;
@@ -101,23 +101,23 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            //cout << "addjust the config volume:" << volume << endl;
+            //DS_TRACE("addjust the config volume:" << volume);
             //addj(volume);
             return 1;
         }
 
         int do_req(CSocket *pClient) {
             if (volume > 7 || volume < 0) {
-                cout << "volume level error." << volume << endl;
+                DS_TRACE("volume level error." << volume);
                 return -1;
             }
-            cout << "volume:" << volume << ",trans to:" << vo[volume] << endl;
+            DS_TRACE("volume:" << volume << ",trans to:" << vo[volume]);
             addj(volume);
             CVolumeSetResult res;
             res.do_success();
             json j = res;
             std::string s = j.dump();
-            cout << "volume set resp and save:" << s << endl;
+            DS_TRACE("volume set resp and save:" << s.c_str());
             saveToJson();
             pClient->Send(s.c_str(), s.length());
             return 1;

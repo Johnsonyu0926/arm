@@ -9,104 +9,104 @@ public:
         cout << "opcode: " << opcode << endl;
         switch (opcode) {
             case asns::TCPNETWORKSET:
-                std::cout << "TCPNetworkSet" << std::endl;
+                DS_TRACE("TCPNetworkSet");
                 bus.TCPNetworkSet(m_str);
                 break;
             case asns::UPDATEPWD:
-                std::cout << "UpdatePwd" << std::endl;
+                DS_TRACE("UpdatePwd");
                 bus.UpdatePwd(m_str);
                 break;
             case asns::NETWORKSET:
-                std::cout << "NetworkSet" << std::endl;
+                DS_TRACE("NetworkSet");
                 bus.NetworkSet(m_str);
                 break;
             case asns::LOGIN:
-                std::cout << "LOGIN" << std::endl;
+                DS_TRACE("LOGIN");
                 bus.Login(m_str);
                 break;
             case SETDEVICEADDRRESS:
-                std::cout << "设置设备地址" << std::endl;
+                DS_TRACE("设置设备地址");
                 break;
             case asns::AUDIOPLAY:
-                std::cout << "AudioPlay" << std::endl;
+                DS_TRACE("AudioPlay");
                 bus.AudioPlay(m_str);
                 break;
             case asns::AUDIOSTOP:
-                std::cout << "AudioStop" << std::endl;
+                DS_TRACE("AudioStop");
                 bus.AudioStop();
                 break;
             case asns::VOLUMSET:
-                std::cout << "VolumeSet" << std::endl;
+                DS_TRACE("VolumeSet");
                 bus.VolumeSet(m_str);
                 break;
             case asns::REBOOT:
-                std::cout << "Reboot" << std::endl;
+                DS_TRACE("Reboot");
                 bus.Reboot();
                 break;
             case asns::GETDEVICESTATUS:
-                std::cout << "GetDeviceStatus" << std::endl;
+                DS_TRACE("GetDeviceStatus");
                 bus.GetDeviceStatus();
                 break;
             case asns::TTSPLAY:
-                std::cout << "TtsPlay" << std::endl;
+                DS_TRACE("TtsPlay");
                 bus.TtsPlay(m_str);
                 break;
             case LIGHTSWITCH:
-                std::cout << "闪灯开关" << std::endl;
+                DS_TRACE("闪灯开关");
                 break;
             case asns::FILEUPLOAD:
-                std::cout << "fileUpload" << std::endl;
+                DS_TRACE("fileUpload");
                 bus.FileUpload(m_str);
                 break;
             case asns::RESTORE:
-                std::cout << "Restore" << std::endl;
+                DS_TRACE("Restore");
                 bus.Restore();
                 break;
             case asns::AUDIONUMORTPLAY:
-                std::cout << "AudioNumberOrTimePlay" << std::endl;
+                DS_TRACE("AudioNumberOrTimePlay");
                 bus.AudioNumberOrTimePlay(m_str);
                 break;
             case asns::TTSNUMORTPLAY:
-                std::cout << "Tts Number or Time Play" << std::endl;
+                DS_TRACE("Tts Number or Time Play");
                 bus.TtsNumTimePlay(m_str);
                 break;
             case asns::GETDEVICEBASEINFO:
-                std::cout << "GetDeviceBaseInfo" << std::endl;
+                DS_TRACE("GetDeviceBaseInfo");
                 bus.GetDeviceBaseInfo();
                 break;
             case asns::RECORD:
-                std::cout << "Record" << std::endl;
+                DS_TRACE("Record");
                 bus.Record(m_str);
                 break;
             case asns::REMOTEUPGRADE:
-                std::cout << "远程升级" << std::endl;
+                DS_TRACE("远程升级");
                 break;
             case asns::GETAUDIOLIST:
-                std::cout << "GetAudioList" << std::endl;
+                DS_TRACE("GetAudioList");
                 bus.GetAudioList(m_str);
                 break;
             case asns::LIGHTCONFIG:
-                std::cout << "FlashConfig" << std::endl;
+                DS_TRACE("FlashConfig");
                 bus.FlashConfig(m_str);
                 break;
             case asns::RECORDBEGIN:
-                std::cout << "RecordBegin" << std::endl;
+                DS_TRACE("RecordBegin");
                 bus.RecordBegin(m_str);
                 break;
             case asns::RECORDEND:
-                std::cout << "RecordEnd" << std::endl;
+                DS_TRACE("RecordEnd");
                 bus.RecordEnd(m_str);
                 break;
             case asns::AUDIOFILEUPLOAD:
-                std::cout << "AudioFileUpload" << std::endl;
+                DS_TRACE("AudioFileUpload");
                 bus.AudioFileUpload(m_str);
                 break;
             case asns::REMOTEFILEUPGRADE:
-                std::cout << "RemoteFileUpgrade" << std::endl;
+                DS_TRACE("RemoteFileUpgrade");
                 bus.RemoteFileUpgrade(m_str);
                 break;
             default:
-                std::cout << "switch F4" << std::endl;
+                DS_TRACE("switch F4");
                 CUtils utils;
                 utils.uart_write(asns::NONSUPPORT_ERROR);
                 break;
