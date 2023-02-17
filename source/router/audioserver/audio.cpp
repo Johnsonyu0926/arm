@@ -230,7 +230,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
         }
         else if (strcmp(identifier,"AddCustomAudioFile") == 0)
         {
-            printf("json:%s\n", (char *)pTemp->pDodyData);
+            printf("===========================json:%s\n", (char *)pTemp->pDodyData);
             g_addAudioBusiness.add((char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
         } else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {

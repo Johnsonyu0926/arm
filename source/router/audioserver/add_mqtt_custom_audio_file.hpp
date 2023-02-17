@@ -51,13 +51,13 @@ namespace asns {
         int mqttLoad() {
             std::ifstream i(filePath);
             if (!i.is_open()) {
-                std::cout << "ifstream open fail" << std::endl;
+                DS_TRACE("ifstream open fail");
                 return 0;
             }
             json js;
             try {
                 i >> js;
-                std::cout << "mqtt load json:" << js.dump() << std::endl;
+                DS_TRACE("mqtt load json:" << js.dump().c_str());
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
@@ -68,11 +68,11 @@ namespace asns {
         void saveJson() {
             std::ofstream o(filePath);
             if (!o.is_open()) {
-                std::cout << "ofstream open fail" << std::endl;
+                DS_TRACE("ofstream open fail");
                 return;
             }
             json js = business;
-            std::cout << "mqtt saveJson :" << js.dump() << std::endl;
+            DS_TRACE("mqtt saveJson :" << js.dump().c_str());
             o << js << std::endl;
         }
 
@@ -84,7 +84,7 @@ namespace asns {
                     CAudioCfgBusiness cfg;
                     cfg.load();
                     sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
-                    std::cout << cmd << std::endl;
+                    DS_TRACE(cmd);
                     system(cmd);
                     business.erase(it);
                     saveJson();

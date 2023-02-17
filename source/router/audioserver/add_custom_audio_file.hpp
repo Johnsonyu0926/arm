@@ -185,11 +185,11 @@ namespace asns {
         int download(CAddCustomAudioFileData node) {
             char cmd[1024];
             node.parseFile();
-            sprintf(cmd, "dodownload.sh \"%s\" \"%s/%s\"",
+            sprintf(cmd, "dodownload.sh \"%s\" \"%s%s\"",
                     (char *) node.getFilePath(),
                     savePrefix.c_str(),
                     (char *) node.getFileName());
-            DS_TRACE("NLOHMANN_DEFINE_TYPE_INTRUSIVE:" << cmd);
+            DS_TRACE("===========NLOHMANN_DEFINE_TYPE_INTRUSIVE=========:" << cmd);
             system(cmd);
             return 0;
         }

@@ -4,13 +4,16 @@
 #include "json.hpp"
 #include "utils.h"
 #include "public.hpp"
+#define NON_PLAY_PRIORITY 100
 
+extern int g_playing_priority;
 using json = nlohmann::json;
 
 namespace asns {
     class CStartTTSAudioData {
     public:
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CStartTTSAudioData, indexCode, command, TTSContent, audioLevel, audioOutID, ttscontent)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CStartTTSAudioData, indexCode, command, TTSContent, audioLevel, audioOutID,
+                                       ttscontent)
 
     public:
         std::string indexCode;
@@ -25,10 +28,10 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CStartTTSAudioResult, status, code, errorMsg, data)
 
-        int do_success() {
+        int do_success(const std::string &msg) {
             status = 200;
             code = "0x00000000";
-            errorMsg = "";
+            errorMsg = msg;
             data = {};
         }
 
@@ -44,21 +47,25 @@ namespace asns {
         std::string parse(const std::string &res) {
             try {
                 json js = json::parse(res);
-                data = json::parse(js.at("data").get<std::string>());
+                data = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return 0;
             }
+            if (g_playing_priority < data.audioLevel) {
+                CStartTTSAudioResult result;
+                result.do_success("A high-priority play task has been created");
+                json s = result;
+                std::cout << "hk tts res:" << s.dump() << std::endl;
+                return s.dump();
+            }
             CUtils utils;
+            utils.audio_stop();
+            g_playing_priority = data.audioLevel;
             utils.txt_to_audio(data.ttscontent);
-            std::cout<< "hk tts:"<<data.ttscontent <<std::endl;
-            utils.tts_num_play(1,ASYNC_START);
-
-            CStartTTSAudioResult result;
-            result.do_success();
-            json s = result;
-            std::cout<< "hk tts res:" << s.dump() <<std::endl;
-            return s.dump();
+            std::cout << "hk tts:" << data.ttscontent << std::endl;
+            utils.tts_num_play(1);
+            g_playing_priority = NON_PLAY_PRIORITY;
         }
 
     private:

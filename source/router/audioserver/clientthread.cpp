@@ -37,78 +37,78 @@ using json = nlohmann::json;
 
 int CClientThread::do_req(char *buf, CSocket *pClient) {
     if (strstr(buf, "Login")) {
-        cout << "do login business." << endl;
+        DS_TRACE("do login business.");
         CLogin login = m_json;
         login.do_req(pClient);
     } else if (strstr(buf, "NetworkSet")) {
-        cout << "do network set business." << endl;
+        DS_TRACE("do network set business.");
         CNetworkSet networkSet = m_json;
         networkSet.do_req(pClient);
     } else if (strstr(buf, "ServerSet")) {
-        cout << "do server set business." << endl;
+        DS_TRACE("do server set business.");
         CServerSet serverSet = m_json;
         serverSet.do_req(pClient);
     } else if (strstr(buf, "VolumeSet")) {
-        cout << "do VolumeSet business." << endl;
+        DS_TRACE("do VolumeSet business.");
         CVolumeSet volumeSet = m_json;
         volumeSet.do_req(pClient);
     } else if (strstr(buf, "GetAudioList")) {
-        cout << "GetAudioList cmd." << endl;
+        DS_TRACE("GetAudioList cmd.");
         CGetAudioList getAudioList = m_json;
         getAudioList.do_req(pClient);
     } else if (strstr(buf, "GetDeviceBaseInfo")) {
-        std::cout << "GetDeviceBaseInfo cmd" << std::endl;
+        DS_TRACE("GetDeviceBaseInfo cmd");
         CGetDeviceBaseInfo deviceBaseInfo = m_json;
         deviceBaseInfo.do_req(pClient);
     } else if (strstr(buf, "AudioPlay")) {
-        std::cout << "AudioPlay cmd" << std::endl;
+        DS_TRACE("AudioPlay cmd");
         CAudioPlay audioPlay = m_json;
         audioPlay.do_req(pClient);
     } else if (strstr(buf, "TtsPlay")) {
-        std::cout << "TtsPlay cmd" << std::endl;
+        DS_TRACE("TtsPlay cmd");
         CTtsPlay ttsPlay = m_json;
         ttsPlay.do_req(pClient);
     } else if (strstr(buf, "FileUpload")) {
-        std::cout << "FileUpload cmd" << std::endl;
+        DS_TRACE("FileUpload cmd");
         CFileUpload fileUpload = m_json;
         fileUpload.do_req(pClient);
     } else if (strstr(buf, "AudioStop")) {
-        std::cout << "AudioStop cmd" << std::endl;
+        DS_TRACE("AudioStop cmd");
         CAudioStop audioStop = m_json;
         audioStop.do_req(pClient);
     } else if (strstr(buf, "Reboot")) {
-        std::cout << "Reboot cmd" << std::endl;
+        DS_TRACE("Reboot cmd");
         CReboot reboot = m_json;
         reboot.do_req(pClient);
     } else if (strstr(buf, "Restore")) {
-        std::cout << "Restore cmd" << std::endl;
+        DS_TRACE("Restore cmd");
         CRestore restore = m_json;
         restore.do_req(pClient);
     } else if (strstr(buf, "UpdatePwd")) {
-        std::cout << "UpdatePwd cmd" << std::endl;
+        DS_TRACE("UpdatePwd cmd");
         CUpdate update = m_json;
         update.do_req(pClient);
     }//{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
     else if (strstr(buf, "MicRecord")) {
-        std::cout << "MicRecord cmd" << std::endl;
+        DS_TRACE("MicRecord cmd");
         CMicRecord res = m_json;
         res.do_req(pClient);
     }
         //{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
     else if (strstr(buf, "AudioDelete")) {
-        cout << "AudioDelete command." << endl;
+        DS_TRACE("AudioDelete command.");
         CDeleteAudio res = m_json;
         res.do_req(pClient);
     } else if (strstr(buf, "PtzOperate")) {
-        cout << "PtzOperate command." << endl;
+        DS_TRACE("PtzOperate command.");
         CPtzOperate res = m_json;
         res.do_req();
     } else if (strstr(buf, "RelaySet")) {
-        cout << "RelaySet command." << endl;
+        DS_TRACE("RelaySet command.");
         CRelaySet res = m_json;
         res.do_req(pClient);
     } else {
-        cout << "unsupport command:" << buf << endl;
+        DS_TRACE("unsupport command:" << buf);
         CUnsupportBusiness business = m_json;
         business.do_req(pClient);
     }
@@ -120,118 +120,118 @@ int CClientThread::do_verify(char *buf) {
         m_json = json::parse(buf, nullptr, false);
     }
     catch (...) {
-        cout << "error parse:" << buf << endl;
+        DS_TRACE("error parse:" << buf);
         return 0;
     }
-    cout << "json is parse ok:" << m_json.dump() << endl;
+    DS_TRACE("json is parse ok:" << m_json.dump().c_str());
     return 1;
 }
 
 int CClientThread::do_str_req(CSocket *pClient) {
     CBusiness bus;
     int opcode = std::stoi(m_str[3]);
-    cout << "opcode: " << opcode << endl;
+    DS_TRACE("opcode: " << opcode);
     switch (opcode) {
         case TCPNETWORKSET:
-            std::cout << "TCPNetworkSet" << std::endl;
+            DS_TRACE("TCPNetworkSet");
             bus.TCPNetworkSet(m_str, pClient);
             break;
         case UPDATEPWD:
-            std::cout << "UpdatePwd" << std::endl;
+            DS_TRACE("UpdatePwd");
             bus.UpdatePwd(m_str, pClient);
             break;
         case NETWORKSET:
-            std::cout << "NetworkSet" << std::endl;
+            DS_TRACE("NetworkSet");
             bus.NetworkSet(m_str, pClient);
             break;
         case LOGIN:
-            std::cout << "LOGIN" << std::endl;
+            DS_TRACE("LOGIN");
             bus.Login(m_str, pClient);
             break;
         case SETDEVICEADDRRESS:
-            std::cout << "设置设备地址" << std::endl;
+            DS_TRACE("设置设备地址");
             break;
         case AUDIOPLAY:
-            std::cout << "AudioPlay" << std::endl;
+            DS_TRACE("AudioPlay");
             bus.AudioPlay(m_str, pClient);
             break;
         case AUDIOSTOP:
-            std::cout << "AudioStop" << std::endl;
+            DS_TRACE("AudioStop");
             bus.AudioStop(pClient);
             break;
         case VOLUMSET:
-            std::cout << "VolumeSet" << std::endl;
+            DS_TRACE("VolumeSet");
             bus.VolumeSet(m_str, pClient);
             break;
         case REBOOT:
-            std::cout << "Reboot" << std::endl;
+            DS_TRACE("Reboot");
             bus.Reboot(pClient);
             break;
         case GETDEVICESTATUS:
-            std::cout << "GetDeviceStatus" << std::endl;
+            DS_TRACE("GetDeviceStatus");
             bus.GetDeviceStatus(pClient);
             break;
         case TTSPLAY:
-            std::cout << "TtsPlay" << std::endl;
+            DS_TRACE("TtsPlay");
             bus.TtsPlay(m_str, pClient);
             break;
         case LIGHTSWITCH:
-            std::cout << "闪灯开关" << std::endl;
+            DS_TRACE("闪灯开关");
             break;
         case FILEUPLOAD:
-            std::cout << "fileUpload" << std::endl;
+            DS_TRACE("fileUpload");
             bus.FileUpload(m_str, pClient);
             break;
         case RESTORE:
-            std::cout << "Restore" << std::endl;
+            DS_TRACE("Restore");
             bus.Restore(pClient);
             break;
         case AUDIONUMORTPLAY:
-            std::cout << "AudioNumberOrTimePlay" << std::endl;
+            DS_TRACE("AudioNumberOrTimePlay");
             bus.AudioNumberOrTimePlay(m_str, pClient);
             break;
         case TTSNUMORTPLAY:
-            std::cout << "Tts Number or Time Play" << std::endl;
+            DS_TRACE("Tts Number or Time Play");
             bus.TtsNumTimePlay(m_str, pClient);
             break;
         case GETDEVICEBASEINFO:
-            std::cout << "GetDeviceBaseInfo" << std::endl;
+            DS_TRACE("GetDeviceBaseInfo");
             bus.GetDeviceBaseInfo(pClient);
             break;
         case RECORD:
-            std::cout << "Record" << std::endl;
+            DS_TRACE("Record");
             bus.Record(m_str, pClient);
             break;
         case REMOTEUPGRADE:
-            std::cout << "远程升级" << std::endl;
+            DS_TRACE("远程升级");
             break;
         case GETAUDIOLIST:
-            std::cout << "GetAudioList" << std::endl;
+            DS_TRACE("GetAudioList");
             bus.GetAudioList(m_str, pClient);
             break;
         case LIGHTCONFIG:
-            std::cout << "FlashConfig" << std::endl;
+            DS_TRACE("FlashConfig");
             bus.FlashConfig(m_str, pClient);
             break;
         case RECORDBEGIN:
-            std::cout << "RecordBegin" << std::endl;
+            DS_TRACE("RecordBegin");
             bus.RecordBegin(m_str, pClient);
             break;
         case RECORDEND:
-            std::cout << "RecordEnd" << std::endl;
+            DS_TRACE("RecordEnd");
             bus.RecordEnd(m_str, pClient);
             break;
         case AUDIOFILEUPLOAD:
-            std::cout << "AudioFileUpload" << std::endl;
+            DS_TRACE("AudioFileUpload");
             bus.AudioFileUpload(m_str, pClient);
-            std::cout << "do_str_req end ..." << std::endl;
+            DS_TRACE("do_str_req end ...");
             break;
         case REMOTEFILEUPGRADE:
-            std::cout << "RemoteFileUpgrade" << std::endl;
+            DS_TRACE("RemoteFileUpgrade");
             bus.RemoteFileUpgrade(m_str, pClient);
             break;
         default:
-            std::cout << "switch F4" << std::endl;
+            DS_TRACE("switch F4");
             bus.SendFast(asns::NONSUPPORT_ERROR, pClient);
             break;
     }
@@ -264,7 +264,7 @@ BOOL CClientThread::InitInstance() {
     char *p = buf;
     int offset = 0;
     while (1) {
-        std::cout << "audioserver begin ..." << std::endl;
+        DS_TRACE("audioserver begin ...");
         FD_ZERO(&rset);
         FD_SET(m_pClient->m_hSocket, &rset);
 
@@ -280,13 +280,13 @@ BOOL CClientThread::InitInstance() {
                 m_pClient->Close();
                 return 0;
             } else {
-                std::cout << "read buf:" << buf << std::endl;
+                DS_TRACE("read buf:" << buf);
                 if (strstr(buf, "AA") && strstr(buf, "EF")) {
                     if (do_str_verify(buf, m_pClient)) {
                         p = buf;
                         offset = 0;
                         do_str_req(m_pClient);
-                        std::cout << "InitInstance do_str_req end" << std::endl;
+                        DS_TRACE("InitInstance do_str_req end");
                         memset(buf, 0, sizeof(buf));
                     } else {
                         offset += n1;
