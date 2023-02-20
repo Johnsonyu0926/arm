@@ -74,7 +74,7 @@ start_audioserver() {
     local exefile="${RUNNING_DIR}/${EXE_NAME}"
 
     if [ -e "${exefile}" ];then
-		/sbin/audioserver -p 34508 2>&1 > /var/log/audioserver.log &
+		/sbin/audioserver -p 34508 -d 5 2>&1 > /var/log/audioserver.log &
         return
     fi
 
