@@ -41,8 +41,8 @@ namespace asns {
 
     private:
         int vo[8] = {0, 100, 105, 110, 115, 120, 125, 130};
-        int vo_ros[8] = {0, 10, 20, 25, 30, 40, 45, 50};
-        //int vo_ros[8] = {0, 16, 18, 20, 26, 28, 30, 32};
+        //int vo_ros[8] = {0, 10, 20, 25, 30, 40, 45, 50};
+        int vo_ros[8] = {0, 2, 4, 6, 8, 10, 12, 16};
         std::string filePath;
     public:
         CVolumeSet() : volume(3) {
@@ -66,8 +66,8 @@ namespace asns {
             char cmd[128];
             CUtils utils;
             if (utils.is_ros_platform()) {
-                sprintf(cmd, "amixer sset PCM %d", vo_ros[v]);
-                //sprintf(cmd, "dspset /dev/ttyS2 dac0gan %d", vo_ros[v]);
+                //sprintf(cmd, "amixer sset PCM %d", vo_ros[v]);
+                sprintf(cmd, "dspset /dev/ttyS2 dac0gan %d", vo_ros[v]);
             } else {
                 sprintf(cmd, "amixer set Headphone Playback %d", vo[v]);
             }
