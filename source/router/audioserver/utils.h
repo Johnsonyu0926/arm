@@ -25,6 +25,7 @@
 #include <future>
 #include "public.hpp"
 #include "audiocfg.hpp"
+#include "doorsbase.h"
 
 static int m_rs485{-1};
 static int m_rsTty{1};
@@ -35,12 +36,12 @@ public:
 
     void set_send_dir() const {
         system("echo 1 > /sys/class/gpio/gpio3/value");
-        printf("set send dir! gpio is 1\n");
+        DS_TRACE("set send dir! gpio is 1\n");
     }
 
     void set_receive_dir() const {
         system("echo 0 > /sys/class/gpio/gpio3/value");
-        printf("set receive dir! gpio is 0\n");
+        DS_TRACE("set receive dir! gpio is 0\n");
     }
 
     int _uart_read(char *pcBuf, int iBufLen) {
@@ -49,26 +50,26 @@ public:
         int i;
 
         *pcBuf = '\0';
-        printf("reading... from fd:%d\n", iFd);
+        DS_TRACE("reading... from fd:" << iFd);
         iLen = read(iFd, pcBuf, iBufLen);
         if (iLen < 0) {
             close(iFd);
             m_rs485 = -1;
-            printf("error read from fd %d\n", iFd);
+            DS_TRACE("error read from fd " << iFd);
             return iLen;
         }
 
         //ignore 0x0
         while (iLen == 1 && pcBuf[0] == 0x0) {
-            printf("ignore the 0x0 .\n");
+            DS_TRACE("ignore the 0x0 .\n");
             iLen = read(iFd, pcBuf, iBufLen);
         }
 
-        printf("read success: iLen= %d , hex dump:\n", iLen);
+        DS_TRACE("read success: iLen= %d , hex dump: " << iLen);
         for (i = 0; i < iLen; i++) {
             printf("%02x ", pcBuf[i]);
         }
-        printf("\nhex dump end.\n");
+        DS_TRACE("\nhex dump end.\n");
 
         while (1) {
             if ((iLen > 5) &&
@@ -77,22 +78,22 @@ public:
                 (' ' == pcBuf[iLen - 3]) &&
                 ('E' == pcBuf[iLen - 2]) &&
                 ('F' == pcBuf[iLen - 1])) {
-                printf("receive completed.\n");
+                DS_TRACE("receive completed.\n");
                 break;
             }
 
-            printf("continue to read...\n");
+            DS_TRACE("continue to read...\n");
             int next = read(iFd, pcBuf + iLen, iBufLen - iLen);
             iLen += next;
-            printf("read next :%d, iLen:%d, buf:%s\n", next, iLen, pcBuf);
+            DS_TRACE("read next :" << next << ", iLen: " << iLen << ", buf:" << pcBuf);
 
         }
-        printf("total len = %d\n", iLen);
+        DS_TRACE("total len = " << iLen);
 
         for (i = 0; i < iLen; i++) {
             printf("%02x ", pcBuf[i]);
         }
-        printf("\nhex dump end.\n");
+        DS_TRACE("\nhex dump end.\n");
         return iLen;
     }
 
@@ -135,20 +136,20 @@ public:
         int iFd = m_rs485;
         int iRet = -1;
         int len = 0;
-        printf("to write :%s, len:%d\n", pcData, iLen);
+        DS_TRACE("to write :" << pcData << ", len:" << iLen);
         int count = iLen / MAX_SEND;
         if (iLen % MAX_SEND) {
             count++;
         }
         int offset = 0;
-        printf("count=%d\n", count);
+        DS_TRACE("count=" << count);
         for (int i = 0; i < count; i++) {
             if ((i + 1) * MAX_SEND > iLen) {
                 len = iLen - i * MAX_SEND;
             } else {
                 len = MAX_SEND;
             }
-            printf("no.%d : offset:%d len:%d \n", i, offset, len);
+            DS_TRACE("no." << i << ": offset:" << offset << " len:" << len);
             const char *data = pcData + offset;
             for (int j = 0; j < len; j++) {
                 printf("%02x ", data[j]);
@@ -157,9 +158,9 @@ public:
             if (iRet < 0) {
                 close(iFd);
                 m_rs485 = -1;
-                printf("error write %d , len:%d\n", iFd, len);
+                DS_TRACE("error write " << iFd << " , len:" << len);
             } else {
-                printf("no.%d : write len:%d success, iRet:%d\n", i, len, iRet);
+                DS_TRACE("no." << i << ": write len:" << len << " success, iRet:" << iRet);
             }
 
             offset += MAX_SEND;
@@ -172,7 +173,7 @@ public:
     int _uart_work(const char *buf, int len) {
         int fd = _uart_open();
         if (fd < 0) {
-            printf("failed to open ttyS%d to read write.\n", m_rsTty);
+            DS_TRACE("failed to open ttyS%d to read write." << m_rsTty);
             return 0;
         }
         m_rs485 = fd;
@@ -271,13 +272,13 @@ public:
     void set_gpio_on() {
         system("echo 1 > /sys/class/gpio/gpio16/value");
         m_gpioStatus = 1;
-        printf("set send dir! gpio is 1\n");
+        DS_TRACE("set send dir! gpio is 1\n");
     }
 
     void set_gpio_off() {
         system("echo 0 > /sys/class/gpio/gpio16/value");
         m_gpioStatus = 0;
-        printf("set receive dir! gpio is 0\n");
+        DS_TRACE("set receive dir! gpio is 0\n");
     }
 
     void setGpioModel(const int model) {
@@ -341,7 +342,7 @@ public:
     size_t get_file_size(const std::string &path) {
         int fd = open(path.c_str(), O_RDWR);
         if (fd < 0) {
-            printf("open fail %s!\n", path.c_str());
+            DS_TRACE("open fail !" << path.c_str());
             return -1;
         }
         struct stat st;
@@ -454,7 +455,7 @@ public:
             strcpy(cmd, "uci get network.lan.gateway");
             get_addr_by_cmd(cmd);
         }
-        printf("gateway = %s\n", m_lan);
+        DS_TRACE("gateway = " << m_lan);
         return m_lan;
     }
 
@@ -466,7 +467,7 @@ public:
             strcpy(cmd, "uci get network.lan.netmask");
             get_addr_by_cmd(cmd);
         }
-        printf("netmask = %s\n", m_lan);
+        DS_TRACE("netmask = " << m_lan);
         return m_lan;
     }
 
@@ -478,7 +479,7 @@ public:
             strcpy(cmd, "uci get network.lan.ipaddr");
             get_addr_by_cmd(cmd);
         }
-        printf("address = %s\n", m_lan);
+        DS_TRACE("address = " << m_lan);
         return m_lan;
     }
 
@@ -488,7 +489,7 @@ public:
                 "curl --location --request POST '%s' \\\n"
                 "--form 'FormDataUploadFile=@\"/tmp/record.mp3\"' \\\n"
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
-        std::cout << "cmd:" << cmd << std::endl;
+        DS_TRACE("cmd:" << cmd);
         return get_by_cmd_res(cmd);
     }
 
@@ -518,7 +519,7 @@ public:
         if (fp) {
             int nread = fread(m_lan, 1, sizeof(m_lan), fp);
             if (nread < 0) {
-                printf("error\n");
+                DS_TRACE("error\n");
                 fclose(fp);
                 return m_lan;
             }
@@ -530,7 +531,7 @@ public:
     char *get_upload_result(const std::string &url, const std::string &path, const std::string &name) {
         char cmd[1024] = {0};
         sprintf(cmd, "curl --location --request GET %s -f --output %s%s 2>&1", url.c_str(), path.c_str(), name.c_str());
-        std::cout << cmd << std::endl;
+        DS_TRACE("cmd: " << cmd);
         get_doupload_by_cmd(cmd);
         return m_lan;
     }
@@ -542,13 +543,13 @@ public:
         if (fp) {
             int nread = fread(m_lan, 1, sizeof(m_lan), fp);
             if (nread < 0) {
-                printf("error\n");
+                DS_TRACE("error\n");
                 fclose(fp);
                 return m_lan;
             }
 
             if (strchr(m_lan, '.')) {
-                printf("ok address is: %s\n", m_lan);
+                DS_TRACE("ok address is: " << m_lan);
                 char *p = strchr(m_lan, '\n');
                 if (p) {
                     *p = '\0';
@@ -570,10 +571,10 @@ public:
         char full[256];
         sprintf(full, "%s%s", prefix, filename);
 
-        printf("full name:%s\n", full);
+        DS_TRACE("full name: " << full);
         int fd = open(full, O_RDWR);
         if (fd < 0) {
-            printf("open fail %s!\n", full);
+            DS_TRACE("open fail " << full);
             return -1;
         }
         struct stat st;
@@ -636,7 +637,7 @@ public:
         // 发送组播消息, 需要使用组播地址, 和设置组播属性使用的组播地址一致就可以
         inet_pton(AF_INET, ip.c_str(), &cliaddr.sin_addr.s_addr);
         sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
-        printf("%s %d udp_multicast_send: %s\n", ip.c_str(), port, msg.c_str());
+        DS_TRACE(ip.c_str() << " " << port << " udp_multicast_send: " << msg.c_str());
         close(fd);
     }
 
@@ -723,8 +724,6 @@ public:
     }
 
     int statistical_character_count(const std::string &str) {
-        std::cout << str.length() << std::endl;
-        std::cout << str.size() << std::endl;
         int LowerCase, UpperCase; //大写，小写
         int space = 0;
         int digit, character; //数字，字符
@@ -732,28 +731,25 @@ public:
         digit = character = LowerCase = UpperCase = 0;
         for (int i = 0; i < str.length(); i++) {
             if (str[i] >= 'a' && str[i] <= 'z') {
-                std::cout << str[i] << " ";
+                DS_TRACE(str[i] << " ");
                 LowerCase++;
             } else if (str[i] >= 'A' && str[i] <= 'Z') {
-                std::cout << str[i] << " ";
+                DS_TRACE(str[i] << " ");
                 UpperCase++;
             } else if (str[i] >= '0' && str[i] <= '9') {
-                std::cout << str[i] << " ";
+                DS_TRACE(str[i] << " ");
                 digit++;
             } else if (check(str[i])) {
-                std::cout << "chinese" << str[i] << " ";
+                DS_TRACE("chinese" << str[i] << " ");
                 chinese++;
             } else if (str[i] == ' ') {
-                std::cout << str[i] << " ";
+                DS_TRACE(str[i] << " ");
                 space++;
             } else {
-                std::cout << str[i] << " ";
+                DS_TRACE(str[i] << " ");
                 character++;
             }
         }
-        printf("UpperCase%d，LowerCase%d，digit%d，character%d，chinese%d，space%d\n", UpperCase, LowerCase, digit,
-               character,
-               chinese / 3, space);
         return UpperCase + LowerCase + digit + character + (chinese / 3) + space;
     }
 
@@ -769,13 +765,13 @@ public:
 
     void bit_rate_32_to_48(const std::string &path) {
         std::string cmd = "conv.sh " + path;
-        std::cout << "cmd : " << cmd << std::endl;
+        DS_TRACE("cmd : " << cmd.c_str());
         system(cmd.c_str());
     }
 
     void volume_gain(const std::string &path, const std::string &suffix) {
         std::string cmd = "vol.sh " + path + " " + suffix;
-        std::cout << "cmd :" << cmd << std::endl;
+        DS_TRACE("cmd : " << cmd.c_str());
         system(cmd.c_str());
     }
 
@@ -871,7 +867,7 @@ public:
         if (async) {
             async_wait(1, 0, 0, [=] {
                 std::string cmd = "madplay " + path + " -r";
-                std::cout << cmd << std::endl;
+                DS_TRACE("cmd : " << cmd.c_str());
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 system(cmd.c_str());
                 PlayStatus::getInstance().init();
@@ -892,7 +888,7 @@ public:
                     cmd += path + ' ';
                 }
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                std::cout << cmd << std::endl;
+                DS_TRACE("cmd : " << cmd.c_str());
                 system(cmd.c_str());
                 PlayStatus::getInstance().init();
             });
@@ -902,7 +898,7 @@ public:
                 cmd += path + ' ';
             }
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            std::cout << cmd << std::endl;
+            DS_TRACE("cmd : " << cmd.c_str());
             system(cmd.c_str());
             PlayStatus::getInstance().init();
         }
@@ -921,13 +917,13 @@ public:
         if (async) {
             async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                std::cout << cmd << std::endl;
+                DS_TRACE("cmd : " << cmd);
                 system(cmd);
                 PlayStatus::getInstance().init();
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            std::cout << cmd << std::endl;
+            DS_TRACE("cmd : " << cmd);
             system(cmd);
             PlayStatus::getInstance().init();
         }

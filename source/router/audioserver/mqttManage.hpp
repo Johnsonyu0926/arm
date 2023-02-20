@@ -10,7 +10,7 @@ public:
     MqttManage() {}
 
     void start() {
-        std::cout << "------------------mqtt start----------------------" << std::endl;
+        DS_TRACE("------------------mqtt start----------------------");
         asns::CAudioCfgBusiness cfg;
         cfg.load();
         name = cfg.business[0].devName;

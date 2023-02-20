@@ -47,7 +47,7 @@ namespace asns {
                 return pClient->Send(res.c_str(), res.length());
             }
             std::string res = utils.record_upload(std::atoi(duration.c_str()), uploadUrl, imei);
-            std::cout << "result:" << res << std::endl;
+            DS_TRACE("result:" << res.c_str());
             if (res.find("true") != std::string::npos) {
                 CMicRecordResult result;
                 result.do_success();

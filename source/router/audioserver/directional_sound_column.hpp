@@ -125,7 +125,7 @@ namespace asns {
         int Login(const std::vector<std::string> &m_str, CSocket *pClient = nullptr) {
             CAudioCfgBusiness cfg;
             cfg.load();
-            std::cout << m_str[4] << " " << cfg.business[0].serverPassword << " " << m_str[5] << std::endl;
+            DS_TRACE(m_str[4].c_str() << " " << cfg.business[0].serverPassword.c_str() << " " << m_str[5].c_str());
             if (m_str[4].compare("admin") == 0 && m_str[5] == cfg.business[0].serverPassword) {
                 DS_TRACE("return login ok");
                 return SendTrue(pClient);

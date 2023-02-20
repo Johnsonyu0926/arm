@@ -26,7 +26,7 @@ namespace asns {
                 return 2;
             }
             TestFileBusiness bus;
-            std::cout << "volume:" << c.data.volume << std::endl;
+            DS_TRACE("volume:" << c.data.volume);
             if (c.data.volume > 0) {
                 CVolumeSet volumeSet;
                 volumeSet.addj(c.data.volume);

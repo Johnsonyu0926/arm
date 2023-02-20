@@ -70,7 +70,7 @@ namespace asns {
             json js;
             try {
                 i >> js;
-                std::cout << js.dump() << std::endl;
+                DS_TRACE(js.dump().c_str());
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;

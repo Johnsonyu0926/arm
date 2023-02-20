@@ -50,7 +50,7 @@ HPR_BOOL CTalk::init()
     struInitInfo.cb.on_recv_talk_data = RecvTalkData;
     struInitInfo.cb.on_recv_talk_data_new = RecvTalkDataNew;
     int iRet = ezDevSDK_talk_init(&struInitInfo, g_bAccessEz, g_pKernel);
-    printf("ctalk init ret:%d\n", iRet);
+    DS_TRACE("ctalk init ret: " << iRet);
     if (iRet == 0)
     {
         m_bInit = 1;
@@ -59,12 +59,12 @@ HPR_BOOL CTalk::init()
 }
 int CTalk::BaseFunctionRecvMsg(ezDevSDK_base_function_msg_to_dev *msg)
 {
-    printf("%s %d enter!\n", __FUNCTION__, __LINE__);
+    DS_TRACE("%s %d enter! " << __FUNCTION__ << __LINE__);
     return 0;
 }
 int CTalk::BaseFunctionGetRuntimeInfo(ezDevSDK_base_function_runtime_info *info)
 {
-    printf("%s %d enter!\n", __FUNCTION__, __LINE__);
+    DS_TRACE("%s %d enter! "<< __FUNCTION__ << __LINE__);
     if (info == NULL)
     {
         return -1;
@@ -87,14 +87,14 @@ HPR_BOOL CTalk::GetEncodeType(void *pData, const HPR_UINT32 dwLen)
         return HPR_FALSE;
     }
     ezDevSDK_talk_encode_type *pEncodeType = (ezDevSDK_talk_encode_type *)pData;
-    printf("old encode %d , reset to %d\n", pEncodeType->encode, EZDEVSDK_AUDIO_PCM);
+    DS_TRACE("old encode " << pEncodeType->encode << " reset to " << EZDEVSDK_AUDIO_PCM);
     pEncodeType->encode = EZDEVSDK_AUDIO_PCM; // EZDEVSDK_AUDIO_AAC;
     return HPR_TRUE;
 }
 
 int CTalk::BaseFunctionOtaNotifier(int percent, void *data, int data_len, ezDevSDK_down_err_code errcode, ezDevSDK_down_status status)
 {
-    printf("%s %d enter!\n", __FUNCTION__, __LINE__);
+    DS_TRACE("%s %d enter! " << __FUNCTION__ << __LINE__);
     return -1;
 }
 int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
@@ -110,10 +110,10 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
     {
 
         ezDevSDK_talk_start_talk *param = (ezDevSDK_talk_start_talk *)(msg->data);
-        printf("priority:%d\n", param->priority);
+        DS_TRACE("priority: " << param->priority);
         if (g_playing_priority < param->priority)
         {
-            printf("skip start talk! playing priority  %d %d\n", g_playing_priority, param->priority);
+            DS_TRACE("skip start talk! playing priority " << g_playing_priority << " " << param->priority);
             return -1;
         }
         CUtils utils;
@@ -123,7 +123,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         g_ctalk.do_fork();
 
 		g_playing_priority  = param->priority;
-        printf("ezdevsdk talk on start talk msg type is incoming , len:%d,\n", msg->len);
+        DS_TRACE("ezdevsdk talk on start talk msg type is incoming , len: "<<msg->len);
     }
     break;
     case EZDEVSDK_TALK_ON_STOP_TALK:
@@ -146,7 +146,7 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         //  bRet = g_ctalk.ProcessTalk(msg);
         break;
     default:
-        printf("unknown msg type:%d\n", msg->type);
+        DS_TRACE("unknown msg type: " << msg->type);
         break;
     }
     if (bRet)
@@ -175,7 +175,7 @@ int CTalk::GetRuntimeInfo(ezDevSDK_talk_runtime_info *info)
 
 int CTalk::RecvTalkData(int channel, char *data, int len)
 {
-    printf("data =====%d writing to %d\n", len, g_ctalk.pipefd[1]);
+    DS_TRACE("data ====="<< len <<"writing to "<< g_ctalk.pipefd[1]);
     if (g_ctalk.pipefd[1] < 0)
     {
         DS_TRACE("pipe is not open.\n");
@@ -185,7 +185,7 @@ int CTalk::RecvTalkData(int channel, char *data, int len)
     int num = write(g_ctalk.pipefd[1], data, len);
     if (num < 0)
     {
-        printf("failed to write pipe! %d\n", g_ctalk.pipefd[1]);
+        DS_TRACE("failed to write pipe! "<< g_ctalk.pipefd[1]);
         CUtils utils;
         utils.audio_stop();
         return -1;
