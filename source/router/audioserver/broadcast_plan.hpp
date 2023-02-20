@@ -359,7 +359,7 @@ namespace asns
 					DS_TRACE("skip ! time range not match. loop done for planExecID:" << planExecID);
 					break;
 				}
-				do_operation();
+				do_operation(0);
 				sleep(1);
 			}
 			return 0;
@@ -372,12 +372,12 @@ namespace asns
 				DS_TRACE("skip ! order exec done for planExecID:" << planExecID);
 				return 0;
 			}
-			do_operation();
+			do_operation(1);
 			orderExecDone = 1;
 			DS_TRACE("orderExecDone:" << orderExecDone << ", remove it ...");
 			return 2;
 		}
-		int do_operation()
+		int do_operation(const int model)
 		{
 			DS_TRACE("really exec plan exec id:" << planExecID);
 			if (Operation.audioSource.compare("customAudio") == 0)
@@ -416,7 +416,7 @@ namespace asns
                 DS_TRACE("begin play audio priority: " << g_playing_priority);
                 g_playing_priority = Operation.audioLevel;
                 asns::CSpeechSynthesisBusiness bus;
-                bus.play(TimeRange.endTime,g_playing_priority,Operation.speechSynthesisContent,Operation.voiceType);
+                bus.play(TimeRange.endTime,g_playing_priority,Operation.speechSynthesisContent,Operation.voiceType,model);
                 g_playing_priority = NON_PLAY_PRIORITY;
             }
 			return 0;

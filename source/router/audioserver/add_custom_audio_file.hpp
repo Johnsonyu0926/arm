@@ -54,7 +54,7 @@ namespace asns {
                 parseFile();
             }
             CUtils utils;
-            cout << "custom audio file data : playing " << customAudioID << ",file" << customAudioName << endl;
+            DS_TRACE("custom audio file data : playing " << customAudioID << ",file" << customAudioName.c_str());
 
             // background play. and monitor....
             //
@@ -63,7 +63,7 @@ namespace asns {
             char background_cmd[256] = {0};
             sprintf(background_cmd, "%s&", cmd);
             system(background_cmd); // background play
-            std::cout << "cmd: " << background_cmd << std::endl;
+            DS_TRACE("cmd: " << background_cmd);
             PlayStatus::getInstance().setPlayId(asns::TIMED_TASK_PLAYING);
             PlayStatus::getInstance().setPriority(priority);
 
@@ -80,16 +80,16 @@ namespace asns {
 
                 int exist = utils.get_process_status(cmd);
                 if (!exist) {
-                    cout << "play finish of cmd:" << cmd << endl;
+                    DS_TRACE("play finish of cmd:" << cmd);
                     break;
                 }
                 if (tnow.m_time <= t1.m_time) {
                     // current time is match. waiting
-                    cout << "playing:" << cmd << endl;
+                    DS_TRACE("playing:" << cmd);
                     sleep(1);
                 } else {
                     // out of time. stop if it is playing...
-                    cout << "out of time. play stop! last cmd is:" << cmd << endl;
+                    DS_TRACE("out of time. play stop! last cmd is:" << cmd);
                     utils.audio_stop();
                 }
                 sleep(2);
@@ -100,16 +100,18 @@ namespace asns {
 
     class CSpeechSynthesisBusiness {
     public:
-        int play(string endTime, const int priority, const std::string &txt, const std::string &voiceType) {
+        int play(string endTime, const int priority, const std::string &txt, const std::string &voiceType,const int model) {
             CUtils utils;
             if (txt.compare("male") == 0) {
                 utils.txt_to_audio(txt, 50, MALE);
             } else {
                 utils.txt_to_audio(txt, 50, FEMALE);
             }
+            if(model == 1){
+                utils.tts_num_play(1,ASYNC_START);
+                return 0;
+            }
             utils.tts_loop_play(ASYNC_START);
-            PlayStatus::getInstance().setPlayId(asns::TIMED_TASK_PLAYING);
-            PlayStatus::getInstance().setPriority(priority);
             CSTime tnow;
 
             tnow.GetCurTime();
@@ -121,16 +123,16 @@ namespace asns {
                 tnow.GetCurTime();
                 int exist = utils.get_process_status("aplay");
                 if (!exist) {
-                    cout << "play finish of tts" << endl;
+                    DS_TRACE("play finish of tts");
                     break;
                 }
                 if (tnow.m_time <= t1.m_time) {
                     // current time is match. waiting
-                    cout << "playing tts" << endl;
+                    DS_TRACE("playing tts");
                     sleep(1);
                 } else {
                     // out of time. stop if it is playing...
-                    cout << "out of time. play stop! last tts" << endl;
+                    DS_TRACE("out of time. play stop! last tts");
                     utils.audio_stop();
                 }
                 sleep(2);
@@ -176,7 +178,7 @@ namespace asns {
                 CAddCustomAudioFileData node = j.at("data");
 
                 if (exist(node)) {
-                    cout << "exist node , " << endl;
+                    DS_TRACE("exist node ");
                     return 0;
                 }
                 append(node);
@@ -249,19 +251,18 @@ namespace asns {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
                 return -1;
             }
-            cout << "load " << ADD_CUSTOM_AUDIO_FILE << "  success! " << endl;
-            cout << "count:" << business.size() << endl;
+            DS_TRACE("load " << ADD_CUSTOM_AUDIO_FILE.c_str() << "  success! ");
+            DS_TRACE("count:" << business.size());
             return 0;
         }
 
         int play(int id, string endtime, const int priority) {
-            cout << "business count:" << business.size() << endl;
+            DS_TRACE("business count:" << business.size());
             for (unsigned int i = 0; i < business.size(); i++) {
                 CAddCustomAudioFileData data = business.at(i);
-                std::cout << "CustomAudioID： " << data.getCustomAudioID() << " id: " << id << std::endl;
+                DS_TRACE("CustomAudioID： " << data.getCustomAudioID() << " id: " << id);
                 if (data.getCustomAudioID() == id) {
-                    std::cout << "savePrefix： " << savePrefix << " endtime " << endtime << "priority" << priority
-                              << std::endl;
+                    DS_TRACE("savePrefix： " << savePrefix.c_str() << " endtime " << endtime.c_str() << "priority" << priority);
                     data.play(savePrefix, endtime, priority);
                 }
             }
@@ -277,7 +278,7 @@ namespace asns {
                     cfg.load();
 
                     sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
-                    std::cout << cmd << std::endl;
+                    DS_TRACE("cmd: " << cmd);
                     system(cmd);
                     business.erase(it);
                     this->saveToJson();
