@@ -502,7 +502,7 @@ int main(int argc, char **argv) {
     if (argc < 2) {
         Usage();
     }
-
+    g_nDebugMode = 5;
     while ((op = getopt(argc, argv, "p:d:v")) != EOF) {
         switch (op) {
             case 'd':

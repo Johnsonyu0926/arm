@@ -68,13 +68,13 @@ start_audioserver() {
 
 	check_mp3_cfg_file
 	if [ "$?" = "0" ] ; then
-		init_mp3
+		init_mp3z
 	fi
 	
     local exefile="${RUNNING_DIR}/${EXE_NAME}"
 
     if [ -e "${exefile}" ];then
-		/sbin/audioserver -p 34508 -d 5 2>&1 > /var/log/audioserver.log &
+		/sbin/audioserver -p 34508 2>&1 > /var/log/audioserver.log &
         return
     fi
 
