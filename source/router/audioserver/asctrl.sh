@@ -68,7 +68,7 @@ start_audioserver() {
 
 	check_mp3_cfg_file
 	if [ "$?" = "0" ] ; then
-		init_mp3z
+		init_mp3
 	fi
 	
     local exefile="${RUNNING_DIR}/${EXE_NAME}"
