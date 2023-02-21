@@ -12,7 +12,6 @@
 
 using namespace std;
 using json = nlohmann::json;
-extern int g_bStop;
 static std::atomic_int g_updateJson;
 extern int g_playing_priority;
 extern asns::CAddCustomAudioFileBusiness g_addAudioBusiness;
@@ -792,35 +791,31 @@ namespace asns
 			DS_TRACE("plan thread starting. init total daily plan: " << plan.DailySchedule.size());
 			while (1)
 			{
-				if (g_bStop)
-				{ // broadcast is stop.
+                pthread_mutex_lock(&g_ThreadsPlanLock);
+                for (int level = 0; level < 16; level++)
+                {
 
-					pthread_mutex_lock(&g_ThreadsPlanLock);
-					for (int level = 0; level < 16; level++)
-					{
+                    for (int i = 0; i < plan.DailySchedule.size(); i++)
+                    {
+                        for (int j = 0; j < plan.DailySchedule[i].DayList.size(); j++)
+                        {
+                            plan.DailySchedule[i].work(level); // DayList[j].work(level);
+                                                               // plan.DailySchedule[i].DayList[j].work(level);
+                        }
+                    }
+                    for (int i = 0; i < plan.WeeklySchedule.size(); i++)
+                    {
+                        for (int j = 0; j < plan.WeeklySchedule[i].DayList.size(); j++)
+                        {
+                            plan.WeeklySchedule[i].work(level); // DayList[j].work(level);
+                        }
+                    }
+                }
 
-						for (int i = 0; i < plan.DailySchedule.size(); i++)
-						{
-							for (int j = 0; j < plan.DailySchedule[i].DayList.size(); j++)
-							{
-								plan.DailySchedule[i].work(level); // DayList[j].work(level);
-																   // plan.DailySchedule[i].DayList[j].work(level);
-							}
-						}
-						for (int i = 0; i < plan.WeeklySchedule.size(); i++)
-						{
-							for (int j = 0; j < plan.WeeklySchedule[i].DayList.size(); j++)
-							{
-								plan.WeeklySchedule[i].work(level); // DayList[j].work(level);
-							}
-						}
-					}
-
-					DS_TRACE("updating json.... current total daily plan: " << plan.DailySchedule.size());
-					saveToJson();
-                    g_updateJson = 0;
-					pthread_mutex_unlock(&g_ThreadsPlanLock);
-				}
+                DS_TRACE("updating json.... current total daily plan: " << plan.DailySchedule.size());
+                saveToJson();
+                g_updateJson = 0;
+                pthread_mutex_unlock(&g_ThreadsPlanLock);
 
 				sleep(30);
 			}

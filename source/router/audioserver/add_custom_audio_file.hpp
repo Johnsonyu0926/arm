@@ -102,7 +102,7 @@ namespace asns {
     public:
         int play(string endTime, const int priority, const std::string &txt, const std::string &voiceType,const int model) {
             CUtils utils;
-            if (txt.compare("male") == 0) {
+            if (voiceType.compare("male") == 0) {
                 utils.txt_to_audio(txt, 50, MALE);
             } else {
                 utils.txt_to_audio(txt, 50, FEMALE);
@@ -111,7 +111,7 @@ namespace asns {
                 utils.tts_num_play(1,ASYNC_START);
                 return 0;
             }
-            utils.tts_loop_play(ASYNC_START);
+            utils.tts_num_play(1, ASYNC_START);
             CSTime tnow;
 
             tnow.GetCurTime();

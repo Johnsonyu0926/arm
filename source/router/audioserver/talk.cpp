@@ -9,7 +9,6 @@
 extern HPR_VOIDPTR g_pKernel;
 extern HPR_BOOL g_bAccessEz;
 CTalk g_ctalk;
-int g_bStop = 1;
 
 int g_playing_priority = NON_PLAY_PRIORITY;
 // extern CBroadcastPlanBusiness g_plan;
@@ -119,7 +118,6 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
         CUtils utils;
         utils.audio_stop();
         // g_ctalk.initMp3();
-        g_bStop = 0;
         g_ctalk.do_fork();
 
 		g_playing_priority  = param->priority;
@@ -128,12 +126,6 @@ int CTalk::RecvMsg(ezDevSDK_talk_msg_to_dev *msg)
     break;
     case EZDEVSDK_TALK_ON_STOP_TALK:
     {
-        if (g_bStop)
-        {
-            DS_TRACE("skip stop.\n");
-            return -1;
-        }
-        g_bStop = 1;
         DS_TRACE("ezdevsdk talk on stop talk msg type is incoming.\n");
         CUtils utils;
         utils.audio_stop();
