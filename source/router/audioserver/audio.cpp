@@ -65,10 +65,10 @@ char save_prefix[128];
 #define DEBUG_MODE_ALL 5
 void CALLBACK loginfo(HPR_UINT32 dwLevel, char const *pBuffer, HPR_VOIDPTR pUserData)
 {
-if (g_nDebugMode == DEBUG_MODE_ALL)
-{
-printf("[SDKLOG] %s\n", pBuffer);
-}
+    if (g_nDebugMode == DEBUG_MODE_ALL)
+    {
+        printf("[SDKLOG] %s\n", pBuffer);
+    }
 }
 
 HPR_VOID hexdump(unsigned const char *pSrc, int iLen, int iUpper, unsigned char *pDst) {
@@ -179,140 +179,140 @@ HPR_INT32 g_dwHandle = -1;
 
 void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HPR_UINT32 dwLen, HPR_VOIDPTR pData, HPR_VOIDPTR pUserData)
 {
-printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
-if (dwType == DATATYPE_IOT)
-{
-g_dwHandle = dwHandle;
+    printf("dwtype=%d, dwHandle = %d\n", dwType, dwHandle);
+    if (dwType == DATATYPE_IOT)
+    {
+        g_dwHandle = dwHandle;
 
-LPNET_EBASE_SERVER_DATA pTemp = (LPNET_EBASE_SERVER_DATA) pData;
+        LPNET_EBASE_SERVER_DATA pTemp = (LPNET_EBASE_SERVER_DATA) pData;
 
-LPNET_IOT_SERVER_COMMAND cmd = (LPNET_IOT_SERVER_COMMAND)(pTemp->pCmdIdentify);
-printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
-printf("resource id:%s\n", cmd->byResourceID);
-printf("resource type:%s\n", cmd->byResourceType);
-printf("identifier:%s\n", cmd->byIdentifier);
+        LPNET_IOT_SERVER_COMMAND cmd = (LPNET_IOT_SERVER_COMMAND)(pTemp->pCmdIdentify);
+        printf("cmd: size:%d, type:%d, method:%d, business type:%d\n", cmd->dwSize, cmd->wModuleType, cmd->wMethod, cmd->wBusinessType);
+        printf("resource id:%s\n", cmd->byResourceID);
+        printf("resource type:%s\n", cmd->byResourceType);
+        printf("identifier:%s\n", cmd->byIdentifier);
 
-memset(identifier, 0, sizeof(identifier));
-strncpy(identifier, (char *)cmd->byIdentifier, sizeof(identifier));
+        memset(identifier, 0, sizeof(identifier));
+        strncpy(identifier, (char *)cmd->byIdentifier, sizeof(identifier));
 
-printf("module:%s\n", cmd->byModule);
-printf("method:%s\n", cmd->byMethod);
-printf("msg type:%s\n", cmd->byMsgType);
+        printf("module:%s\n", cmd->byModule);
+        printf("method:%s\n", cmd->byMethod);
+        printf("msg type:%s\n", cmd->byMsgType);
 
-client_cmd.dwSize = sizeof(client_cmd);
-client_cmd.wModuleType = cmd->wModuleType;
-client_cmd.wMethod = cmd->wMethod;
-client_cmd.wBusinessType = cmd->wBusinessType;
-memcpy(client_cmd.byResourceID, cmd->byResourceID, sizeof(client_cmd.byResourceID));
-memcpy(client_cmd.byResourceType, cmd->byResourceType, sizeof(client_cmd.byResourceType));
-memcpy(client_cmd.byIdentifier, cmd->byIdentifier, sizeof(client_cmd.byIdentifier));
-memcpy(client_cmd.byModule, cmd->byModule, sizeof(client_cmd.byModule));
-memcpy(client_cmd.byMethod, cmd->byMethod, sizeof(client_cmd.byMethod));
-memcpy(client_cmd.byMsgType, cmd->byMsgType, sizeof(client_cmd.byMsgType));
-memcpy(client_cmd.byDomainID, cmd->byDomainID, sizeof(client_cmd.byDomainID));
-client_cmd.dwmMulIndex = cmd->dwmMulIndex;
+        client_cmd.dwSize = sizeof(client_cmd);
+        client_cmd.wModuleType = cmd->wModuleType;
+        client_cmd.wMethod = cmd->wMethod;
+        client_cmd.wBusinessType = cmd->wBusinessType;
+        memcpy(client_cmd.byResourceID, cmd->byResourceID, sizeof(client_cmd.byResourceID));
+        memcpy(client_cmd.byResourceType, cmd->byResourceType, sizeof(client_cmd.byResourceType));
+        memcpy(client_cmd.byIdentifier, cmd->byIdentifier, sizeof(client_cmd.byIdentifier));
+        memcpy(client_cmd.byModule, cmd->byModule, sizeof(client_cmd.byModule));
+        memcpy(client_cmd.byMethod, cmd->byMethod, sizeof(client_cmd.byMethod));
+        memcpy(client_cmd.byMsgType, cmd->byMsgType, sizeof(client_cmd.byMsgType));
+        memcpy(client_cmd.byDomainID, cmd->byDomainID, sizeof(client_cmd.byDomainID));
+        client_cmd.dwmMulIndex = cmd->dwmMulIndex;
 
-struData.dwSize = sizeof(NET_EBASE_CLIENT_DATA);
-struData.dwDataType = DATATYPE_IOT;
-if (strcmp(identifier,"GetVoiceTalkChannelList") == 0)
-{
-struData.pBodyData = (HPR_VOIDPTR)(channel_resp);
-}
-else if (strcmp(identifier, "GetCustomAudioCfg") == 0)
-{
-struData.pBodyData = (HPR_VOIDPTR)(resp_get_audio);
-}
-else if (strcmp(identifier,"AddBroadcastPlan") == 0)
-{
-struData.pBodyData = (HPR_VOIDPTR)(resp_add_broadcast_plan);
-printf("broadcast plan json:%s\n", (char *)pTemp->pDodyData);
-g_plan.parseRequest((char *)pTemp->pDodyData);
-}
-else if (strcmp(identifier,"AddCustomAudioFile") == 0)
-{
-printf("===========================json:%s\n", (char *)pTemp->pDodyData);
-g_addAudioBusiness.add((char *)pTemp->pDodyData);
-struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
-} else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {
-printf("json:%s\n", (char *)pTemp->pDodyData);
-CHKVolume v;
-v.parse((char *)pTemp->pDodyData);
-char res[64] = {0};
-sprintf(res,resp_add_custom_audio_file,"success");
-struData.pBodyData = (HPR_VOIDPTR)(res);
-}
-else if(strcmp(identifier, "StartTTSAudio") == 0) {
-printf("json:%s\n", (char *)pTemp->pDodyData);
-CStartTTSAudio ttsAudio;
-std::string res = ttsAudio.parse((char *)pTemp->pDodyData);
-struData.pBodyData = (HPR_VOIDPTR)(res.c_str());
-}
-else
-{
-printf("unknown body:%s\n", (char *)pTemp->pDodyData);
-struData.pBodyData = (HPR_VOIDPTR)(resp);
-printf("resp = %s\n", resp);
-}
-struData.dwBodyLen = strlen(resp);
-struData.dwSequence = pTemp->dwSequence;
-struData.pCommandType = &client_cmd;
+        struData.dwSize = sizeof(NET_EBASE_CLIENT_DATA);
+        struData.dwDataType = DATATYPE_IOT;
+        if (strcmp(identifier,"GetVoiceTalkChannelList") == 0)
+        {
+            struData.pBodyData = (HPR_VOIDPTR)(channel_resp);
+        }
+        else if (strcmp(identifier, "GetCustomAudioCfg") == 0)
+        {
+            struData.pBodyData = (HPR_VOIDPTR)(resp_get_audio);
+        }
+        else if (strcmp(identifier,"AddBroadcastPlan") == 0)
+        {
+            struData.pBodyData = (HPR_VOIDPTR)(resp_add_broadcast_plan);
+            printf("broadcast plan json:%s\n", (char *)pTemp->pDodyData);
+            g_plan.parseRequest((char *)pTemp->pDodyData);
+        }
+        else if (strcmp(identifier,"AddCustomAudioFile") == 0)
+        {
+            printf("===========================json:%s\n", (char *)pTemp->pDodyData);
+            g_addAudioBusiness.add((char *)pTemp->pDodyData);
+            struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
+        } else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {
+            printf("json:%s\n", (char *)pTemp->pDodyData);
+            CHKVolume v;
+            v.parse((char *)pTemp->pDodyData);
+            char res[64] = {0};
+            sprintf(res,resp_add_custom_audio_file,"success");
+            struData.pBodyData = (HPR_VOIDPTR)(res);
+        }
+        else if(strcmp(identifier, "StartTTSAudio") == 0) {
+            printf("json:%s\n", (char *)pTemp->pDodyData);
+            CStartTTSAudio ttsAudio;
+            std::string res = ttsAudio.parse((char *)pTemp->pDodyData);
+            struData.pBodyData = (HPR_VOIDPTR)(res.c_str());
+        }
+        else
+        {
+            printf("unknown body:%s\n", (char *)pTemp->pDodyData);
+            struData.pBodyData = (HPR_VOIDPTR)(resp);
+            printf("resp = %s\n", resp);
+        }
+        struData.dwBodyLen = strlen(resp);
+        struData.dwSequence = pTemp->dwSequence;
+        struData.pCommandType = &client_cmd;
 
-printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
+        printf("call back done! dwSize:%d, data type:%d, bodylen:%d seq:%d\n", struData.dwSize, struData.dwDataType, struData.dwBodyLen, struData.dwSequence);
 
-state_machine = dwType;
-}
-else if (dwType == DATETYPE_EXPECTION)
-{
-g_bException = HPR_TRUE;
-}
-else if (dwType == DATATYPE_IOT_KERNEL_READY)
-{
-printf("KERNEL READY!\n");
-g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
-g_ctalk.init();
-}
+        state_machine = dwType;
+    }
+    else if (dwType == DATETYPE_EXPECTION)
+    {
+        g_bException = HPR_TRUE;
+    }
+    else if (dwType == DATATYPE_IOT_KERNEL_READY)
+    {
+        printf("KERNEL READY!\n");
+        g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
+        g_ctalk.init();
+    }
 }
 
 void CALLBACK KeyValueLoadFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32 dwLen,HPR_VOIDPTR pUserData)
-{
-// g_mlock.Lock();
-//  printf("size111111111111111111111:[%s]\r\n", dev_id[dwHandle]);
-// ReadKeValueXML(dev_id[dwHandle], 32, master_key[dwHandle], 16, dwHandle);
-if (dwKeyValueType == KEYVALUE_DEVICE_ID)
-{
-if (strlen(dev_id) > 0)
-{
-memcpy(pData, dev_id, dwLen); // todo，这两个KEYVALUE是什么作用，取什么值，在哪配
-}
-}else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
-{
-if (strlen(master_key) > 0)
-{
-memcpy(pData, master_key, dwLen); // todo
-}
-}
-// g_mlock.Unlock();
+    {
+    // g_mlock.Lock();
+    //  printf("size111111111111111111111:[%s]\r\n", dev_id[dwHandle]);
+    // ReadKeValueXML(dev_id[dwHandle], 32, master_key[dwHandle], 16, dwHandle);
+    if (dwKeyValueType == KEYVALUE_DEVICE_ID)
+    {
+        if (strlen(dev_id) > 0)
+        {
+            memcpy(pData, dev_id, dwLen); // todo，这两个KEYVALUE是什么作用，取什么值，在哪配
+        }
+        }else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
+        {
+        if (strlen(master_key) > 0)
+        {
+            memcpy(pData, master_key, dwLen); // todo
+        }
+    }
+    // g_mlock.Unlock();
 }
 
 void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValueType,unsigned char *pData, HPR_UINT32 dwLen,HPR_VOIDPTR pUserData)
 {
-// g_mlock.Lock();
-if (dwKeyValueType == KEYVALUE_DEVICE_ID)
-{
-memcpy(dev_id, pData, dwLen);
-printf("dev_id is got = %s\n", dev_id);
-}else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
-{
-memcpy(master_key, pData, dwLen);
-printf("master key is got:%s\n", master_key);
-}
+    // g_mlock.Lock();
+    if (dwKeyValueType == KEYVALUE_DEVICE_ID)
+    {
+        memcpy(dev_id, pData, dwLen);
+        printf("dev_id is got = %s\n", dev_id);
+    }else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
+    {
+        memcpy(master_key, pData, dwLen);
+        printf("master key is got:%s\n", master_key);
+    }
 
-// if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
-//{
-//   WriteKeValueXML(dev_id[dwHandle], strlen(dev_id[dwHandle]), master_key[dwHandle], strlen(master_key[dwHandle]), dwHandle);
-//}
-// printf("size222222222222222222222:[%s]\r\n", dev_id[dwHandle]);
-// g_mlock.Unlock();
+    // if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
+    //{
+    //   WriteKeValueXML(dev_id[dwHandle], strlen(dev_id[dwHandle]), master_key[dwHandle], strlen(master_key[dwHandle]), dwHandle);
+    //}
+    // printf("size222222222222222222222:[%s]\r\n", dev_id[dwHandle]);
+    // g_mlock.Unlock();
 }
 
 HPR_BOOL init_otap_reg_info(NET_EBASE_IOT_REGINFO *pRegInfo) {
@@ -357,82 +357,82 @@ int do_state_machine() {
 
 HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo)
 {
-cout << "loop work enter." << endl;
-HPR_INT32 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
-HPR_BOOL bConnect = HPR_FALSE;
-while (1)
-{
-if (g_bException)
-{
-printf("exception !\n");
-if (iHandle >= 0)
-{
-if (!NET_EBASE_DeystoryClient(iHandle))
-{
-printf("destroy client error.\n");
-}
-iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
-}
-g_bException = HPR_FALSE;
-bConnect = HPR_FALSE;
-}
+    cout << "loop work enter." << endl;
+    HPR_INT32 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
+    HPR_BOOL bConnect = HPR_FALSE;
+    while (1)
+    {
+        if (g_bException)
+        {
+            printf("exception !\n");
+            if (iHandle >= 0)
+            {
+                if (!NET_EBASE_DeystoryClient(iHandle))
+                {
+                    printf("destroy client error.\n");
+                }
+                iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
+            }
+            g_bException = HPR_FALSE;
+            bConnect = HPR_FALSE;
+        }
 
-if (bConnect)
-{
-do_state_machine();
+        if (bConnect)
+        {
+            do_state_machine();
 
-printf("connected. ok. \n");
-HPR_Sleep(1000);
-continue;
-}
+            printf("connected. ok. \n");
+            HPR_Sleep(1000);
+            continue;
+        }
 
-if (iHandle < 0)
-{
-cout << "iot client is creating now." << endl;
+        if (iHandle < 0)
+        {
+            cout << "iot client is creating now." << endl;
 
-iHandle = NET_EBASE_CreateIOTClient(dwClientType);
+            iHandle = NET_EBASE_CreateIOTClient(dwClientType);
 
-cout << "iHandle is created:" << iHandle << endl;
+            cout << "iHandle is created:" << iHandle << endl;
 
-if (iHandle < 0)
-{
-HPR_UINT32 dwError = NET_EBASE_GetLastError();
-NET_EBASE_OTAP_ERROR_INFO err;
-NET_EBASE_GetOTAPErrorMsg(dwError, &err);
-printf("failed to create iot client. type:%d, errno:%d, msg:%s, statusCode:%d\n", dwClientType, dwError, err.szErrorMsg, err.dwStatusCode);
-HPR_Sleep(1000);
-continue;
-}
-}
-printf("connect to iot server by iot client...\n");
-bConnect = NET_EBASE_ConnectToIOTServer(iHandle, &struOTAPRegInfo);
-if (!bConnect)
-{
-HPR_UINT32 dwError = NET_EBASE_GetLastError();
-cout << "connect to iot server by iot client failed... dwError:" << dwError << endl;
-HPR_Sleep(1000);
-} else if (strcmp(identifier, "")){
+            if (iHandle < 0)
+            {
+                HPR_UINT32 dwError = NET_EBASE_GetLastError();
+                NET_EBASE_OTAP_ERROR_INFO err;
+                NET_EBASE_GetOTAPErrorMsg(dwError, &err);
+                printf("failed to create iot client. type:%d, errno:%d, msg:%s, statusCode:%d\n", dwClientType, dwError, err.szErrorMsg, err.dwStatusCode);
+                HPR_Sleep(1000);
+                continue;
+            }
+        }
+        printf("connect to iot server by iot client...\n");
+        bConnect = NET_EBASE_ConnectToIOTServer(iHandle, &struOTAPRegInfo);
+        if (!bConnect)
+        {
+            HPR_UINT32 dwError = NET_EBASE_GetLastError();
+            cout << "connect to iot server by iot client failed... dwError:" << dwError << endl;
+            HPR_Sleep(1000);
+        } else if (strcmp(identifier, "")){
 
-} else {
+        } else {
 
-HPR_UINT32 dwErrorCode = 0x00100006;
-NET_EBASE_OTAP_ERROR_INFO struErrorInfo = {0};
-HPR_BOOL bRet = NET_EBASE_GetOTAPErrorMsg(dwErrorCode, &struErrorInfo);
-if (bRet)
-{
-cout << "success to connect to server." <<endl;
-}
-else
-{
-HPR_UINT32 dwError = NET_EBASE_GetLastError();
-}
+            HPR_UINT32 dwErrorCode = 0x00100006;
+            NET_EBASE_OTAP_ERROR_INFO struErrorInfo = {0};
+            HPR_BOOL bRet = NET_EBASE_GetOTAPErrorMsg(dwErrorCode, &struErrorInfo);
+            if (bRet)
+            {
+                cout << "success to connect to server." <<endl;
+            }
+            else
+            {
+                HPR_UINT32 dwError = NET_EBASE_GetLastError();
+            }
 
-cout << "connect to iot server by iot client success" << endl;
-HPR_UINT16 wInterval = 10000;
-NET_EBASE_SetParam(iHandle, EBASE_PARAM_ALIVE_INTERVAL, &wInterval,
-sizeof(wInterval));
-}
-}
+            cout << "connect to iot server by iot client success" << endl;
+            HPR_UINT16 wInterval = 10000;
+            NET_EBASE_SetParam(iHandle, EBASE_PARAM_ALIVE_INTERVAL, &wInterval,
+            sizeof(wInterval));
+        }
+    }
 }
 
 /* -- server --*/
