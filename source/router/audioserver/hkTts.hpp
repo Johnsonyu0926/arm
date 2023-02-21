@@ -64,7 +64,13 @@ namespace asns {
             CUtils utils;
             utils.audio_stop();
             g_playing_priority = data.audioLevel;
-            utils.txt_to_audio(data.ttscontent);
+            if(!utils.txt_to_audio(data.ttscontent)){
+                CStartTTSAudioResult result;
+                result.do_success("tts fail");
+                json s = result;
+                DS_TRACE("hk tts res:" << s.dump().c_str());
+                return s.dump();
+            }
             DS_TRACE("hk tts:" << data.ttscontent.c_str());
             utils.tts_num_play(1);
             g_playing_priority = NON_PLAY_PRIORITY;

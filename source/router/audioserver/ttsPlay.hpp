@@ -39,7 +39,12 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                utils.txt_to_audio(txt, speed, voiceType);
+                if (!utils.txt_to_audio(txt, speed, voiceType)) {
+                    ttsPlayResult.do_fail("tts fail");
+                    json js = ttsPlayResult;
+                    std::string str = js.dump();
+                    return pClient->Send(str.c_str(), str.length());
+                }
                 switch (playType) {
                     case 0:
                         utils.tts_loop_play(ASYNC_START);

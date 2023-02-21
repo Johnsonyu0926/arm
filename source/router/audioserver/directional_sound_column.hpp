@@ -107,7 +107,7 @@ namespace asns {
             DS_TRACE("return: " << res.c_str());
             if (pClient == nullptr) {
                 Rs485 rs;
-                return rs._uart_write(res.c_str(),res.length());
+                return rs._uart_write(res.c_str(), res.length());
             }
             return pClient->Send(res.c_str(), res.length());
         }
@@ -117,7 +117,7 @@ namespace asns {
             DS_TRACE("return: " << buf.c_str());
             if (pClient == nullptr) {
                 Rs485 rs;
-                return rs._uart_write(buf.c_str(),buf.length());
+                return rs._uart_write(buf.c_str(), buf.length());
             }
             return pClient->Send(buf.c_str(), buf.length());
         }
@@ -230,7 +230,9 @@ namespace asns {
             if (utils.statistical_character_count(txt) > 100) {
                 return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
             }
-            utils.txt_to_audio(txt);
+            if (!utils.txt_to_audio(txt)) {
+                return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
+            }
             SendTrue(pClient);
             utils.tts_loop_play(asns::ASYNC_START);
         }
@@ -250,7 +252,9 @@ namespace asns {
             int duration = std::stoi(m_str[6]);
             utils.async_wait(1, 0, 0, [=] {
                 CUtils utils;
-                utils.txt_to_audio(txt);
+                if (!utils.txt_to_audio(txt)) {
+                    return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
+                }
                 switch (playType) {
                     case 0: {
                         SendTrue(pClient);

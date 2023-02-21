@@ -32,7 +32,11 @@ namespace asns {
                 r.result = "Already played";
                 return 2;
             }
-            utils.txt_to_audio(c.data.content);
+            if(!utils.txt_to_audio(c.data.content)){
+                r.resultId = 2;
+                r.result = "tts fail";
+                return 2;
+            }
             switch (c.data.timeType) {
                 case 0: {
                     utils.tts_loop_play(ASYNC_START);

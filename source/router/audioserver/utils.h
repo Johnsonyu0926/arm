@@ -426,6 +426,14 @@ public:
         return 1;
     }
 
+    int is_tts_exists() {
+        std::ifstream i("/tmp/output.pcm");
+        if (!i.is_open()) {
+            return 0;
+        }
+        return 1;
+    }
+
     char *get_ros_addr() {
         char cmd[64] = {0};
         strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
@@ -775,7 +783,7 @@ public:
         system(cmd.c_str());
     }
 
-    void txt_to_audio(const std::string &txt, const int speed = 50, const int gender = 0) {
+    int txt_to_audio(const std::string &txt, const int speed = 50, const int gender = 0) {
         std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
         switch (gender) {
             case 0:
@@ -790,7 +798,9 @@ public:
         cmd += +"-f /tmp/output.pcm";
         system(cmd.c_str());
         system(std::string("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm " + asns::TTS_PATH).c_str());
-        //volume_gain(asns::TTS_PATH, "wav");
+        int res = is_tts_exists();
+        system("rm /tmp/output.pcm");
+        return res;
     }
 
     void audio_clear() {
