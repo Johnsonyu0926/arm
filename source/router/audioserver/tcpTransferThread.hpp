@@ -191,23 +191,20 @@ private:
                 std::cout << len << " ";
                 file_size -= len;
                 if (file_size <= 0)break;
-            } else if (len == 0) {
-                break;
-            } else if (len < 0) {
+            } else if (len <= 0) {
                 fs.close();
                 return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
             }
         }
         fs.close();
+        SendTrue(pClient);
         DS_TRACE("begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH));
         std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/SONICCOREV100R001.bin");
         DS_TRACE("cmd res:" << cmdRes.c_str());
         if (cmdRes.find("OK") != std::string::npos) {
-            SendTrue(pClient);
             utils.reboot();
         } else {
             system("rm /var/run/SONICCOREV100R001.bin");
-            return SendFast(asns::TCP_UPGRADE_ERROR, pClient);
         }
     }
 

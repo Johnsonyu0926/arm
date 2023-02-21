@@ -63,7 +63,7 @@ namespace asns {
     const char *const RECORD_PATH = "/tmp/record.mp3";
     const char *const FIRMWARE_PATH = "/var/run/SONICCOREV100R001.bin";
 
-    const char *const TTS_PATH = "/tmp/output.wav";
+    const std::string TTS_PATH = "/tmp/output.wav";
 
     const int STOP_TASK_PLAYING = -1;
     const int TIMED_TASK_PLAYING = 1;

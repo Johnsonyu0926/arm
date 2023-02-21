@@ -789,8 +789,8 @@ public:
         }
         cmd += +"-f /tmp/output.pcm";
         system(cmd.c_str());
-        system("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm /tmp/output.wav");
-        volume_gain(asns::TTS_PATH, "wav");
+        system(std::string("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm " + asns::TTS_PATH).c_str());
+        //volume_gain(asns::TTS_PATH, "wav");
     }
 
     void audio_clear() {
@@ -814,13 +814,13 @@ public:
             async_wait(1, 0, 0, [&] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    system("aplay /tmp/output.wav");
+                    system(std::string("aplay " + asns::TTS_PATH).c_str());
                 }
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                system("aplay /tmp/output.wav");
+                system(std::string("aplay " + asns::TTS_PATH).c_str());
             }
         }
     }
@@ -830,14 +830,14 @@ public:
             async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 for (int i = 0; i < num; ++i) {
-                    system("aplay /tmp/output.wav");
+                    system(std::string("aplay " + asns::TTS_PATH).c_str());
                 }
                 PlayStatus::getInstance().init();
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             for (int i = 0; i < num; ++i) {
-                system("aplay /tmp/output.wav");
+                system(std::string("aplay " + asns::TTS_PATH).c_str());
             }
             PlayStatus::getInstance().init();
         }
@@ -852,13 +852,13 @@ public:
             async_wait(1, 0, 0, [&] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    system("aplay /tmp/output.wav");
+                    system(std::string("aplay " + asns::TTS_PATH).c_str());
                 }
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                system("aplay /tmp/output.wav");
+                system(std::string("aplay " + asns::TTS_PATH).c_str());
             }
         }
     }
@@ -948,19 +948,11 @@ public:
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
-        std::future<std::string> res = std::async(std::launch::async, [=] {
-            std::this_thread::sleep_for(std::chrono::seconds(time));
-            record_stop();
-            volume_gain(asns::RECORD_PATH, "mp3");
-            std::string res = get_doupload_result(url, imei);
-            system("rm /tmp/record.mp3");
-            system("rm /tmp/vol.mp3");
-            return res;
-        });
-        async_wait(1, 0, 0, [&] {
-            record_start();
-        });
-        return res.get();
+        std::string cmd = "arecord -d " + std::to_string(time) + " -f cd /tmp/record.mp3";
+        system(cmd.c_str());
+        std::string res = get_doupload_result(url, imei);
+        system("rm /tmp/record.mp3");
+        return res;
     }
 
     void set_gpio_model(const int model, const int status = 0) {
