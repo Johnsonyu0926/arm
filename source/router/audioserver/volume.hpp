@@ -81,7 +81,7 @@ namespace asns {
             std::ofstream o(filePath);
             o << std::setw(4) << j << std::endl;
             char buf[64] = {0};
-            sprintf(buf, "cm set_val sys dac0gan %d", vo_ros[volume]);
+            sprintf(buf, "cm set_val sys dacxgan %d", vo_ros[volume]);
             system(buf);
             return 0;
         }
