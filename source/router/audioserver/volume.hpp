@@ -67,7 +67,7 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 //sprintf(cmd, "amixer sset PCM %d", vo_ros[v]);
-                sprintf(cmd, "dspset /dev/ttyS2 dac0gan %d", vo_ros[v]);
+                sprintf(cmd, "dspset /dev/ttyS2 dacxgan %d", vo_ros[v]);
             } else {
                 sprintf(cmd, "amixer set Headphone Playback %d", vo[v]);
             }
