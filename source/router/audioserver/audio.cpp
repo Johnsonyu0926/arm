@@ -67,7 +67,7 @@ void CALLBACK loginfo(HPR_UINT32 dwLevel, char const *pBuffer, HPR_VOIDPTR pUser
 {
     if (g_nDebugMode == DEBUG_MODE_ALL)
     {
-        printf("[SDKLOG] %s\n", pBuffer);
+        DS_TRACE("[SDKLOG] " << pBuffer);
     }
 }
 
@@ -87,7 +87,7 @@ HPR_VOID hexdump(unsigned const char *pSrc, int iLen, int iUpper, unsigned char 
 }
 
 void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *pDevSubSerial, unsigned char *pshare_key) {
-    printf("code:%s, serial:%s\n", pDevVerificationCode, pDevSubSerial);
+    DS_TRACE("code: " << (char*)pDevVerificationCode <<"serial: " << (char*)pDevSubSerial);
 
     unsigned char sharekey_src[512];
     HPR_UINT16 sharekey_src_len;
@@ -115,7 +115,7 @@ void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *
     memset(sharekey_src, 0, 512);
 
     const char *pShareKeySalt = "www.88075998.com";
-    printf("salt:%s\n", pShareKeySalt);
+    DS_TRACE("salt: " << pShareKeySalt);
 
     const HPR_UINT32 dwShareKeySaltLen = strlen(pShareKeySalt);
 
@@ -138,11 +138,11 @@ void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *
     const mbedtls_md_info_t *info_sha1;
     info_sha1 = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
     if (info_sha1 == NULL) {
-        printf("error! info sha is null!\n");
+        DS_TRACE("error! info sha is null!\n");
         return;
     }
     if (mbedtls_md_setup(&sha1_ctx, info_sha1, 1) != 0) {
-        printf("error! mbedtls md setup failed.\n");
+        DS_TRACE("error! mbedtls md setup failed.\n");
         return;
     }
     unsigned char sharekey_sha256_dst[MAX_EHOME50_KEY_LEN];
@@ -153,7 +153,7 @@ void otap_generate_sharekey(unsigned char *pDevVerificationCode, unsigned char *
     mbedtls_md_free(&sha1_ctx);
 
     memcpy(pshare_key, sharekey_sha256_dst_hex + 10, MAX_EHOME50_KEY_LEN);
-    printf("success gen key: %s\n", pshare_key);
+    DS_TRACE("success gen key: " << pshare_key);
 }
 
 int state_machine = 0;
@@ -225,16 +225,16 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
         else if (strcmp(identifier,"AddBroadcastPlan") == 0)
         {
             struData.pBodyData = (HPR_VOIDPTR)(resp_add_broadcast_plan);
-            printf("broadcast plan json:%s\n", (char *)pTemp->pDodyData);
+            DS_TRACE("broadcast plan json: " << (char *)pTemp->pDodyData);
             g_plan.parseRequest((char *)pTemp->pDodyData);
         }
         else if (strcmp(identifier,"AddCustomAudioFile") == 0)
         {
-            printf("===========================json:%s\n", (char *)pTemp->pDodyData);
+            DS_TRACE("===========================json: " << (char *)pTemp->pDodyData);
             g_addAudioBusiness.add((char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
         } else if (strcmp(identifier, "BroadcastAudioCfgList") == 0) {
-            printf("json:%s\n", (char *)pTemp->pDodyData);
+            DS_TRACE("json: " << (char *)pTemp->pDodyData);
             CHKVolume v;
             v.parse((char *)pTemp->pDodyData);
             char res[64] = {0};
@@ -242,16 +242,16 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
             struData.pBodyData = (HPR_VOIDPTR)(res);
         }
         else if(strcmp(identifier, "StartTTSAudio") == 0) {
-            printf("json:%s\n", (char *)pTemp->pDodyData);
+            DS_TRACE("json: " << (char *)pTemp->pDodyData);
             CStartTTSAudio ttsAudio;
             std::string res = ttsAudio.parse((char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(res.c_str());
         }
         else
         {
-            printf("unknown body:%s\n", (char *)pTemp->pDodyData);
+            DS_TRACE("unknown body: " << (char *)pTemp->pDodyData);
             struData.pBodyData = (HPR_VOIDPTR)(resp);
-            printf("resp = %s\n", resp);
+            DS_TRACE("resp = " << resp);
         }
         struData.dwBodyLen = strlen(resp);
         struData.dwSequence = pTemp->dwSequence;
@@ -267,7 +267,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
     }
     else if (dwType == DATATYPE_IOT_KERNEL_READY)
     {
-        printf("KERNEL READY!\n");
+        DS_TRACE("KERNEL READY!\n");
         g_pKernel = ((NET_EBASE_IOT_KERNEL_READY_INFO *) pData)->pKernelPtr;
         g_ctalk.init();
     }
@@ -300,11 +300,11 @@ void CALLBACK KeyValueSaveFunc(HPR_INT32 dwHandle,EBaseIoTKeyValueType dwKeyValu
     if (dwKeyValueType == KEYVALUE_DEVICE_ID)
     {
         memcpy(dev_id, pData, dwLen);
-        printf("dev_id is got = %s\n", dev_id);
+        DS_TRACE("dev_id is got = " << dev_id);
     }else if (dwKeyValueType == KEYVALUE_MASTER_KEY)
     {
         memcpy(master_key, pData, dwLen);
-        printf("master key is got:%s\n", master_key);
+        DS_TRACE("master key is got: " << master_key);
     }
 
     // if (strlen(dev_id[dwHandle]) > 0 && strlen(master_key[dwHandle]) > 0)
@@ -344,9 +344,9 @@ HPR_BOOL init_otap_reg_info(NET_EBASE_IOT_REGINFO *pRegInfo) {
 
 int do_state_machine() {
     if (state_machine == DATATYPE_IOT) {
-        printf("state machine is IOT. sending response..., identifier=%s\n", identifier);
+        DS_TRACE("state machine is IOT. sending response..., identifier= " << identifier);
         if (NET_EBASE_Reponse(g_dwHandle, &struData)) {
-            printf("Send iot data to server sucess\r\n");
+            DS_TRACE("Send iot data to server sucess\r\n");
         } else {
             HPR_UINT32 dwError = NET_EBASE_GetLastError();
             printf("Send iot data to server failed ,error:%d\r\n", dwError);
@@ -357,19 +357,19 @@ int do_state_machine() {
 
 HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo)
 {
-    cout << "loop work enter." << endl;
+    DS_TRACE("loop work enter.");
     HPR_INT32 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
     HPR_BOOL bConnect = HPR_FALSE;
     while (1)
     {
         if (g_bException)
         {
-            printf("exception !\n");
+            DS_TRACE("exception !\n");
             if (iHandle >= 0)
             {
                 if (!NET_EBASE_DeystoryClient(iHandle))
                 {
-                    printf("destroy client error.\n");
+                    DS_TRACE("destroy client error.\n");
                 }
                 iHandle = -1; // (HPR_INT32)HPR_INVALID_HANDLE;
             }
@@ -381,14 +381,14 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
         {
             do_state_machine();
 
-            printf("connected. ok. \n");
+            DS_TRACE("connected. ok. \n");
             HPR_Sleep(1000);
             continue;
         }
 
         if (iHandle < 0)
         {
-            cout << "iot client is creating now." << endl;
+            DS_TRACE("iot client is creating now.");
 
             iHandle = NET_EBASE_CreateIOTClient(dwClientType);
 
@@ -404,7 +404,7 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
                 continue;
             }
         }
-        printf("connect to iot server by iot client...\n");
+        DS_TRACE("connect to iot server by iot client...\n");
         bConnect = NET_EBASE_ConnectToIOTServer(iHandle, &struOTAPRegInfo);
         if (!bConnect)
         {
@@ -420,14 +420,14 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
             HPR_BOOL bRet = NET_EBASE_GetOTAPErrorMsg(dwErrorCode, &struErrorInfo);
             if (bRet)
             {
-                cout << "success to connect to server." <<endl;
+                DS_TRACE("success to connect to server.");
             }
             else
             {
                 HPR_UINT32 dwError = NET_EBASE_GetLastError();
             }
 
-            cout << "connect to iot server by iot client success" << endl;
+            DS_TRACE("connect to iot server by iot client success");
             HPR_UINT16 wInterval = 10000;
             NET_EBASE_SetParam(iHandle, EBASE_PARAM_ALIVE_INTERVAL, &wInterval,
             sizeof(wInterval));
@@ -440,7 +440,7 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
 int PrintVersion() {
     CAudioCfgBusiness cfg;
     cfg.load();
-    printf("audioserver version %s\n", cfg.business[0].codeVersion.c_str());
+    DS_TRACE("audioserver version " << cfg.business[0].codeVersion.c_str());
     return 0;
 }
 
@@ -473,27 +473,27 @@ int prepare_work_dir(string prefix)
     char cmd[256] = {0};
     snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_data_dir.c_str());
     system(cmd);
-    cout<<"exec cmd:"<<cmd<<endl;
+    DS_TRACE("exec cmd:" << cmd);
 
     string audio_cfg_dir = prefix + AUDIO_CFG_DIR;
     memset(cmd, 0, sizeof(cmd));
     snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_cfg_dir.c_str());
     system(cmd);
-    cout<<"exec cmd:"<<cmd<<endl;
+    DS_TRACE("exec cmd:" << cmd);
 
     string audio_tts_dir = prefix + AUDIO_TTS_DIR;
     memset(cmd, 0, sizeof(cmd));
     snprintf(cmd, sizeof(cmd),  "mkdir -p %s", audio_tts_dir.c_str());
     system(cmd);
-    cout<<"exec cmd:"<<cmd<<endl;
+    DS_TRACE("exec cmd:" << cmd);
 }
 void signal_handler(int signal) {
-    std::cout << "exit" << std::endl;
+    DS_TRACE("exit");
     exit(0);
 }
 int main(int argc, char **argv) {
     int op;
-    printf("start audio program...\n");
+    DS_TRACE("start audio program...\n");
     signal(SIGCHLD, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     std::signal(SIGINT, signal_handler);
@@ -527,7 +527,7 @@ int main(int argc, char **argv) {
     // cout << "server start success, audio running..." << endl;
 
     if (g_audiocfg.load() < 0) {
-        printf("failed to load audio cfg.\n");
+        DS_TRACE("failed to load audio cfg.\n");
         return -1;
     }
     sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
@@ -598,7 +598,7 @@ int main(int argc, char **argv) {
         g_addAudioBusiness.savePrefix = g_audiocfg.getAudioFilePath();
         g_addAudioBusiness.load();
 
-        cout << "begin working..." << endl;
+        DS_TRACE("begin working...");
 
         loop_work(dwClientType, struOTAPRegInfo);
 
