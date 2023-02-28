@@ -289,12 +289,21 @@ public:
         return m_gpioModel;
     }
 
+    void setState(const int state) {
+        m_state = state;
+    }
+
+    int getState() const {
+        return m_state;
+    }
+
 private:
     CGpio() = default;
 
 private:
     int m_gpioStatus;
     int m_gpioModel;
+    int m_state;
 };
 
 class CUtils {
@@ -965,26 +974,32 @@ public:
         return res;
     }
 
-    void set_gpio_model(const int model, const int status = 0) {
+    void set_gpio_model(const int model, const int status = asns::GPIO_CLOSE) {
         CGpio::getInstance().setGpioModel(model);
+        CGpio::getInstance().setState(status);
         switch (model) {
             case asns::GPIO_CUSTOM_MODE:
-                if (status == 0) {
+                if (status == asns::GPIO_CLOSE) {
                     CGpio::getInstance().set_gpio_off();
-                } else if (status == 1) {
+                } else if (status == asns::GPIO_OPEN) {
                     CGpio::getInstance().set_gpio_on();
                 }
                 break;
             case asns::GPIO_PLAY_MODE:
-                async_wait(1, 0, 0, [&] {
-                    while (CGpio::getInstance().getGpioModel() == 2) {
-                        if (get_process_status("madplay") || get_process_status("aplay")) {
-                            CGpio::getInstance().set_gpio_on();
-                        } else {
-                            CGpio::getInstance().set_gpio_off();
+                if (status == asns::GPIO_CLOSE) {
+                    CGpio::getInstance().set_gpio_off();
+                } else if (status == asns::GPIO_OPEN) {
+                    async_wait(1, 0, 0, [&] {
+                        while (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
+                               CGpio::getInstance().getState() == asns::GPIO_OPEN) {
+                            if (get_process_status("madplay") || get_process_status("aplay")) {
+                                CGpio::getInstance().set_gpio_on();
+                            } else {
+                                CGpio::getInstance().set_gpio_off();
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 break;
             default:
                 break;

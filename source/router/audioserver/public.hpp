@@ -75,6 +75,9 @@ namespace asns {
     const int GPIO_CUSTOM_MODE = 1;
     const int GPIO_PLAY_MODE = 2;
 
+    const int GPIO_CLOSE = 0;
+    const int GPIO_OPEN = 1;
+
     const int MQTT_HEART_BEAT_TIME = 10;
 
     const int FEMALE = 0;
