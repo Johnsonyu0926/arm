@@ -977,6 +977,7 @@ public:
     void set_gpio_model(const int model, const int status = asns::GPIO_CLOSE) {
         CGpio::getInstance().setGpioModel(model);
         CGpio::getInstance().setState(status);
+        usleep(200000);
         switch (model) {
             case asns::GPIO_CUSTOM_MODE:
                 if (status == asns::GPIO_CLOSE) {
