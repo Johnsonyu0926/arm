@@ -977,7 +977,6 @@ public:
     void set_gpio_model(const int model, const int status = asns::GPIO_CLOSE) {
         CGpio::getInstance().setGpioModel(model);
         CGpio::getInstance().setState(status);
-        usleep(200000);
         switch (model) {
             case asns::GPIO_CUSTOM_MODE:
                 if (status == asns::GPIO_CLOSE) {
@@ -994,9 +993,15 @@ public:
                         while (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
                                CGpio::getInstance().getState() == asns::GPIO_OPEN) {
                             if (get_process_status("madplay") || get_process_status("aplay")) {
-                                CGpio::getInstance().set_gpio_on();
+                                if (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
+                                    CGpio::getInstance().getState() == asns::GPIO_OPEN) {
+                                    CGpio::getInstance().set_gpio_on();
+                                }
                             } else {
-                                CGpio::getInstance().set_gpio_off();
+                                if (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
+                                    CGpio::getInstance().getState() == asns::GPIO_OPEN) {
+                                    CGpio::getInstance().set_gpio_off();
+                                }
                             }
                         }
                     });
