@@ -213,7 +213,7 @@ public:
     }
 
     int getPlayState() const {
-        return m_playId == asns::STOP_TASK_PLAYING;
+        return m_playId != asns::STOP_TASK_PLAYING;
     }
 
     int getPlayId() const {

@@ -42,7 +42,7 @@ namespace asns {
     private:
         int vo[8] = {0, 100, 105, 110, 115, 120, 125, 130};
         //int vo_ros[8] = {0, 10, 20, 25, 30, 40, 45, 50};
-        int vo_ros[8] = {0, 5, 10, 14, 20, 24, 28, 32};
+        int vo_ros[8] = {0, 4, 8, 12, 17, 22, 27, 32};
         std::string filePath;
     public:
         CVolumeSet() : volume(3) {
