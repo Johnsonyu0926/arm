@@ -81,7 +81,7 @@ namespace asns {
             std::ofstream o(filePath);
             o << std::setw(4) << j << std::endl;
             char buf[64] = {0};
-            sprintf(buf, "cm set_val sys dacxgan %d", vo_ros[volume]);
+            sprintf(buf, "cm set_val sys dacxgan %d", volume);
             system(buf);
             return 0;
         }
@@ -102,7 +102,7 @@ namespace asns {
                 return -1;
             }
             //DS_TRACE("addjust the config volume:" << volume);
-            //addj(volume);
+            addj(volume);
             return 1;
         }
 
