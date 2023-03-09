@@ -550,7 +550,9 @@ int main(int argc, char **argv) {
     cfg.load();
 
     prepare_work_dir(cfg.business[0].savePrefix);
-
+    CGpio::getInstance().load();
+    utils.set_gpio_model(CGpio::getInstance().getGpioModel(),CGpio::getInstance().getState());
+    g_volumeSet.load();
     if (cfg.business[0].serverType == 2) {
         MqttManage mqttManage;
         mqttManage.start();
@@ -593,7 +595,6 @@ int main(int argc, char **argv) {
         struOTAPRegInfo.pExDevInfo = &struExDevInfo;
 
         g_plan.load();
-        g_volumeSet.load();
         g_plan.CreateThread();
         g_addAudioBusiness.savePrefix = g_audiocfg.getAudioFilePath();
         g_addAudioBusiness.load();

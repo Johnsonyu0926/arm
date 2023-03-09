@@ -265,45 +265,78 @@ public:
         return instance;
     }
 
+    int saveToJson() {
+        json j;
+        j["gpioStatus"] = state;
+        j["gpioModel"] = gpioModel;
+        std::ofstream o(filePath);
+        o << std::setw(4) << j << std::endl;
+        return 0;
+    }
+
+    int load() {
+        std::ifstream i(filePath);
+        if (!i) {
+            DS_TRACE("no volume file , use default volume. file name is:" << filePath.c_str());
+            return 0;
+        }
+        json j;
+        i >> j;
+        try {
+            state = j.at("gpioStatus");
+            gpioModel = j.at("gpioModel");
+        }
+        catch (json::parse_error &ex) {
+            std::cerr << "parse error at byte " << ex.byte << std::endl;
+            return -1;
+        }
+    }
+
     int getGpioStatus() const {
-        return m_gpioStatus;
+        return gpioStatus;
     }
 
     void set_gpio_on() {
         system("echo 1 > /sys/class/gpio/gpio16/value");
-        m_gpioStatus = 1;
+        gpioStatus = 1;
         DS_TRACE("set send dir! gpio is 1\n");
     }
 
     void set_gpio_off() {
         system("echo 0 > /sys/class/gpio/gpio16/value");
-        m_gpioStatus = 0;
+        gpioStatus = 0;
         DS_TRACE("set receive dir! gpio is 0\n");
     }
 
     void setGpioModel(const int model) {
-        m_gpioModel = model;
+        gpioModel = model;
     }
 
     int getGpioModel() const {
-        return m_gpioModel;
+        return gpioModel;
     }
 
     void setState(const int state) {
-        m_state = state;
+        this->state = state;
     }
 
     int getState() const {
-        return m_state;
+        return state;
+    }
+    const std::string GPIO_JSON_FILE = "/cfg/gpio.json";
+private:
+    std::string filePath;
+    
+    CGpio() : gpioModel(0), gpioStatus(0) {
+        asns::CAudioCfgBusiness business;
+        business.load();
+        filePath = business.business[0].savePrefix + GPIO_JSON_FILE;
     }
 
 private:
-    CGpio() = default;
-
-private:
-    int m_gpioStatus;
-    int m_gpioModel;
-    int m_state;
+    int gpioStatus;
+    int gpioModel;
+    int state;
 };
 
 class CUtils {
@@ -977,6 +1010,7 @@ public:
     void set_gpio_model(const int model, const int status = asns::GPIO_CLOSE) {
         CGpio::getInstance().setGpioModel(model);
         CGpio::getInstance().setState(status);
+        CGpio::getInstance().saveToJson();
         switch (model) {
             case asns::GPIO_CUSTOM_MODE:
                 if (status == asns::GPIO_CLOSE) {
