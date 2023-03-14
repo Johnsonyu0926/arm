@@ -37,6 +37,7 @@ namespace asns {
             CUtils utils;
             if (utils.is_ros_platform()) {
                 sprintf(buf, "amixer set PCM playback %d", vo_ros[volume]);
+                utils.cmd_system("cm set_val sys volume " + std::to_string(vo_ros[volume]));
             } else {
                 sprintf(buf, "amixer set Headphone Playback %d", vo[volume]);
             }

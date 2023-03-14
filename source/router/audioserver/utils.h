@@ -323,10 +323,11 @@ public:
     int getState() const {
         return state;
     }
+
     const std::string GPIO_JSON_FILE = "/cfg/gpio.json";
 private:
     std::string filePath;
-    
+
     CGpio() : gpioModel(0), gpioStatus(0) {
         asns::CAudioCfgBusiness business;
         business.load();
@@ -691,6 +692,10 @@ public:
         close(fd);
     }
 
+    void cmd_system(const std::string &cmd) {
+        system(cmd.c_str());
+    }
+
     /**
      * 异步定时任务
      * @tparam callable
@@ -706,41 +711,17 @@ public:
         std::function<typename std::result_of<callable(arguments...)>::type()> task
                 (std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
         std::thread([after, task, count, interval]() {
-            auto begin = std::chrono::high_resolution_clock::now();
             if (count == 0) {
                 while (true) {
-                    auto diff = std::chrono::duration_cast<std::chrono::seconds>
-                            (std::chrono::high_resolution_clock::now() - begin).count();
-                    if (diff >= after) {
-                        task();
-                        auto beg = std::chrono::system_clock::now();
-                        while (true) {
-                            auto end = std::chrono::duration_cast<std::chrono::seconds>
-                                    (std::chrono::system_clock::now() - beg).count();
-                            if (end >= interval) {
-                                break;
-                            }
-                        }
-                    }
+                    std::this_thread::sleep_for(std::chrono::seconds(after));
+                    task();
+                    std::this_thread::sleep_for(std::chrono::seconds(interval));
                 }
             } else {
-                while (true) {
-                    auto diff = std::chrono::duration_cast<std::chrono::seconds>
-                            (std::chrono::high_resolution_clock::now() - begin).count();
-                    if (diff >= after) {
-                        for (size_t i = 0; i < count; ++i) {
-                            task();
-                            auto beg = std::chrono::system_clock::now();
-                            while (true) {
-                                auto end = std::chrono::duration_cast<std::chrono::seconds>
-                                        (std::chrono::system_clock::now() - beg).count();
-                                if (end >= interval) {
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
+                std::this_thread::sleep_for(std::chrono::seconds(after));
+                for (size_t i = 0; i < count; ++i) {
+                    task();
+                    std::this_thread::sleep_for(std::chrono::seconds(interval));
                 }
             }
         }).detach();
