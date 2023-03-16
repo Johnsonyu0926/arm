@@ -277,12 +277,12 @@ public:
     int load() {
         std::ifstream i(filePath);
         if (!i) {
-            DS_TRACE("no volume file , use default volume. file name is:" << filePath.c_str());
+            DS_TRACE("no gpio file , use default gpio. file name is:" << filePath.c_str());
             return 0;
         }
         json j;
-        i >> j;
         try {
+            i >> j;
             state = j.at("gpioStatus");
             gpioModel = j.at("gpioModel");
         }

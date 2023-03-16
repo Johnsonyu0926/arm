@@ -748,10 +748,10 @@ namespace asns
 				return -1;
 			}
 
-			i >> j;
 			DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
 			try
 			{
+                i >> j;
                 g_updateJson = 1;
 				plan = j.at("data");
 			}

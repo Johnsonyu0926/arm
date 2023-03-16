@@ -56,8 +56,8 @@ namespace asns {
                 return -1;
             }
             json j;
-            i >> j;
             try {
+                i >> j;
                 business = j.at("data");
             }
             catch (json::parse_error &ex) {

@@ -93,8 +93,8 @@ namespace asns {
                 return 0;
             }
             json j;
-            i >> j;
             try {
+                i >> j;
                 volume = j.at("volume");
             }
             catch (json::parse_error &ex) {

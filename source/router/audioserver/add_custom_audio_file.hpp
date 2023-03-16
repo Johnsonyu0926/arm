@@ -243,8 +243,8 @@ namespace asns {
                 return 0;
             }
             json j;
-            i >> j;
             try {
+                i >> j;
                 business = j.at("data");
             }
             catch (json::parse_error &ex) {

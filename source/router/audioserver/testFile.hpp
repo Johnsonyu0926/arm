@@ -25,8 +25,12 @@ namespace asns {
                 DS_TRACE("open test.json fail");
             }
             json js;
-            ifs >> js;
-            testFile = js;
+            try {
+                ifs >> js;
+                testFile = js;
+            } catch (json::parse_error &ex) {
+                std::cerr << "parse error at byte " << ex.byte << std::endl;
+            }
         }
 
         void load() {
@@ -36,8 +40,12 @@ namespace asns {
                 return;
             }
             json js;
-            ifs >> js;
-            testFile = js;
+            try{
+                ifs >> js;
+                testFile = js;
+            } catch (json::parse_error &ex) {
+                std::cerr << "parse error at byte " << ex.byte << std::endl;
+            }
         }
 
         std::string getFfmpegCmd() const {
