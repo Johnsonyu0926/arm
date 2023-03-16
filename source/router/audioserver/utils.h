@@ -1024,6 +1024,7 @@ public:
                                     CGpio::getInstance().set_gpio_off();
                                 }
                             }
+                            sleep(1);
                         }
                     });
                 }
