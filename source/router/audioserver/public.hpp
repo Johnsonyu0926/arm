@@ -82,4 +82,7 @@ namespace asns {
 
     const int FEMALE = 0;
     const int MALE = 1;
+
+    const int RECORD_TIME_COMPENSATE = 2;
+    const std::string RECORD_CMD = "ffmpeg -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k 123.mp3";
 }

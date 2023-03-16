@@ -864,6 +864,9 @@ public:
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 for (int i = 0; i < num; ++i) {
                     system(std::string("aplay " + asns::TTS_PATH).c_str());
+                    if(!PlayStatus::getInstance().getPlayState()){
+                        break;
+                    }
                 }
                 PlayStatus::getInstance().init();
             });
@@ -871,6 +874,9 @@ public:
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             for (int i = 0; i < num; ++i) {
                 system(std::string("aplay " + asns::TTS_PATH).c_str());
+                if(!PlayStatus::getInstance().getPlayState()){
+                    break;
+                }
             }
             PlayStatus::getInstance().init();
         }
@@ -969,22 +975,22 @@ public:
     void record_start(const bool async = false) {
         if (async) {
             async_wait(1, 0, 0, [&] {
-                system("arecord -f cd /tmp/record.mp3");
+                cmd_system(asns::RECORD_CMD);
             });
         } else {
-            system("arecord -f cd /tmp/record.mp3");
+            cmd_system(asns::RECORD_CMD);
         }
     }
 
     void record_stop() {
-        system("killall -9 arecord");
+        cmd_system("killall -9 ffmpeg");
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
-        std::string cmd = "arecord -d " + std::to_string(time) + " -f cd /tmp/record.mp3";
-        system(cmd.c_str());
+        std::string cmd = "ffmpeg -t " + std::to_string(time + asns::RECORD_TIME_COMPENSATE) + " -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k /tmp/record.mp3";
+        cmd_system(cmd);
         std::string res = get_doupload_result(url, imei);
-        system("rm /tmp/record.mp3");
+        cmd_system("rm /tmp/record.mp3");
         return res;
     }
 
