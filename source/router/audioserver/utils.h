@@ -460,10 +460,11 @@ public:
     }
 
     int is_ros_platform() {
-        std::ifstream i("/mnt/cfg/startup");
+        std::ifstream i("/bin/cm");
         if (!i.is_open()) {
             return 0;
         }
+        i.close();
         return 1;
     }
 
