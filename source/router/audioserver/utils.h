@@ -299,13 +299,11 @@ public:
     void set_gpio_on() {
         system("echo 1 > /sys/class/gpio/gpio16/value");
         gpioStatus = 1;
-        DS_TRACE("set send dir! gpio is 1\n");
     }
 
     void set_gpio_off() {
         system("echo 0 > /sys/class/gpio/gpio16/value");
         gpioStatus = 0;
-        DS_TRACE("set receive dir! gpio is 0\n");
     }
 
     void setGpioModel(const int model) {
