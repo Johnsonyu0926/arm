@@ -982,7 +982,7 @@ public:
     }
 
     void record_stop() {
-        cmd_system("killall -9 ffmpeg");
+        cmd_system("killall ffmpeg");
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
