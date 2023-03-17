@@ -751,8 +751,8 @@ namespace asns
 
 			try
 			{
-                DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
                 i >> j;
+                DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
                 g_updateJson = 1;
 				plan = j.at("data");
 			}
