@@ -74,8 +74,10 @@ namespace asns {
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
                 return 0;
             }
+            i.close();
         }
 
         int load() {
@@ -89,8 +91,10 @@ namespace asns {
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
                 return 0;
             }
+            i.close();
             CUtils utils;
             CAudioCfgBusiness cfgBusiness;
             cfgBusiness.load();
@@ -110,6 +114,7 @@ namespace asns {
             std::ofstream o(filePath);
             json js = business;
             o << js << std::endl;
+            o.close();
         }
 
         int isNameEmpty(const std::string &name) {

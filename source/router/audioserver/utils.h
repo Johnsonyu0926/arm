@@ -271,6 +271,7 @@ public:
         j["gpioModel"] = gpioModel;
         std::ofstream o(filePath);
         o << std::setw(4) << j << std::endl;
+        o.close();
         return 0;
     }
 
@@ -288,8 +289,10 @@ public:
         }
         catch (json::parse_error &ex) {
             std::cerr << "parse error at byte " << ex.byte << std::endl;
+            i.close();
             return -1;
         }
+        i.close();
     }
 
     int getGpioStatus() const {
@@ -473,6 +476,7 @@ public:
         if (!i.is_open()) {
             return 0;
         }
+        i.close();
         return 1;
     }
 
@@ -863,7 +867,7 @@ public:
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 for (int i = 0; i < num; ++i) {
                     system(std::string("aplay " + asns::TTS_PATH).c_str());
-                    if(!PlayStatus::getInstance().getPlayState()){
+                    if (!PlayStatus::getInstance().getPlayState()) {
                         break;
                     }
                 }
@@ -873,7 +877,7 @@ public:
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             for (int i = 0; i < num; ++i) {
                 system(std::string("aplay " + asns::TTS_PATH).c_str());
-                if(!PlayStatus::getInstance().getPlayState()){
+                if (!PlayStatus::getInstance().getPlayState()) {
                     break;
                 }
             }
@@ -983,10 +987,21 @@ public:
 
     void record_stop() {
         cmd_system("killall ffmpeg");
+        int time = 0;
+        for (int i = 0; i < 20; i++) {
+            if (get_process_status("ffmpeg")) {
+                usleep(1000 * 100);
+                time++;
+            } else {
+                break;
+            }
+        }
+        DS_TRACE("killall ffmpeg record write to flash time : " << time << "00 ms");
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
-        std::string cmd = "ffmpeg -t " + std::to_string(time + asns::RECORD_TIME_COMPENSATE) + " -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k /tmp/record.mp3";
+        std::string cmd = "ffmpeg -t " + std::to_string(time + asns::RECORD_TIME_COMPENSATE) +
+                          " -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k /tmp/record.mp3";
         cmd_system(cmd);
         std::string res = get_doupload_result(url, imei);
         cmd_system("rm /tmp/record.mp3");

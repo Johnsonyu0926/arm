@@ -83,6 +83,7 @@ namespace asns {
             char buf[64] = {0};
             sprintf(buf, "cm set_val sys dacxgan %d", volume);
             system(buf);
+            o.close();
             return 0;
         }
 
@@ -99,9 +100,10 @@ namespace asns {
             }
             catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
                 return -1;
             }
-            //DS_TRACE("addjust the config volume:" << volume);
+            i.close();
             addj(volume);
             return 1;
         }

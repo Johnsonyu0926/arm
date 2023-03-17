@@ -46,6 +46,7 @@ namespace asns {
             j["data"] = business;
             std::ofstream o(AUDIOCFG_FILE_NAME);
             o << std::setw(4) << j << std::endl;
+            o.close();
         }
 
 
@@ -62,8 +63,10 @@ namespace asns {
             }
             catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
                 return -1;
             }
+            i.close();
             return 0;
         }
 

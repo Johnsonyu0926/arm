@@ -31,6 +31,7 @@ namespace asns {
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
             }
+            ifs.close();
         }
 
         void load() {
@@ -46,6 +47,7 @@ namespace asns {
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
             }
+            ifs.close();
         }
 
         std::string getFfmpegCmd() const {

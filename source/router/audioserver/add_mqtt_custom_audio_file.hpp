@@ -61,8 +61,10 @@ namespace asns {
                 business = js;
             } catch (json::parse_error &ex) {
                 std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
                 return 0;
             }
+            i.close();
         }
 
         void saveJson() {
@@ -74,6 +76,7 @@ namespace asns {
             json js = business;
             DS_TRACE("mqtt saveJson :" << js.dump().c_str());
             o << js << std::endl;
+            o.close();
         }
 
         int deleteData(const std::string &name) {

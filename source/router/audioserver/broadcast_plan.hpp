@@ -737,6 +737,7 @@ namespace asns
 			// j = json{{"data",plan}};
 			std::ofstream o(filePath);
 			o << std::setw(4) << j << std::endl;
+            o.close();
 		}
 		int load()
 		{
@@ -748,9 +749,9 @@ namespace asns
 				return -1;
 			}
 
-			DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
 			try
 			{
+                DS_TRACE("broadcast plan, json content:" << j.dump().c_str());
                 i >> j;
                 g_updateJson = 1;
 				plan = j.at("data");
@@ -758,10 +759,12 @@ namespace asns
 			catch (json::parse_error &ex)
 			{
 				std::cerr << "parse error at byte " << ex.byte << std::endl;
+                i.close();
 				return -1;
 			}
 			DS_TRACE("load " << filePath.c_str() << " success! total plan count:" << plan.DailySchedule.size());
-			return 0;
+			i.close();
+            return 0;
 		}
 		int dump()
 		{

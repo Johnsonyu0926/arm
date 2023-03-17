@@ -222,6 +222,7 @@ namespace asns {
             j["data"] = business;
             std::ofstream o(filePath);
             o << std::setw(4) << j << std::endl;
+            o.close();
             return 0;
         }
 
