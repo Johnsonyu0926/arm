@@ -547,7 +547,7 @@ int main(int argc, char **argv) {
     CAudioCfgBusiness cfg;
     cfg.load();
 
-    utils.cmd_system("ffmpeg -t 1 -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k -");
+    utils.cmd_system("ffmpeg -t 1 -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k - &");
 
     prepare_work_dir(cfg.business[0].savePrefix);
     CGpio::getInstance().load();
