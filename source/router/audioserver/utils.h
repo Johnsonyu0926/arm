@@ -715,8 +715,8 @@ public:
                 (std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
         std::thread([after, task, count, interval]() {
             if (count == 0) {
+                std::this_thread::sleep_for(std::chrono::seconds(after));
                 while (true) {
-                    std::this_thread::sleep_for(std::chrono::seconds(after));
                     task();
                     std::this_thread::sleep_for(std::chrono::seconds(interval));
                 }
@@ -1050,6 +1050,9 @@ public:
 
     void restore(const std::string &path = "") {
         if (is_ros_platform()) {
+            clean_audio_server_file(path.c_str());
+            cmd_system("cp /usr/lib/mp3/*.mp3 /mnt/audiodata/");
+            cmd_system("cp /usr/lib/mp3/*.json /mnt/cfg/");
             system("cm default");
             system("reboot");
         } else {
@@ -1123,5 +1126,9 @@ public:
         std::string day = vecName[7];
 
         return vn + '_' + v + '_' + year + month + day + "_" + vecTime[0] + vecTime[1] + vecTime[2];
+    }
+
+    void heart_beat(const std::string &path) {
+        cmd_system("echo $(date +\"%s\") > " + path);
     }
 };

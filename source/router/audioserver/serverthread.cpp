@@ -4,6 +4,7 @@
 #include "clientthread.h"
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include "utils.h"
 
 BOOL CServerThread::InitInstance() {
     CSocket socket;
@@ -18,20 +19,26 @@ BOOL CServerThread::InitInstance() {
     socket.Listen();
     int i = 0;
     while (1) {
-        CSocket *pClient = new CSocket;
+        struct timeval timeout;
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
 
         fd_set rset;
         FD_ZERO(&rset);
         FD_SET(socket.m_hSocket, &rset);
-
-        int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, NULL);
+        CUtils utils;
+        utils.heart_beat("/tmp/audio_server_netvoice_heartbeat.txt");
+        int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
         if (n < 0) {
             DS_TRACE("fatal , select error!\n");
             return 0;
+        }else if(n == 0){
+            DS_TRACE("fatal , select timeout!\n");
+            continue;
         } else if (n > 0) {
             DS_TRACE("server select n = " << n);
         }
-
+        CSocket *pClient = new CSocket;
         socket.Accept(pClient);
         DS_TRACE("Got the no."<<i<<" connection :"<<pClient->GetRemoteIp()<<":"<<ntohs(pClient->GetPeerPort()));
         i++;

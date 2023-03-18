@@ -87,6 +87,7 @@ public:
         utils.async_wait(0, asns::MQTT_HEART_BEAT_TIME, asns::MQTT_HEART_BEAT_TIME, [&] {
             std::string reStr = ServiceManage::instance().heartBeat();
             this->publish(nullptr, publish_topic.c_str(), reStr.length(), reStr.c_str());
+            utils.heart_beat("/tmp/audio_server_mqtt_heartbeat.txt");
         });
     }
 

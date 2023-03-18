@@ -360,6 +360,8 @@ HPR_VOID loop_work(HPR_UINT32 dwClientType,NET_EBASE_IOT_REGINFO struOTAPRegInfo
     HPR_BOOL bConnect = HPR_FALSE;
     while (1)
     {
+        CUtils utils;
+        utils.heart_beat("/tmp/audio_server_hik_heartbeat.txt");
         if (g_bException)
         {
             DS_TRACE("exception !\n");
@@ -522,8 +524,6 @@ int main(int argc, char **argv) {
     pServer->SetPort(nPort);
     pServer->CreateThread();
 
-    // cout << "server start success, audio running..." << endl;
-
     if (g_audiocfg.load() < 0) {
         DS_TRACE("failed to load audio cfg.\n");
         return -1;
@@ -546,6 +546,8 @@ int main(int argc, char **argv) {
 
     CAudioCfgBusiness cfg;
     cfg.load();
+
+    utils.cmd_system("ffmpeg -t 1 -y -f alsa -sample_rate 44100 -i hw:0,0 -acodec libmp3lame -ar 8k -");
 
     prepare_work_dir(cfg.business[0].savePrefix);
     CGpio::getInstance().load();

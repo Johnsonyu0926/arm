@@ -48,7 +48,6 @@ public:
             }
         }
         socket.Listen();
-        CSocket *pTcp = new CSocket;
         fd_set rset;
         FD_ZERO(&rset);
         FD_SET(socket.m_hSocket, &rset);
@@ -65,6 +64,7 @@ public:
         } else if (n > 0) {
             DS_TRACE("server select n = " << n);
         }
+        CSocket *pTcp = new CSocket;
         socket.Accept(pTcp);
         DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
         do_req(pTcp);
