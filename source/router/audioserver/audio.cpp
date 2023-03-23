@@ -243,7 +243,7 @@ void CALLBACK FuncClientSession(HPR_INT32 dwHandle, enumEBaseDataType dwType, HP
             DS_TRACE("json: " << (char *)pTemp->pDodyData);
             CStartTTSAudio ttsAudio;
             std::string res = ttsAudio.parse((char *)pTemp->pDodyData);
-            struData.pBodyData = (HPR_VOIDPTR)(res.c_str());
+            struData.pBodyData = (HPR_VOIDPTR)(resp_add_custom_audio_file);
         }
         else
         {
@@ -530,7 +530,6 @@ int main(int argc, char **argv) {
     }
     sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
 
-    CUtils utils;
     asns::CLoginData data;
     utils.async_wait(0, 0, 30, [&] {
         data.do_success();
