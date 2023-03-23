@@ -529,7 +529,7 @@ int main(int argc, char **argv) {
         return -1;
     }
     sprintf(resp, RESP_FMT, g_audiocfg.business[0].devName.c_str(), g_audiocfg.business[0].serial.c_str(),g_audiocfg.business[0].subSerial.c_str());
-
+    CUtils utils;
     asns::CLoginData data;
     utils.async_wait(0, 0, 30, [&] {
         data.do_success();
