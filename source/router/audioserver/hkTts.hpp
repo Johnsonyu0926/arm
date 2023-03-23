@@ -74,6 +74,11 @@ namespace asns {
             DS_TRACE("hk tts:" << data.ttscontent.c_str());
             utils.tts_num_play(1);
             g_playing_priority = NON_PLAY_PRIORITY;
+            CStartTTSAudioResult result;
+            result.do_success("success");
+            json s = result;
+            DS_TRACE("hk tts res:" << s.dump().c_str());
+            return s.dump();
         }
 
     private:
