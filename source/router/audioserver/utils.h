@@ -1154,23 +1154,4 @@ public:
     void heart_beat(const std::string &path) {
         cmd_system("echo $(date +\"%s\") > " + path);
     }
-
-    void restart_count() {
-        std::ifstream i("/tmp/restart_count.txt");
-        std::ofstream o;
-        if (!i.is_open()) {
-            o.open("/tmp/restart_count.txt");
-            o << "1";
-            o.close();
-            return;
-        }
-        std::string str;
-        i >> str;
-        int count = std::atol(str.c_str());
-        DS_TRACE("audioserver restart count: " << count << "+1");
-        o.open("/tmp/restart_count.txt");
-        o << std::to_string(++count);
-        o.close();
-        i.close();
-    }
 };
