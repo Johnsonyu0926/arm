@@ -471,15 +471,6 @@ public:
         return 1;
     }
 
-    int is_tts_exists() {
-        std::ifstream i("/tmp/output.pcm");
-        if (!i.is_open()) {
-            return 0;
-        }
-        i.close();
-        return 1;
-    }
-
     char *get_ros_addr() {
         char cmd[64] = {0};
         strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
@@ -545,12 +536,6 @@ public:
                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
         DS_TRACE("cmd:" << cmd);
         return get_by_cmd_res(cmd);
-    }
-
-    pid_t get_process_id(const std::string &name) {
-        char cmd[128] = {0};
-        sprintf(cmd, "ps -ef | grep %s | grep -v grep | awk '{print $2}'", name.c_str());
-        return std::atoi(get_by_cmd_res(cmd).c_str());
     }
 
     std::string get_by_cmd_res(char *cmd) {
@@ -809,26 +794,6 @@ public:
         system(cmd.c_str());
     }
 
-    int txt_to_audio(const std::string &txt, const int speed = 50, const int gender = 0) {
-        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
-        switch (gender) {
-            case 0:
-                cmd += " -l xiaoyan ";
-                break;
-            case 1:
-                cmd += " -l xiaofeng ";
-                break;
-            default:
-                break;
-        }
-        cmd += +"-f /tmp/output.pcm";
-        system(cmd.c_str());
-        system(std::string("ffmpeg -y -f s16le -ar 16000 -ac 1 -i /tmp/output.pcm " + asns::TTS_PATH).c_str());
-        int res = is_tts_exists();
-        system("rm /tmp/output.pcm");
-        return res;
-    }
-
     void audio_clear() {
         system("rm /tmp/output.wav");
         system("rm /tmp/output.pcm");
@@ -845,28 +810,63 @@ public:
         system("killall -9 aplay");
     }
 
-    void tts_loop_play(const bool async = false) {
+    void tts_loop_play(const std::string &txt, const bool async = false, const int speed = 50, const int gender = 0) {
+        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
+        switch (gender) {
+            case 0:
+                cmd += " -l xiaoyan ";
+                break;
+            case 1:
+                cmd += " -l xiaofeng ";
+                break;
+            default:
+                break;
+        }
+        cmd += "2>&1 >/dev/null";
         if (async) {
-            async_wait(1, 0, 0, [&] {
+            async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    system(std::string("aplay " + asns::TTS_PATH).c_str());
+                    if(!get_process_status("ffplay")){
+                        cmd_system(cmd);
+                    }
+                    usleep(1000 * 100);
                 }
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                system(std::string("aplay " + asns::TTS_PATH).c_str());
+                if(!get_process_status("ffplay")){
+                    cmd_system(cmd);
+                }
+                usleep(1000 * 100);
             }
         }
     }
 
-    void tts_num_play(const int num, const bool async = false) {
+    void tts_num_play(const int num, const std::string &txt, const bool async = false, const int speed = 50,
+                      const int gender = 0) {
+        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
+        switch (gender) {
+            case 0:
+                cmd += " -l xiaoyan ";
+                break;
+            case 1:
+                cmd += " -l xiaofeng ";
+                break;
+            default:
+                break;
+        }
+        cmd += "2>&1 >/dev/null";
+        std::cout << "tts_num_play cmd :" << cmd << std::endl;
         if (async) {
             async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 for (int i = 0; i < num; ++i) {
-                    system(std::string("aplay " + asns::TTS_PATH).c_str());
+                    while(get_process_status("ffplay")){
+                        usleep(1000 * 100);
+                    }
+                    cmd_system(cmd);
                     if (!PlayStatus::getInstance().getPlayState()) {
                         break;
                     }
@@ -876,7 +876,10 @@ public:
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             for (int i = 0; i < num; ++i) {
-                system(std::string("aplay " + asns::TTS_PATH).c_str());
+                while(get_process_status("ffplay")){
+                    usleep(1000 * 100);
+                }
+                cmd_system(cmd);
                 if (!PlayStatus::getInstance().getPlayState()) {
                     break;
                 }
@@ -885,22 +888,42 @@ public:
         }
     }
 
-    void tts_time_play(const int time, const bool async = false) {
+    void tts_time_play(const int time, const std::string &txt, const bool async = false, const int speed = 50,
+                       const int gender = 0) {
+        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
+        switch (gender) {
+            case 0:
+                cmd += " -l xiaoyan ";
+                break;
+            case 1:
+                cmd += " -l xiaofeng ";
+                break;
+            default:
+                break;
+        }
+        cmd += "2>&1 >/dev/null";
+        std::cout << "tts_time_play cmd :" << cmd << std::endl;
         async_wait(1, time, 0, [&] {
-            system("killall -9 aplay");
+            cmd_system("killall -9 ffplay");
             PlayStatus::getInstance().init();
         });
         if (async) {
-            async_wait(1, 0, 0, [&] {
+            async_wait(1, 0, 0, [=] {
                 PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
                 while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    system(std::string("aplay " + asns::TTS_PATH).c_str());
+                    if(!get_process_status("ffplay")){
+                        cmd_system(cmd);
+                    }
+                    usleep(1000 * 100);
                 }
             });
         } else {
             PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
             while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                system(std::string("aplay " + asns::TTS_PATH).c_str());
+                if(!get_process_status("ffplay")){
+                    cmd_system(cmd);
+                }
+                usleep(1000 * 100);
             }
         }
     }
@@ -1130,5 +1153,24 @@ public:
 
     void heart_beat(const std::string &path) {
         cmd_system("echo $(date +\"%s\") > " + path);
+    }
+
+    void restart_count() {
+        std::ifstream i("/tmp/restart_count.txt");
+        std::ofstream o;
+        if (!i.is_open()) {
+            o.open("/tmp/restart_count.txt");
+            o << "1";
+            o.close();
+            return;
+        }
+        std::string str;
+        i >> str;
+        int count = std::atol(str.c_str());
+        DS_TRACE("audioserver restart count: " << count << "+1");
+        o.open("/tmp/restart_count.txt");
+        o << std::to_string(++count);
+        o.close();
+        i.close();
     }
 };

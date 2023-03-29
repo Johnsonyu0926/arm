@@ -72,6 +72,8 @@ namespace asns {
 
     const bool ASYNC_START = true;
 
+    const int SINGLE_PLAY = 1;
+
     const int GPIO_CUSTOM_MODE = 1;
     const int GPIO_PLAY_MODE = 2;
 

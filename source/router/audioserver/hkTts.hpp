@@ -67,9 +67,8 @@ namespace asns {
             std::string txt = data.ttscontent;
             utils.async_wait(1, 0, 0, [txt] {
                 CUtils Util;
-                Util.txt_to_audio(txt);
                 DS_TRACE("hk tts:" << txt.c_str());
-                Util.tts_num_play(1);
+                Util.tts_num_play(1,txt);
             });
             g_playing_priority = NON_PLAY_PRIORITY;
             CStartTTSAudioResult result;

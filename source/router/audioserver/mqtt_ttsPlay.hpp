@@ -32,14 +32,9 @@ namespace asns {
                 r.result = "Already played";
                 return 2;
             }
-            if(!utils.txt_to_audio(c.data.content)){
-                r.resultId = 2;
-                r.result = "tts fail";
-                return 2;
-            }
             switch (c.data.timeType) {
                 case 0: {
-                    utils.tts_loop_play(ASYNC_START);
+                    utils.tts_loop_play(c.data.content, ASYNC_START);
                     break;
                 }
                 case 1: {
@@ -48,7 +43,7 @@ namespace asns {
                         r.result = "play count error";
                         return 2;
                     }
-                    utils.tts_num_play(c.data.playCount, ASYNC_START);
+                    utils.tts_num_play(c.data.playCount, c.data.content, ASYNC_START);
                     break;
                 }
                 case 2: {
@@ -57,7 +52,7 @@ namespace asns {
                         r.result = "play time error";
                         return 2;
                     }
-                    utils.tts_time_play(c.data.playDuration, ASYNC_START);
+                    utils.tts_time_play(c.data.playDuration, c.data.content, ASYNC_START);
                     break;
                 }
                 default:

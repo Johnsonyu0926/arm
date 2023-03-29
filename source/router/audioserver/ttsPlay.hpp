@@ -39,22 +39,16 @@ namespace asns {
                 ttsPlayResult.do_fail("Existing playback task");
             } else {
                 std::string txt = utils.hex_to_string(content);
-                if (!utils.txt_to_audio(txt, speed, voiceType)) {
-                    ttsPlayResult.do_fail("tts fail");
-                    json js = ttsPlayResult;
-                    std::string str = js.dump();
-                    return pClient->Send(str.c_str(), str.length());
-                }
                 switch (playType) {
                     case 0:
-                        utils.tts_loop_play(ASYNC_START);
+                        utils.tts_loop_play(txt, ASYNC_START, speed, voiceType);
                         break;
                     case 1: {
                         if (duration < 1) {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        utils.tts_num_play(duration, ASYNC_START);
+                        utils.tts_num_play(duration, txt, ASYNC_START, speed, voiceType);
                         break;
                     }
                     case 2: {
@@ -62,7 +56,7 @@ namespace asns {
                             ttsPlayResult.do_fail("parameter cannot be less than 1");
                             break;
                         }
-                        utils.tts_time_play(duration, ASYNC_START);
+                        utils.tts_time_play(duration, txt, ASYNC_START, speed,voiceType);
                         break;
                     }
                 }

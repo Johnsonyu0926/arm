@@ -102,18 +102,16 @@ namespace asns {
     public:
         int play(string endTime, const int priority, const std::string &txt, const std::string &voiceType,const int model) {
             CUtils utils;
-            if (voiceType.compare("male") == 0) {
-                utils.txt_to_audio(txt, 50, MALE);
-            } else {
-                utils.txt_to_audio(txt, 50, FEMALE);
-            }
-            if(model == 1){
-                utils.tts_num_play(1,ASYNC_START);
+            if(model == SINGLE_PLAY){
+                utils.tts_num_play(1,txt, ASYNC_START);
                 return 0;
             }
-            utils.tts_num_play(1, ASYNC_START);
+            if (voiceType.compare("male") == 0) {
+                utils.tts_num_play(1, txt, ASYNC_START, 50, MALE);
+            } else {
+                utils.tts_num_play(1, txt, ASYNC_START, 50, FEMALE);
+            }
             CSTime tnow;
-
             tnow.GetCurTime();
             int h, m, s;
             sscanf(endTime.c_str(), "%d:%d:%d", &h, &m, &s);

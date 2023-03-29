@@ -33,7 +33,6 @@ BOOL CServerThread::InitInstance() {
             DS_TRACE("fatal , select error!\n");
             return 0;
         }else if(n == 0){
-            DS_TRACE("fatal , select timeout!\n");
             continue;
         } else if (n > 0) {
             DS_TRACE("server select n = " << n);

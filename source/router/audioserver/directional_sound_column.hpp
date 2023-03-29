@@ -230,11 +230,8 @@ namespace asns {
             if (utils.statistical_character_count(txt) > 100) {
                 return SendFast(asns::TTS_TXT_LENGTH_ERROR, pClient);
             }
-            if (!utils.txt_to_audio(txt)) {
-                return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
-            }
             SendTrue(pClient);
-            utils.tts_loop_play(asns::ASYNC_START);
+            utils.tts_loop_play(txt, asns::ASYNC_START);
         }
 
         int TtsNumTimePlay(const std::vector<std::string> &m_str, CSocket *pClient = nullptr) {
@@ -252,27 +249,24 @@ namespace asns {
             int duration = std::stoi(m_str[6]);
             utils.async_wait(1, 0, 0, [=] {
                 CUtils utils;
-                if (!utils.txt_to_audio(txt)) {
-                    return SendFast(asns::AUDIO_FILE_NOT_EXITS, pClient);
-                }
                 switch (playType) {
                     case 0: {
                         SendTrue(pClient);
-                        utils.tts_loop_play();
+                        utils.tts_loop_play(txt);
                         return 0;
                     }
                     case 1: {
                         if (duration < 1) {
                             return SendFast(asns::NONSUPPORT_ERROR, pClient);
                         }
-                        utils.tts_num_play(duration);
+                        utils.tts_num_play(duration,txt);
                         break;
                     }
                     case 2: {
                         if (duration < 1) {
                             return SendFast(asns::NONSUPPORT_ERROR, pClient);
                         }
-                        utils.tts_time_play(duration);
+                        utils.tts_time_play(duration,txt);
                         break;
                     }
                     default:
