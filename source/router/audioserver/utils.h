@@ -1146,11 +1146,13 @@ public:
 
         std::string year = vecName[10].substr(vecName[10].length() - 2, 2);
         std::string month = m_month[vecName[6]];
-        std::string day = vecName[7];
-        if(std::atoi(day.c_str()) < 10){
-            day = "0" + day;
-        }
-        return vn + '_' + v + '_' + year + month + day + "_" + vecTime[0] + vecTime[1] + vecTime[2];
+        int day = std::atoi(vecName[7].c_str());
+        int hour = std::atoi(vecTime[0].c_str());
+        int min = std::atoi(vecTime[1].c_str());
+        int sec = std::atoi(vecTime[2].c_str());
+        char buf[32] = {0};
+        sprintf(buf, "%02d_%02d%02d%02d", day, hour, min, sec);
+        return vn + '_' + v + '_' + year + month + buf;
     }
 
     void heart_beat(const std::string &path) {
