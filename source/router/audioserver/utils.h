@@ -1147,7 +1147,9 @@ public:
         std::string year = vecName[10].substr(vecName[10].length() - 2, 2);
         std::string month = m_month[vecName[6]];
         std::string day = vecName[7];
-
+        if(std::atoi(day.c_str()) < 10){
+            day = "0" + day;
+        }
         return vn + '_' + v + '_' + year + month + day + "_" + vecTime[0] + vecTime[1] + vecTime[2];
     }
 
