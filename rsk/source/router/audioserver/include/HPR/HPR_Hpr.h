@@ -1,0 +1,18 @@
+#ifndef __HPR_HPR_H__
+#define __HPR_HPR_H__
+
+#include "HPR_Config.h"
+#include "HPR_Types.h"
+
+HPR_DECLARE HPR_INT32 CALLBACK HPR_Init();
+HPR_DECLARE HPR_INT32 CALLBACK HPR_InitEx();
+HPR_DECLARE HPR_VOID CALLBACK HPR_Fini();
+HPR_DECLARE HPR_VOID CALLBACK HPR_FiniEx();
+HPR_DECLARE HPR_UINT32 CALLBACK HPR_GetHPRVersion();
+
+#define LOG_PRINT 0x00000001
+#define LOG_FILE 0x00000002
+
+HPR_DECLARE HPR_INT32 CALLBACK HPR_Log(int action, const char* path = NULL);
+
+#endif // __HPR_HPR_H__

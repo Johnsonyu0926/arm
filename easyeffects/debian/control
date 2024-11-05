@@ -1,0 +1,46 @@
+Source: easyeffects
+Section: sound
+Priority: optional
+Maintainer: Boyuan Yang <byang@debian.org>
+Build-Depends:
+ appstream-util,
+ debhelper-compat (= 13),
+ gettext,
+ itstool,
+ libadwaita-1-dev,
+ libbs2b-dev,
+ libebur128-dev,
+ libfftw3-dev,
+ libfmt-dev,
+ libglib2.0-dev,
+ libgtk-4-dev,
+ liblilv-dev,
+ libpipewire-0.3-dev,
+ libsoundtouch-dev,
+ libsamplerate0-dev,
+ libsigc++-3.0-dev,
+ libsndfile-dev,
+ libspeexdsp-dev,
+ libtbb-dev,
+ libzita-convolver-dev,
+ lv2-dev,
+ meson,
+ nlohmann-json3-dev,
+ pkg-config,
+ ladspa-sdk,
+Standards-Version: 4.6.1
+Homepage: https://github.com/wwmm/easyeffects
+
+Package: easyeffects
+Architecture: any
+Depends:
+ calf-plugins,
+ lsp-plugins-lv2 | lsp-plugins,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Recommends:
+ mda-lv2,
+ zam-plugins,
+ libdeep_filter_ladspa,
+Description: Audio effects for PipeWire applications
+ Many sound effects for PipeWire input and output.

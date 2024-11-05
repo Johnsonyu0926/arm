@@ -1,0 +1,119 @@
+{
+    "version": "1.0",
+    "audioType": "customNotification",
+    "lastUpdated": "2023-05-20T10:30:00Z",
+    "files": {
+        "1.mp3": {
+            "type": "notification",
+            "size": 39245,
+            "sizeUnit": "bytes",
+            "duration": 2.5,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:45:00Z"
+        },
+        "2.mp3": {
+            "type": "notification",
+            "size": 22091,
+            "sizeUnit": "bytes",
+            "duration": 1.8,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:46:00Z"
+        },
+        "3.mp3": {
+            "type": "notification",
+            "size": 24107,
+            "sizeUnit": "bytes",
+            "duration": 2.0,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:47:00Z"
+        },
+        "4.mp3": {
+            "type": "notification",
+            "size": 28715,
+            "sizeUnit": "bytes",
+            "duration": 2.3,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:48:00Z"
+        },
+        "5.mp3": {
+            "type": "notification",
+            "size": 26321,
+            "sizeUnit": "bytes",
+            "duration": 2.1,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:49:00Z"
+        },
+        "6.mp3": {
+            "type": "notification",
+            "size": 27045,
+            "sizeUnit": "bytes",
+            "duration": 2.2,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:50:00Z"
+        },
+        "7.mp3": {
+            "type": "notification",
+            "size": 23291,
+            "sizeUnit": "bytes",
+            "duration": 1.9,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:51:00Z"
+        },
+        "8.mp3": {
+            "type": "notification",
+            "size": 51852,
+            "sizeUnit": "bytes",
+            "duration": 4.2,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:52:00Z"
+        },
+        "9.mp3": {
+            "type": "notification",
+            "size": 66786,
+            "sizeUnit": "bytes",
+            "duration": 5.4,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:53:00Z"
+        },
+        "10.mp3": {
+            "type": "notification",
+            "size": 19796,
+            "sizeUnit": "bytes",
+            "duration": 1.6,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:54:00Z"
+        },
+        "11.mp3": {
+            "type": "notification",
+            "size": 26436,
+            "sizeUnit": "bytes",
+            "duration": 2.1,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:55:00Z"
+        },
+        "12.mp3": {
+            "type": "notification",
+            "size": 41349,
+            "sizeUnit": "bytes",
+            "duration": 3.3,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:56:00Z"
+        },
+        "13.mp3": {
+            "type": "notification",
+            "size": 37893,
+            "sizeUnit": "bytes",
+            "duration": 3.1,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:57:00Z"
+        },
+        "14.mp3": {
+            "type": "notification",
+            "size": 32517,
+            "sizeUnit": "bytes",
+            "duration": 2.6,
+            "durationUnit": "seconds",
+            "lastModified": "2023-05-15T08:58:00Z"
+        }
+    }
+}

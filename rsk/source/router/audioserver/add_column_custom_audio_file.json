@@ -1,0 +1,53 @@
+{
+  "id": "unique_file_id",
+  "name": "Custom Audio File",
+  "path": "/path/to/audio/file"
+}
+
+/*用途：
+自定义列音频文件配置：文件名 "accaf.json" 暗示这可能是用于向系统添加新的自定义列音频文件的配置。
+音频文件管理：用于在音频管理系统中添加或更新音频文件信息。
+音频播放器配置：可能用于配置音频播放器中的自定义音频文件。
+在实际应用中，您可以这样使用这个文件：
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
+class CustomColumnAudioFileManager {
+public:
+    void addCustomColumnAudioFile(const std::string& configPath) {
+        std::ifstream file(configPath);
+        if (!file.is_open()) {
+            std::cerr << "Failed to open config file: " << configPath << std::endl;
+            return;
+        }
+
+        nlohmann::json config;
+        try {
+            file >> config;
+            
+            std::string id = config["id"];
+            std::string name = config["name"];
+            std::string path = config["path"];
+
+            // 这里添加将自定义列音频文件信息添加到系统的逻辑
+            std::cout << "Adding custom column audio file:" << std::endl;
+            std::cout << "ID: " << id << std::endl;
+            std::cout << "Name: " << name << std::endl;
+            std::cout << "Path: " << path << std::endl;
+
+            // 例如，可以将信息存储到数据库或内存中的数据结构
+            // 可能还需要验证文件路径、检查文件类型等
+        } catch (const nlohmann::json::exception& e) {
+            std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        }
+    }
+
+    // 其他相关方法...
+};
+
+int main() {
+    CustomColumnAudioFileManager manager;
+    manager.addCustomColumnAudioFile("accaf.json");
+    return 0;
+}

@@ -1,0 +1,52 @@
+#pragma once
+
+#include <speex/speex_preprocess.h>
+#include <speex/speexdsp_config_types.h>
+#include <sys/types.h>
+#include <climits>
+#include <span>
+#include <string>
+#include <vector>
+#include "pipe_manager.hpp"
+#include "plugin_base.hpp"
+
+class Speex : public PluginBase {
+ public:
+  Speex(const std::string& tag,
+        const std::string& schema,
+        const std::string& schema_path,
+        PipeManager* pipe_manager,
+        PipelineType pipe_type);
+  Speex(const Speex&) = delete;
+  auto operator=(const Speex&) -> Speex& = delete;
+  Speex(Speex&&) = delete;
+  auto operator=(Speex&&) -> Speex& = delete;
+  ~Speex() override;
+
+  void setup() override;
+
+  void process(std::span<float> left_in,
+               std::span<float> right_in,
+               std::span<float> left_out,
+               std::span<float> right_out) override;
+
+  auto get_latency_seconds() -> float override;
+
+ private:
+  bool speex_ready = false;
+
+  int enable_denoise = 0, noise_suppression = -15, enable_agc = 0, enable_vad = 0, vad_probability_start = 95,
+      vad_probability_continue = 90, enable_dereverb = 0;
+
+  uint latency_n_frames = 0U;
+
+  const float inv_short_max = 1.0F / (SHRT_MAX + 1);
+
+  std::vector<spx_int16_t> data_L, data_R;
+
+  SpeexPreprocessState *state_left = nullptr, *state_right = nullptr;
+
+  void free_speex();
+};
+
+// By GST @2024/10/27

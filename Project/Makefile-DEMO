@@ -1,0 +1,80 @@
+以下是一个示例 Makefile，展示如何编译多个应用程序并生成各自的可执行文件：
+# 顶层 Makefile 示例
+CC = gcc
+CFLAGS = -Iinclude -Isrc/utils/include -Isrc/drivers/include -Isrc/middleware/include -Isrc/app1/include -Isrc/app2/include
+LDFLAGS = -Llibs -lfoo
+
+# 查找所有源文件
+SRC_MAIN = src/main.c
+SRC_UTILS = $(wildcard src/utils/*.c)
+SRC_DRIVERS = $(wildcard src/drivers/*.c)
+SRC_MIDDLEWARE = $(wildcard src/middleware/*.c)
+SRC_APP1 = $(wildcard src/app1/*.c)
+SRC_APP2 = $(wildcard src/app2/*.c)
+
+# 定义对象文件目录
+OBJ_DIR = build
+OBJ_APP1 = $(SRC_APP1:src/%.c=$(OBJ_DIR)/%.o)
+OBJ_APP2 = $(SRC_APP2:src/%.c=$(OBJ_DIR)/%.o)
+
+# 生成目标
+all: app1 app2
+
+# 生成 app1 可执行文件
+app1: $(OBJ_APP1)
+	$(CC) -o $(OBJ_DIR)/app1/app1 $^ $(LDFLAGS)
+
+# 生成 app2 可执行文件
+app2: $(OBJ_APP2)
+	$(CC) -o $(OBJ_DIR)/app2/app2 $^ $(LDFLAGS)
+
+# 编译源文件
+$(OBJ_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 复制头文件
+copy_headers:
+	@mkdir -p include/app1 include/app2 include/utils include/drivers include/middleware
+	@cp -r src/app1/include/* include/app1/
+	@cp -r src/app2/include/* include/app2/
+	@cp -r src/utils/include/* include/utils/
+	@cp -r src/drivers/include/* include/drivers/
+	@cp -r src/middleware/include/* include/middleware/
+
+clean:
+	rm -rf $(OBJ_DIR)/* include/*
+
+.PHONY: all clean copy_headers
+
+### 解释
+定义变量：
+`CC`, `CFLAGS`, `LDFLAGS`：定义编译器、编译选项和链接选项。
+`SRC_MAIN`, `SRC_UTILS`, `SRC_DRIVERS`, `SRC_MIDDLEWARE`, `SRC_APP1`, `SRC_APP2`：定义各子模块的源文件。
+生成目标：
+`all`：默认目标，生成多个可执行文件（app1 和 app2）。
+`app1`：生成 `app1` 可执行文件，依赖 `app1` 的对象文件。
+`app2`：生成 `app2` 可执行文件，依赖 `app2` 的对象文件。
+编译规则：
+`$(OBJ_DIR)/%.o: src/%.c`：定义编译规则，从 `src` 目录下的源文件生成 `build` 目录下的对象文件。
+`@mkdir -p $(dir $@)`：确保对象文件目录存在。
+头文件管理：
+`copy_headers`：将子模块的头文件复制到 `include` 目录中，确保头文件在编译过程中可以被正确引用。
+清理目标：
+`clean`：删除所有生成的对象文件和可执行文件，以及 `include` 目录中的头文件。
+### 部署包生成
+
+可以通过编译脚本自动生成部署包，只包含必要的二进制文件和资源文件：
+# 编译目标增加部署包生成
+all: app1 app2 deployment_package
+
+# 生成部署包
+deployment_package: $(OBJ_DIR)/app1/app1 $(OBJ_DIR)/app2/app2
+	@mkdir -p deployment_package/bin deployment_package/lib deployment_package/config deployment_package/data
+	@cp $(OBJ_DIR)/app1/app1 deployment_package/bin/
+	@cp $(OBJ_DIR)/app2/app2 deployment_package/bin/
+	@cp libs/*.so deployment_package/lib/
+	@cp config/*.ini deployment_package/config/
+	@cp data/*.bin deployment_package/data/
+
+通过这种结构和编译脚本，您可以确保在项目开发阶段有完整的源代码和头文件，而在部署阶段只有必要的二进制文件和资源文件。这有助于提升系统的安全性和运行效率，同时保持项目结构的清晰和可维护性。多个应用程序可以一起编译并生成各自的可执行文件，方便在嵌入式系统中进行部署和运行。

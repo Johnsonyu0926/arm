@@ -1,0 +1,98 @@
+// AcquisitionNoise.hpp
+#pragma once
+
+#include <string>
+#include <nlohmann/json.hpp>
+
+class AcquisitionNoise {
+public:
+    AcquisitionNoise() : pin_(0), mode_("output"), state_("low") {}
+
+    AcquisitionNoise(int pin, std::string mode, std::string state)
+        : pin_(pin), mode_(std::move(mode)), state_(std::move(state)) {}
+
+    [[nodiscard]] int getPin() const { return pin_; }
+    void setPin(int pin) { pin_ = pin; }
+
+    [[nodiscard]] const std::string& getMode() const { return mode_; }
+    void setMode(std::string mode) { mode_ = std::move(mode); }
+
+    [[nodiscard]] const std::string& getState() const { return state_; }
+    void setState(std::string state) { state_ = std::move(state); }
+
+    [[nodiscard]] nlohmann::json toJson() const {
+        return nlohmann::json{
+            {"pin", pin_},
+            {"mode", mode_},
+            {"state", state_}
+        };
+    }
+
+    static AcquisitionNoise fromJson(const nlohmann::json& j) {
+        return AcquisitionNoise(
+            j.at("pin").get<int>(),
+            j.at("mode").get<std::string>(),
+            j.at("state").get<std::string>()
+        );
+    }
+
+    bool loadFromFile(const std::string& filename) {
+        try {
+            std::ifstream file(filename);
+            if (!file.is_open()) {
+                std::cerr << "Failed to open file: " << filename << std::endl;
+                return false;
+            }
+
+            nlohmann::json j = nlohmann::json::parse(file);
+            *this = fromJson(j);
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading from file: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool saveToFile(const std::string& filename) const {
+        try {
+            std::ofstream file(filename);
+            if (!file.is_open()) {
+                std::cerr << "Failed to open file for writing: " << filename << std::endl;
+                return false;
+            }
+
+            file << toJson().dump(4);
+            return file.good();
+        } catch (const std::exception& e) {
+            std::cerr << "Error saving to file: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+private:
+    int pin_;
+    std::string mode_;
+    std::string state_;
+};
+
+//By GST ARMV8 GCC13.2 AcquisitionNoise.hpp
+
+/*要使用这个类，你需要包含 nlohmann/json 库。例如：
+#include "AcquisitionNoise.hpp"
+#include <iostream>
+
+int main() {
+    AcquisitionNoise noise;
+    if (noise.loadFromFile("AcquisitionNoise.json")) {
+        std::cout << "Loaded configuration: " << noise.toJson().dump(4) << std::endl;
+    }
+
+    noise.setPin(18);
+    noise.setState("low");
+
+    if (noise.saveToFile("new_config.json")) {
+        std::cout << "Saved new configuration to file." << std::endl;
+    }
+
+    return 0;
+}

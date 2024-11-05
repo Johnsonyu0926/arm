@@ -1,0 +1,9 @@
+//log_config.json
+{
+    "log_file": "/var/log/audioserver.log",
+    "max_file_size": 10485760,
+    "max_files": 3,
+    "flush_interval": 5,
+    "console_log_level": "info",
+    "file_log_level": "trace"
+}

@@ -1,0 +1,46 @@
+{
+  "id": "unique_file_id",
+  "name": "Custom Audio File",
+  "path": "/path/to/audio/file"
+}
+
+/*使用 C++ 和 nlohmann/json 库，您可以这样处理这个文件：
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
+class AudioFileManager {
+public:
+    void addCustomAudioFile(const std::string& configPath) {
+        std::ifstream file(configPath);
+        if (!file.is_open()) {
+            std::cerr << "Failed to open config file: " << configPath << std::endl;
+            return;
+        }
+
+        nlohmann::json config;
+        try {
+            file >> config;
+            
+            std::string id = config["id"];
+            std::string name = config["name"];
+            std::string path = config["path"];
+
+            // 这里添加将音频文件信息添加到系统的逻辑
+            std::cout << "Adding custom audio file:" << std::endl;
+            std::cout << "ID: " << id << std::endl;
+            std::cout << "Name: " << name << std::endl;
+            std::cout << "Path: " << path << std::endl;
+
+            // 例如，可以将信息存储到数据库或内存中的数据结构
+        } catch (const nlohmann::json::exception& e) {
+            std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        }
+    }
+};
+
+int main() {
+    AudioFileManager manager;
+    manager.addCustomAudioFile("addcaf.json");
+    return 0;
+}

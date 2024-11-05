@@ -1,0 +1,88 @@
+#include <mem.h>
+#include <arm64/armv8-a.dtsi>
+#include <zephyr/dt-bindings/interrupt-controller/arm-gic.h>
+{
+    #address-cells = <2>;
+    #size-cells = <2>;
+    interrupt-parent = <&gic>;
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        timebase-frequency = <24000000>;
+        cpu@0 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a55";
+            reg = <0x0>;
+            enable-method = "psci";
+            clocks = <&cru ARMCLK>;
+            clock-names = "cpu";
+            power-domains = <&power RK3566_PD_A55_0>;
+        };
+        cpu@1 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a55";
+            reg = <0x1>;
+            enable-method = "psci";
+            clocks = <&cru ARMCLK>;
+            clock-names = "cpu";
+            power-domains = <&power RK3566_PD_A55_1>;
+        };
+        cpu@2 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a55";
+            reg = <0x2>;
+            enable-method = "psci";
+            clocks = <&cru ARMCLK>;
+            clock-names = "cpu";
+            power-domains = <&power RK3566_PD_A55_2>;
+        };
+        cpu@3 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a55";
+            reg = <0x3>;
+            enable-method = "psci";
+            clocks = <&cru ARMCLK>;
+            clock-names = "cpu";
+            power-domains = <&power RK3566_PD_A55_3>;
+        };
+    };
+    gic: interrupt-controller@fd400000 {
+        compatible = "arm,gic-v3";
+        #interrupt-cells = <3>;
+        interrupt-controller;
+        reg = <0x0 0xfd400000 0x0 0x10000>,
+              <0x0 0xfd460000 0x0 0xc0000>;
+    };
+    psci {
+        compatible = "arm,psci-1.0";
+        method = "smc";
+    };
+    timer {
+        compatible = "arm,armv8-timer";
+        interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+                     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+                     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+                     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
+    };
+    uart2: serial@fe660000 {
+        compatible = "rockchip,rk3566-uart", "ns16550a";
+        reg = <0x0 0xfe660000 0x0 0x100>;
+        interrupts = <GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH>;
+        reg-shift = <2>;
+        reg-io-width = <4>;
+        clocks = <&cru SCLK_UART2>;
+        clock-names = "baudclk";
+        status = "okay";
+    };
+    cru: clock-controller@ff760000 {
+        compatible = "rockchip,rk3566-cru";
+        reg = <0x0 0xff760000 0x0 0x1000>;
+        #clock-cells = <1>;
+        #reset-cells = <1>;
+    };
+    power: power-controller {
+        compatible = "rockchip,rk3566-power";
+        #power-domain-cells = <1>;
+    };
+};
+// By GST @Date
