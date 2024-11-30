@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/hash/hash_map_cxx.cpp
 
 #include <memory>
 #include <unordered_map>
@@ -66,8 +62,7 @@ static void sys_hashmap_cxx_clear(struct sys_hashmap *map, sys_hashmap_callback_
 	map->data->size = 0;
 }
 
-static int sys_hashmap_cxx_insert(struct sys_hashmap *map, uint64_t key, uint64_t value,
-				  uint64_t *old_value)
+static int sys_hashmap_cxx_insert(struct sys_hashmap *map, uint64_t key, uint64_t value, uint64_t *old_value)
 {
 	cxx_map *umap = static_cast<cxx_map *>(map->data->buckets);
 
@@ -155,3 +150,4 @@ const struct sys_hashmap_api sys_hashmap_cxx_api = {
 	.get = sys_hashmap_cxx_get,
 };
 }
+//GST

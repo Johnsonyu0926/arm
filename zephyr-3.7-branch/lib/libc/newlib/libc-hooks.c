@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2015, Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/newlib/libc-hooks.c
 #include <zephyr/arch/cpu.h>
 #include <errno.h>
 #include <stdio.h>
@@ -32,8 +27,8 @@ int _lseek(int file, int ptr, int dir);
 int _kill(int pid, int sig);
 int _getpid(void);
 
-#define LIBC_BSS	K_APP_BMEM(z_libc_partition)
-#define LIBC_DATA	K_APP_DMEM(z_libc_partition)
+#define LIBC_BSS K_APP_BMEM(z_libc_partition)
+#define LIBC_DATA K_APP_DMEM(z_libc_partition)
 
 /*
  * End result of this thorny set of ifdefs is to define:
@@ -43,73 +38,68 @@ int _getpid(void);
  */
 
 #ifdef CONFIG_MMU
-	#ifdef CONFIG_USERSPACE
-		struct k_mem_partition z_malloc_partition;
-	#endif
+#ifdef CONFIG_USERSPACE
+struct k_mem_partition z_malloc_partition;
+#endif
 
-	LIBC_BSS static unsigned char *heap_base;
-	LIBC_BSS static size_t max_heap_size;
+LIBC_BSS static unsigned char *heap_base;
+LIBC_BSS static size_t max_heap_size;
 
-	#define HEAP_BASE		heap_base
-	#define MAX_HEAP_SIZE		max_heap_size
-	#define USE_MALLOC_PREPARE	1
+#define HEAP_BASE heap_base
+#define MAX_HEAP_SIZE max_heap_size
+#define USE_MALLOC_PREPARE 1
 #elif CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE
-	/* Arena size expressed in Kconfig, due to power-of-two size/align
-	 * requirements of certain MPUs.
-	 *
-	 * We use an automatic memory partition instead of setting this up
-	 * in malloc_prepare().
-	 */
-	K_APPMEM_PARTITION_DEFINE(z_malloc_partition);
-	#define MALLOC_BSS	K_APP_BMEM(z_malloc_partition)
+/* Arena size expressed in Kconfig, due to power-of-two size/align
+ * requirements of certain MPUs.
+ *
+ * We use an automatic memory partition instead of setting this up
+ * in malloc_prepare().
+ */
+K_APPMEM_PARTITION_DEFINE(z_malloc_partition);
+#define MALLOC_BSS K_APP_BMEM(z_malloc_partition)
 
-	/* Compiler will throw an error if the provided value isn't a
-	 * power of two
-	 */
-	MALLOC_BSS static unsigned char
-		__aligned(CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE)
-		heap_base[CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE];
-	#define MAX_HEAP_SIZE CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE
-	#define HEAP_BASE heap_base
+/* Compiler will throw an error if the provided value isn't a
+ * power of two
+ */
+MALLOC_BSS static unsigned char
+    __aligned(CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE)
+        heap_base[CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE];
+#define MAX_HEAP_SIZE CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE
+#define HEAP_BASE heap_base
 #else /* Not MMU or CONFIG_NEWLIB_LIBC_ALIGNED_HEAP_SIZE */
-	#define USED_RAM_END_ADDR   POINTER_TO_UINT(&_end)
+#define USED_RAM_END_ADDR POINTER_TO_UINT(&_end)
 
-	#ifdef Z_MALLOC_PARTITION_EXISTS
-		/* Start of malloc arena needs to be aligned per MPU
-		 * requirements
-		 */
-		struct k_mem_partition z_malloc_partition;
+#ifdef Z_MALLOC_PARTITION_EXISTS
+/* Start of malloc arena needs to be aligned per MPU
+ * requirements
+ */
+struct k_mem_partition z_malloc_partition;
 
-		#if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
-			#define HEAP_BASE	ROUND_UP(USED_RAM_END_ADDR, \
-				 CONFIG_ARM_MPU_REGION_MIN_ALIGN_AND_SIZE)
-		#elif defined(CONFIG_ARC)
-			#define HEAP_BASE	ROUND_UP(USED_RAM_END_ADDR, \
-							  Z_ARC_MPU_ALIGN)
-		#else
-			#error "Unsupported platform"
-		#endif /* CONFIG_<arch> */
-		#define USE_MALLOC_PREPARE	1
-	#else
-		/* End of kernel image */
-		#define HEAP_BASE		USED_RAM_END_ADDR
-	#endif
+#if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
+#define HEAP_BASE ROUND_UP(USED_RAM_END_ADDR, CONFIG_ARM_MPU_REGION_MIN_ALIGN_AND_SIZE)
+#elif defined(CONFIG_ARC)
+#define HEAP_BASE ROUND_UP(USED_RAM_END_ADDR, Z_ARC_MPU_ALIGN)
+#else
+#error "Unsupported platform"
+#endif /* CONFIG_<arch> */
+#define USE_MALLOC_PREPARE 1
+#else
+/* End of kernel image */
+#define HEAP_BASE USED_RAM_END_ADDR
+#endif
 
-	/* End of the malloc arena is the end of physical memory */
-	#if defined(CONFIG_XTENSA)
-		/* TODO: Why is xtensa a special case? */
-		extern char _heap_sentry[];
-		#define MAX_HEAP_SIZE	(POINTER_TO_UINT(&_heap_sentry) - \
-					 HEAP_BASE)
-	#else
-		#define MAX_HEAP_SIZE	(KB(CONFIG_SRAM_SIZE) - (HEAP_BASE - \
-					 CONFIG_SRAM_BASE_ADDRESS))
-	#endif /* CONFIG_XTENSA */
+/* End of the malloc arena is the end of physical memory */
+#if defined(CONFIG_XTENSA)
+/* TODO: Why is xtensa a special case? */
+extern char _heap_sentry[];
+#define MAX_HEAP_SIZE (POINTER_TO_UINT(&_heap_sentry) - HEAP_BASE)
+#else
+#define MAX_HEAP_SIZE (KB(CONFIG_SRAM_SIZE) - (HEAP_BASE - CONFIG_SRAM_BASE_ADDRESS))
+#endif /* CONFIG_XTENSA */
 #endif
 
 static int malloc_prepare(void)
 {
-
 #ifdef USE_MALLOC_PREPARE
 #ifdef CONFIG_MMU
 	max_heap_size = MIN(CONFIG_NEWLIB_LIBC_MAX_MAPPED_REGION_SIZE,
@@ -119,7 +109,6 @@ static int malloc_prepare(void)
 		heap_base = k_mem_map(max_heap_size, K_MEM_PERM_RW);
 		__ASSERT(heap_base != NULL,
 			 "failed to allocate heap of size %zu", max_heap_size);
-
 	}
 #endif /* CONFIG_MMU */
 
@@ -147,20 +136,35 @@ SYS_INIT(malloc_prepare, POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_LIBC);
 /* Current offset from HEAP_BASE of unused memory */
 LIBC_BSS static size_t heap_sz;
 
+/**
+ * @brief Default stdout hook function
+ *
+ * @param c Character to output
+ * @return EOF
+ */
 static int _stdout_hook_default(int c)
 {
 	(void)(c);  /* Prevent warning about unused argument */
-
 	return EOF;
 }
 
 static int (*_stdout_hook)(int) = _stdout_hook_default;
 
+/**
+ * @brief Install a custom stdout hook function
+ *
+ * @param hook Pointer to the custom hook function
+ */
 void __stdout_hook_install(int (*hook)(int))
 {
 	_stdout_hook = hook;
 }
 
+/**
+ * @brief Default stdin hook function
+ *
+ * @return 0
+ */
 static unsigned char _stdin_hook_default(void)
 {
 	return 0;
@@ -168,11 +172,23 @@ static unsigned char _stdin_hook_default(void)
 
 static unsigned char (*_stdin_hook)(void) = _stdin_hook_default;
 
+/**
+ * @brief Install a custom stdin hook function
+ *
+ * @param hook Pointer to the custom hook function
+ */
 void __stdin_hook_install(unsigned char (*hook)(void))
 {
 	_stdin_hook = hook;
 }
 
+/**
+ * @brief Implementation of zephyr_read_stdin
+ *
+ * @param buf Buffer to store the input
+ * @param nbytes Number of bytes to read
+ * @return Number of bytes read
+ */
 int z_impl_zephyr_read_stdin(char *buf, int nbytes)
 {
 	int i = 0;
@@ -188,6 +204,13 @@ int z_impl_zephyr_read_stdin(char *buf, int nbytes)
 }
 
 #ifdef CONFIG_USERSPACE
+/**
+ * @brief Verify and implement zephyr_read_stdin for userspace
+ *
+ * @param buf Buffer to store the input
+ * @param nbytes Number of bytes to read
+ * @return Number of bytes read
+ */
 static inline int z_vrfy_zephyr_read_stdin(char *buf, int nbytes)
 {
 	K_OOPS(K_SYSCALL_MEMORY_WRITE(buf, nbytes));
@@ -196,6 +219,13 @@ static inline int z_vrfy_zephyr_read_stdin(char *buf, int nbytes)
 #include <zephyr/syscalls/zephyr_read_stdin_mrsh.c>
 #endif
 
+/**
+ * @brief Implementation of zephyr_write_stdout
+ *
+ * @param buffer Buffer containing the data to write
+ * @param nbytes Number of bytes to write
+ * @return Number of bytes written
+ */
 int z_impl_zephyr_write_stdout(const void *buffer, int nbytes)
 {
 	const char *buf = buffer;
@@ -211,6 +241,13 @@ int z_impl_zephyr_write_stdout(const void *buffer, int nbytes)
 }
 
 #ifdef CONFIG_USERSPACE
+/**
+ * @brief Verify and implement zephyr_write_stdout for userspace
+ *
+ * @param buf Buffer containing the data to write
+ * @param nbytes Number of bytes to write
+ * @return Number of bytes written
+ */
 static inline int z_vrfy_zephyr_write_stdout(const void *buf, int nbytes)
 {
 	K_OOPS(K_SYSCALL_MEMORY_READ(buf, nbytes));
@@ -220,6 +257,14 @@ static inline int z_vrfy_zephyr_write_stdout(const void *buf, int nbytes)
 #endif
 
 #ifndef CONFIG_POSIX_DEVICE_IO
+/**
+ * @brief Read from a file descriptor
+ *
+ * @param fd File descriptor
+ * @param buf Buffer to store the data
+ * @param nbytes Number of bytes to read
+ * @return Number of bytes read
+ */
 int _read(int fd, void *buf, int nbytes)
 {
 	ARG_UNUSED(fd);
@@ -228,6 +273,14 @@ int _read(int fd, void *buf, int nbytes)
 }
 __weak FUNC_ALIAS(_read, read, int);
 
+/**
+ * @brief Write to a file descriptor
+ *
+ * @param fd File descriptor
+ * @param buf Buffer containing the data
+ * @param nbytes Number of bytes to write
+ * @return Number of bytes written
+ */
 int _write(int fd, const void *buf, int nbytes)
 {
 	ARG_UNUSED(fd);
@@ -236,12 +289,25 @@ int _write(int fd, const void *buf, int nbytes)
 }
 __weak FUNC_ALIAS(_write, write, int);
 
+/**
+ * @brief Open a file
+ *
+ * @param name File name
+ * @param mode File mode
+ * @return File descriptor, or -1 on error
+ */
 int _open(const char *name, int mode)
 {
 	return -1;
 }
 __weak FUNC_ALIAS(_open, open, int);
 
+/**
+ * @brief Close a file
+ *
+ * @param file File descriptor
+ * @return 0 on success, or -1 on error
+ */
 int _close(int file)
 {
 	return -1;
@@ -250,6 +316,14 @@ __weak FUNC_ALIAS(_close, close, int);
 #endif /* CONFIG_POSIX_DEVICE_IO */
 
 #ifndef CONFIG_POSIX_FD_MGMT
+/**
+ * @brief Reposition read/write file offset
+ *
+ * @param file File descriptor
+ * @param ptr Offset
+ * @param dir Direction
+ * @return New offset, or -1 on error
+ */
 int _lseek(int file, int ptr, int dir)
 {
 	return 0;
@@ -257,6 +331,12 @@ int _lseek(int file, int ptr, int dir)
 __weak FUNC_ALIAS(_lseek, lseek, int);
 #endif /* CONFIG_POSIX_FD_MGMT */
 
+/**
+ * @brief Test whether a file descriptor refers to a terminal
+ *
+ * @param file File descriptor
+ * @return 1 if the file descriptor refers to a terminal, 0 otherwise
+ */
 int _isatty(int file)
 {
 	return file <= 2;
@@ -264,6 +344,13 @@ int _isatty(int file)
 __weak FUNC_ALIAS(_isatty, isatty, int);
 
 #ifndef CONFIG_POSIX_SIGNALS
+/**
+ * @brief Send a signal to a process
+ *
+ * @param i Process ID
+ * @param j Signal number
+ * @return 0 on success, or -1 on error
+ */
 int _kill(int i, int j)
 {
 	return 0;
@@ -272,6 +359,13 @@ __weak FUNC_ALIAS(_kill, kill, int);
 #endif /* CONFIG_POSIX_SIGNALS */
 
 #ifndef CONFIG_POSIX_FILE_SYSTEM
+/**
+ * @brief Get file status
+ *
+ * @param file File descriptor
+ * @param st Pointer to the stat structure
+ * @return 0 on success, or -1 on error
+ */
 int _fstat(int file, struct stat *st)
 {
 	st->st_mode = S_IFCHR;
@@ -281,14 +375,23 @@ __weak FUNC_ALIAS(_fstat, fstat, int);
 #endif /* CONFIG_POSIX_FILE_SYSTEM */
 
 #ifndef CONFIG_POSIX_MULTI_PROCESS
+/**
+ * @brief Get process ID
+ *
+ * @return Process ID
+ */
 int _getpid(void)
 {
 	return 0;
 }
 __weak FUNC_ALIAS(_getpid, getpid, int);
-
 #endif /* CONFIG_POSIX_MULTI_PROCESS */
 
+/**
+ * @brief Exit the program
+ *
+ * @param status Exit status
+ */
 __weak void _exit(int status)
 {
 	_write(1, "exit\n", 5);
@@ -297,6 +400,12 @@ __weak void _exit(int status)
 	}
 }
 
+/**
+ * @brief Increase program data space
+ *
+ * @param count Number of bytes to allocate
+ * @return Pointer to the allocated memory, or (void *)-1 on error
+ */
 void *_sbrk(intptr_t count)
 {
 	void *ret, *ptr;
@@ -346,10 +455,13 @@ K_SEM_DEFINE(__lock___dd_hash_mutex, 1, 1);
 K_SEM_DEFINE(__lock___arc4random_mutex, 1, 1);
 
 #ifdef CONFIG_USERSPACE
-/* Grant public access to all static locks after boot */
+/**
+ * @brief Grant public access to all static locks after boot
+ *
+ * @return 0 on success
+ */
 static int newlib_locks_prepare(void)
 {
-
 	/* Initialise recursive locks */
 	k_object_access_all_grant(&__lock___sinit_recursive_mutex);
 	k_object_access_all_grant(&__lock___sfp_recursive_mutex);
@@ -370,7 +482,11 @@ SYS_INIT(newlib_locks_prepare, POST_KERNEL,
 	 CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
 #endif /* CONFIG_USERSPACE */
 
-/* Create a new dynamic non-recursive lock */
+/**
+ * @brief Create a new dynamic non-recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_init(_LOCK_T *lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
@@ -389,7 +505,11 @@ void __retarget_lock_init(_LOCK_T *lock)
 #endif /* CONFIG_USERSPACE */
 }
 
-/* Create a new dynamic recursive lock */
+/**
+ * @brief Create a new dynamic recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_init_recursive(_LOCK_T *lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
@@ -408,7 +528,11 @@ void __retarget_lock_init_recursive(_LOCK_T *lock)
 #endif /* CONFIG_USERSPACE */
 }
 
-/* Close dynamic non-recursive lock */
+/**
+ * @brief Close dynamic non-recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_close(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
@@ -419,7 +543,11 @@ void __retarget_lock_close(_LOCK_T lock)
 #endif /* !CONFIG_USERSPACE */
 }
 
-/* Close dynamic recursive lock */
+/**
+ * @brief Close dynamic recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_close_recursive(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
@@ -430,42 +558,68 @@ void __retarget_lock_close_recursive(_LOCK_T lock)
 #endif /* !CONFIG_USERSPACE */
 }
 
-/* Acquiure non-recursive lock */
+/**
+ * @brief Acquire non-recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_acquire(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
 	k_sem_take((struct k_sem *)lock, K_FOREVER);
 }
 
-/* Acquiure recursive lock */
+/**
+ * @brief Acquire recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_acquire_recursive(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
 	k_mutex_lock((struct k_mutex *)lock, K_FOREVER);
 }
 
-/* Try acquiring non-recursive lock */
+/**
+ * @brief Try acquiring non-recursive lock
+ *
+ * @param lock Pointer to the lock
+ * @return 1 if the lock was acquired, 0 otherwise
+ */
 int __retarget_lock_try_acquire(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
 	return !k_sem_take((struct k_sem *)lock, K_NO_WAIT);
 }
 
-/* Try acquiring recursive lock */
+/**
+ * @brief Try acquiring recursive lock
+ *
+ * @param lock Pointer to the lock
+ * @return 1 if the lock was acquired, 0 otherwise
+ */
 int __retarget_lock_try_acquire_recursive(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
 	return !k_mutex_lock((struct k_mutex *)lock, K_NO_WAIT);
 }
 
-/* Release non-recursive lock */
+/**
+ * @brief Release non-recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_release(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
 	k_sem_give((struct k_sem *)lock);
 }
 
-/* Release recursive lock */
+/**
+ * @brief Release recursive lock
+ *
+ * @param lock Pointer to the lock
+ */
 void __retarget_lock_release_recursive(_LOCK_T lock)
 {
 	__ASSERT_NO_MSG(lock != NULL);
@@ -473,14 +627,18 @@ void __retarget_lock_release_recursive(_LOCK_T lock)
 }
 #endif /* CONFIG_MULTITHREADING */
 
+/**
+ * @brief Get the address of the errno variable
+ *
+ * @return Pointer to the errno variable
+ */
 __weak int *__errno(void)
 {
 	return z_errno();
 }
 
-/* This function gets called if static buffer overflow detection is enabled
- * on stdlib side (Newlib here), in case such an overflow is detected. Newlib
- * provides an implementation not suitable for us, so we override it here.
+/**
+ * @brief Handle buffer overflow detection
  */
 __weak FUNC_NORETURN void __chk_fail(void)
 {
@@ -573,6 +731,13 @@ void *_sbrk_r(struct _reent *r, int count)
 }
 #endif /* CONFIG_XTENSA */
 
+/**
+ * @brief Get the current time of day
+ *
+ * @param __tp Pointer to the timeval structure
+ * @param __tzp Pointer to the timezone structure
+ * @return 0 on success, or -1 on error
+ */
 int _gettimeofday(struct timeval *__tp, void *__tzp)
 {
 #ifdef CONFIG_XSI_SINGLE_PROCESS
@@ -584,3 +749,4 @@ int _gettimeofday(struct timeval *__tp, void *__tzp)
 	return -1;
 #endif
 }
+//GST

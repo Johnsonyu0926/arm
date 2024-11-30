@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2024 CSIRO
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Connectivity implementation for drivers exposing the wifi_mgmt API
- */
+// zephyr-3.7-branch/include/zephyr/net/conn_mgr/connectivity_wifi_mgmt.h
 
 #ifndef ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_WIFI_MGMT_H_
 #define ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_WIFI_MGMT_H_
@@ -38,3 +29,4 @@ extern "C" {
 #endif
 
 #endif /* ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_WIFI_MGMT_H_ */
+//GST

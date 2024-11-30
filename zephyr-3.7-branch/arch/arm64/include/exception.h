@@ -1,16 +1,4 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Exception/interrupt context helpers for Cortex-A CPUs
- *
- * Exception/interrupt context helpers.
- */
-
+//arch/arc/include/exception.h
 #ifndef ZEPHYR_ARCH_ARM64_INCLUDE_EXCEPTION_H_
 #define ZEPHYR_ARCH_ARM64_INCLUDE_EXCEPTION_H_
 
@@ -18,7 +6,7 @@
 
 #ifdef _ASMLANGUAGE
 
-/* nothing */
+/* Nothing to include for assembly language */
 
 #else
 
@@ -26,6 +14,13 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Check if the current context is an ISR
+ *
+ * This function checks if the current context is an ISR (Interrupt Service Routine).
+ *
+ * @return true if the current context is an ISR, false otherwise
+ */
 static ALWAYS_INLINE bool arch_is_in_isr(void)
 {
 	return arch_curr_cpu()->nested != 0U;
@@ -38,3 +33,4 @@ static ALWAYS_INLINE bool arch_is_in_isr(void)
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_ARCH_ARM64_INCLUDE_EXCEPTION_H_ */
+//GST

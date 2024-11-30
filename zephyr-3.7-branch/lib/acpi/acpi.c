@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2023 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-#include "acpi.h"
-#include "accommon.h"
-#include "acapps.h"
+\\zephyr-3.7-branch/lib/acpi/acpi.c
 #include <aecommon.h>
 
 #include <zephyr/drivers/pcie/pcie.h>
@@ -52,14 +44,11 @@ static ACPI_STATUS install_handlers(void)
 	ACPI_STATUS status;
 
 	/* Install global notify handler */
-	status = AcpiInstallNotifyHandler(ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY, notify_handler,
-					  NULL);
+	status = AcpiInstallNotifyHandler(ACPI_ROOT_OBJECT, ACPI_SYSTEM_NOTIFY, notify_handler, NULL);
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While installing Notify handler"));
-		goto exit;
 	}
 
-exit:
 	return status;
 }
 
@@ -71,7 +60,7 @@ static ACPI_STATUS initialize_acpica(void)
 	status = AcpiInitializeSubsystem();
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While initializing ACPI"));
-		goto exit;
+		return status;
 	}
 
 	/* Initialize the ACPI Table Manager and get all ACPI tables */
@@ -79,7 +68,7 @@ static ACPI_STATUS initialize_acpica(void)
 		status = AcpiInitializeTables(NULL, 16, FALSE);
 		if (ACPI_FAILURE(status)) {
 			ACPI_EXCEPTION((AE_INFO, status, "While initializing Table Manager"));
-			goto exit;
+			return status;
 		}
 	}
 
@@ -87,21 +76,21 @@ static ACPI_STATUS initialize_acpica(void)
 	status = AcpiLoadTables();
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While loading ACPI tables"));
-		goto exit;
+		return status;
 	}
 
 	/* Install local handlers */
 	status = install_handlers();
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While installing handlers"));
-		goto exit;
+		return status;
 	}
 
 	/* Initialize the ACPI hardware */
 	status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While enabling ACPI"));
-		goto exit;
+		return status;
 	}
 
 	/* Complete the ACPI namespace object initialization */
@@ -109,7 +98,6 @@ static ACPI_STATUS initialize_acpica(void)
 	if (ACPI_FAILURE(status)) {
 		ACPI_EXCEPTION((AE_INFO, status, "While initializing ACPI objects"));
 	}
-exit:
 
 	return status;
 }
@@ -150,12 +138,12 @@ static ACPI_NAMESPACE_NODE *acpi_evaluate_method(char *bus_name, char *method)
 	handle = acpi_name_lookup(bus_name);
 	if (!handle) {
 		LOG_ERR("No ACPI node with given name: %s", bus_name);
-		goto exit;
+		return NULL;
 	}
 
 	if (handle->Type != ACPI_TYPE_DEVICE) {
-		LOG_ERR("No ACPI node foud with given name: %s", bus_name);
-		goto exit;
+		LOG_ERR("No ACPI node found with given name: %s", bus_name);
+		return NULL;
 	}
 
 	node = ACPI_CAST_PTR(ACPI_NAMESPACE_NODE, handle);
@@ -164,11 +152,9 @@ static ACPI_NAMESPACE_NODE *acpi_evaluate_method(char *bus_name, char *method)
 
 	if (!prt_node) {
 		LOG_ERR("No entry for the ACPI node with given name: %s", bus_name);
-		goto exit;
+		return NULL;
 	}
 	return node;
-exit:
-	return NULL;
 }
 
 static ACPI_STATUS acpi_enable_pic_mode(void)
@@ -185,7 +171,7 @@ static ACPI_STATUS acpi_enable_pic_mode(void)
 
 	status = AcpiEvaluateObject(NULL, "\\_PIC", &arg_list, NULL);
 	if (ACPI_FAILURE(status)) {
-		LOG_WRN("error While executing \\_pic method: %d", status);
+		LOG_WRN("Error while executing \\_PIC method: %d", status);
 	}
 
 	return status;
@@ -205,11 +191,10 @@ static ACPI_STATUS dev_resource_enum_callback(ACPI_HANDLE obj_handle, UINT32 lev
 
 	LOG_DBG("%s %p", __func__, node);
 
-	/* get device info such as HID, Class ID etc. */
 	status = AcpiGetObjectInfo(obj_handle, &dev_info);
 	if (ACPI_FAILURE(status)) {
 		LOG_ERR("AcpiGetObjectInfo failed: %s", AcpiFormatException(status));
-		goto exit;
+		return AE_OK;
 	}
 
 	if (acpi.num_dev >= CONFIG_ACPI_DEV_MAX) {
@@ -217,17 +202,17 @@ static ACPI_STATUS dev_resource_enum_callback(ACPI_HANDLE obj_handle, UINT32 lev
 	}
 
 	if (!(dev_info->Valid & ACPI_VALID_HID)) {
-		goto exit;
+		return AE_OK;
 	}
 
-	child_dev = (struct acpi_dev *)&acpi.child_dev[acpi.num_dev++];
+	child_dev = &acpi.child_dev[acpi.num_dev++];
 	child_dev->handle = obj_handle;
 	child_dev->dev_info = dev_info;
 
 	path_name = AcpiNsGetNormalizedPathname(node, TRUE);
 	if (!path_name) {
 		LOG_ERR("No memory for path_name");
-		goto exit;
+		return AE_OK;
 	} else {
 		LOG_DBG("Device path: %s", path_name);
 		child_dev->path = path_name;
@@ -242,8 +227,6 @@ static ACPI_STATUS dev_resource_enum_callback(ACPI_HANDLE obj_handle, UINT32 lev
 	} else {
 		child_dev->res_lst = rt_buffer.Pointer;
 	}
-
-exit:
 
 	return AE_OK;
 }
@@ -265,13 +248,13 @@ static int acpi_early_init(void)
 	LOG_DBG("");
 
 	if (acpi.early_init) {
-		LOG_DBG("acpi early init already done");
+		LOG_DBG("ACPI early init already done");
 		return 0;
 	}
 
 	status = AcpiInitializeTables(NULL, 16, FALSE);
 	if (ACPI_FAILURE(status)) {
-		LOG_ERR("Error in acpi table init:%d", status);
+		LOG_ERR("Error in ACPI table init: %d", status);
 		return -EIO;
 	}
 
@@ -344,7 +327,6 @@ int acpi_possible_resource_get(char *dev_name, ACPI_RESOURCE **res)
 int acpi_current_resource_free(ACPI_RESOURCE *res)
 {
 	ACPI_FREE(res);
-
 	return 0;
 }
 
@@ -384,7 +366,7 @@ int acpi_legacy_irq_init(const char *hid, const char *uid)
 	ACPI_STATUS status;
 
 	if (!child_dev) {
-		LOG_ERR("no such PCI bus device %s %s", hid, uid);
+		LOG_ERR("No such PCI bus device %s %s", hid, uid);
 		return -ENODEV;
 	}
 
@@ -399,18 +381,11 @@ int acpi_legacy_irq_init(const char *hid, const char *uid)
 
 	status = AcpiGetIrqRoutingTable(node, &rt_buffer);
 	if (ACPI_FAILURE(status)) {
-		LOG_ERR("unable to retrieve IRQ Routing Table: %s", child_dev->path);
+		LOG_ERR("Unable to retrieve IRQ Routing Table: %s", child_dev->path);
 		return -EIO;
 	}
 
 	if (rt_table->Source[0]) {
-		/*
-		 * If Name path exist then PCI interrupts are configurable and are not hardwired to
-		 * any specific interrupt inputs on the interrupt controller. OSPM can uses
-		 * _PRS/_CRS/_SRS to configure interrupts. But currently leave existing PCI bus
-		 * driver with arch_irq_allocate() menthod for allocate and configure interrupts
-		 * without conflicting.
-		 */
 		return -ENOENT;
 	}
 
@@ -419,7 +394,6 @@ int acpi_legacy_irq_init(const char *hid, const char *uid)
 			break;
 		}
 		if (IS_ENABLED(CONFIG_X86_64)) {
-			/* mark the PRT irq numbers as reserved. */
 			arch_irq_set_used(acpi.pci_prt_table[i].SourceIndex);
 		}
 	}
@@ -432,7 +406,7 @@ ACPI_RESOURCE *acpi_resource_parse(ACPI_RESOURCE *res, int res_type)
 {
 	do {
 		if (!res->Length) {
-			LOG_DBG("zero length found!");
+			LOG_DBG("Zero length found!");
 			break;
 		} else if (res->Type == res_type) {
 			break;
@@ -493,7 +467,7 @@ int acpi_device_mmio_get(struct acpi_dev *child_dev, struct acpi_mmio_resource *
 
 	do {
 		if (!res->Length) {
-			LOG_DBG("Found Acpi resource with zero length!");
+			LOG_DBG("Found ACPI resource with zero length!");
 			break;
 		}
 
@@ -530,8 +504,7 @@ int acpi_device_mmio_get(struct acpi_dev *child_dev, struct acpi_mmio_resource *
 		}
 
 		res = ACPI_NEXT_RESOURCE(res);
-		if (mmio_cnt >= mmio_res->mmio_max &&
-			 res->Type != ACPI_RESOURCE_TYPE_END_TAG) {
+		if (mmio_cnt >= mmio_res->mmio_max && res->Type != ACPI_RESOURCE_TYPE_END_TAG) {
 			return -ENOMEM;
 		}
 	} while (res->Type != ACPI_RESOURCE_TYPE_END_TAG);
@@ -626,7 +599,7 @@ struct acpi_dev *acpi_device_get(const char *hid, const char *uid)
 			continue;
 		}
 
-		if (!strcmp(hid, child_dev->dev_info->HardwareId.String)) {
+		if (!strcmp(hid,child_dev->dev_info->HardwareId.String)) {
 			if (uid && child_dev->dev_info->UniqueId.Length) {
 				if (!strcmp(child_dev->dev_info->UniqueId.String, uid)) {
 					return child_dev;
@@ -635,7 +608,7 @@ struct acpi_dev *acpi_device_get(const char *hid, const char *uid)
 				return child_dev;
 			}
 		}
-	} while (i++ < acpi.num_dev);
+	} while (++i < acpi.num_dev);
 
 	return NULL;
 }
@@ -700,7 +673,6 @@ int acpi_madt_entry_get(int type, ACPI_SUBTABLE_HEADER **tables, int *num_inst)
 
 	subtable = ACPI_ADD_PTR(ACPI_SUBTABLE_HEADER, base, offset);
 	while (offset < madt->Length) {
-
 		if (type == subtable->Type) {
 			*tables = subtable;
 			*num_inst = acpi_get_subtable_entry_num(type, subtable, offset, base,
@@ -723,7 +695,7 @@ int acpi_dmar_entry_get(enum AcpiDmarType type, ACPI_SUBTABLE_HEADER **tables)
 	ACPI_DMAR_HEADER *subtable;
 
 	if (!dmar) {
-		LOG_ERR("error on get DMAR table");
+		LOG_ERR("Error on get DMAR table");
 		return -EIO;
 	}
 
@@ -769,8 +741,7 @@ void acpi_dmar_foreach_devscope(ACPI_DMAR_HARDWARE_UNIT *hu,
 	__ASSERT_NO_MSG(length >= offset);
 
 	while (offset < length) {
-		ACPI_DMAR_DEVICE_SCOPE *devscope = ACPI_ADD_PTR(ACPI_DMAR_DEVICE_SCOPE,
-								hu, offset);
+		ACPI_DMAR_DEVICE_SCOPE *devscope = ACPI_ADD_PTR(ACPI_DMAR_DEVICE_SCOPE, hu, offset);
 
 		__ASSERT_NO_MSG(devscope->Length >= sizeof(*devscope));
 		__ASSERT_NO_MSG(devscope->Length <= length - offset);
@@ -786,15 +757,13 @@ static void devscope_handler(ACPI_DMAR_DEVICE_SCOPE *devscope, void *arg)
 	ACPI_DMAR_PCI_PATH *dev_path;
 	union acpi_dmar_id pci_path;
 
-	ARG_UNUSED(arg); /* may be unused */
+	ARG_UNUSED(arg);
 
 	if (devscope->EntryType == ACPI_DMAR_SCOPE_TYPE_IOAPIC) {
 		uint16_t *ioapic_id = arg;
 
-		dev_path = ACPI_ADD_PTR(ACPI_DMAR_PCI_PATH, devscope,
-					sizeof(ACPI_DMAR_DEVICE_SCOPE));
+		dev_path = ACPI_ADD_PTR(ACPI_DMAR_PCI_PATH, devscope, sizeof(ACPI_DMAR_DEVICE_SCOPE));
 
-		/* Get first entry */
 		pci_path.bits.bus = devscope->Bus;
 		pci_path.bits.device = dev_path->Device;
 		pci_path.bits.function = dev_path->Function;
@@ -805,12 +774,10 @@ static void devscope_handler(ACPI_DMAR_DEVICE_SCOPE *devscope, void *arg)
 
 static void subtable_handler(ACPI_DMAR_HEADER *subtable, void *arg)
 {
-	ARG_UNUSED(arg); /* may be unused */
+	ARG_UNUSED(arg);
 
 	if (subtable->Type == ACPI_DMAR_TYPE_HARDWARE_UNIT) {
-		ACPI_DMAR_HARDWARE_UNIT *hu;
-
-		hu = CONTAINER_OF(subtable, ACPI_DMAR_HARDWARE_UNIT, Header);
+		ACPI_DMAR_HARDWARE_UNIT *hu = CONTAINER_OF(subtable, ACPI_DMAR_HARDWARE_UNIT, Header);
 		acpi_dmar_foreach_devscope(hu, devscope_handler, arg);
 	}
 }
@@ -914,7 +881,6 @@ ACPI_MADT_LOCAL_APIC *acpi_local_apic_get(int cpu_num)
 
 	if (acpi_madt_entry_get(ACPI_MADT_TYPE_LOCAL_APIC, (ACPI_SUBTABLE_HEADER **)&lapic,
 				&cpu_cnt)) {
-		/* Error on MAD table. */
 		return NULL;
 	}
 
@@ -941,7 +907,7 @@ int acpi_invoke_method(char *path, ACPI_OBJECT_LIST *arg_list, ACPI_OBJECT *ret_
 
 	status = AcpiEvaluateObject(NULL, path, arg_list, &ret_buff);
 	if (ACPI_FAILURE(status)) {
-		LOG_ERR("error While executing %s method: %d", path, status);
+		LOG_ERR("Error while executing %s method: %d", path, status);
 		return -EIO;
 	}
 
@@ -954,23 +920,21 @@ static int acpi_init(void)
 
 	LOG_DBG("");
 
-	/* For debug version only */
 	ACPI_DEBUG_INITIALIZE();
 
 	status = initialize_acpica();
 	if (ACPI_FAILURE(status)) {
-		LOG_ERR("Error in ACPI init:%d", status);
-		goto exit;
+		LOG_ERR("Error in ACPI init: %d", status);
+		return status;
 	}
 
-	/* Enable IO APIC mode */
 	status = acpi_enable_pic_mode();
 	if (ACPI_FAILURE(status)) {
-		LOG_WRN("Error in enable pic mode acpi method:%d", status);
+		LOG_WRN("Error in enable PIC mode ACPI method: %d", status);
 	}
 
 	acpi_enum_devices();
 
-exit:
 	return status;
 }
+//gst

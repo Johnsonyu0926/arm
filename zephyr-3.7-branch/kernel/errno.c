@@ -1,16 +1,4 @@
-/*
- * Copyright (c) 2015 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- *
- * @brief Per-thread errno accessor function
- *
- * Allow accessing the errno for the current thread without involving the
- * context switching.
- */
+// kernel/errno.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/internal/syscall_handler.h>
@@ -31,6 +19,11 @@ __thread int z_errno_var;
 #else
 
 #ifdef CONFIG_USERSPACE
+/**
+ * @brief Get the address of the errno variable for the current thread
+ *
+ * @return Pointer to the errno variable
+ */
 int *z_impl_z_errno(void)
 {
 	/* Initialized to the lowest address in the stack so the thread can
@@ -46,6 +39,11 @@ static inline int *z_vrfy_z_errno(void)
 #include <zephyr/syscalls/z_errno_mrsh.c>
 
 #else
+/**
+ * @brief Get the address of the errno variable for the current thread
+ *
+ * @return Pointer to the errno variable
+ */
 int *z_impl_z_errno(void)
 {
 	return &_current->errno_var;
@@ -55,3 +53,4 @@ int *z_impl_z_errno(void)
 #endif /* CONFIG_ERRNO_IN_TLS */
 
 #endif /* CONFIG_ERRNO */
+//GST

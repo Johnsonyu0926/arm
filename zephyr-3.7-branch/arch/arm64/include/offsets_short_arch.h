@@ -1,14 +1,11 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//arch/arc/include/offest_short_arch.h
 
 #ifndef ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_
 #define ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_
 
 #include <zephyr/offsets.h>
 
+/* Thread offset definitions */
 #define _thread_offset_to_exception_depth \
 	(___thread_t_arch_OFFSET + ___thread_arch_t_exception_depth_OFFSET)
 
@@ -28,6 +25,7 @@
 	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_sp_elx_lr_OFFSET)
 
 #ifdef CONFIG_ARM64_SAFE_EXCEPTION_STACK
+/* CPU offset definitions for safe exception stack */
 #define _cpu_offset_to_safe_exception_stack \
 	(___cpu_t_arch_OFFSET + ___cpu_arch_t_safe_exception_stack_OFFSET)
 #define _cpu_offset_to_current_stack_limit \
@@ -39,3 +37,4 @@
 #endif
 
 #endif /* ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_ */
+//GST

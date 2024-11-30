@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * @brief CoAP implementation for Zephyr.
- */
+// zephyr-3.7-branch/include/zephyr/net/coap_link_format.h
 
 #ifndef ZEPHYR_INCLUDE_NET_COAP_LINK_FORMAT_H_
 #define ZEPHYR_INCLUDE_NET_COAP_LINK_FORMAT_H_
@@ -85,3 +75,4 @@ struct coap_core_metadata {
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_COAP_LINK_FORMAT_H_ */
+//GST

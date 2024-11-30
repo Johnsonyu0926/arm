@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- *  @brief CAN bus socket API definitions.
- */
+// zephyr-3.7-branch/include/zephyr/net/canbus.h
 
 #ifndef ZEPHYR_INCLUDE_NET_CANBUS_H_
 #define ZEPHYR_INCLUDE_NET_CANBUS_H_
@@ -21,7 +13,7 @@ extern "C" {
 #endif
 
 /**
- * CAN L2 network driver API.
+ * @brief CAN L2 network driver API.
  */
 struct canbus_api {
 	/**
@@ -57,3 +49,4 @@ BUILD_ASSERT(offsetof(struct canbus_api, iface_api) == 0);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_CANBUS_H_ */
+//GST

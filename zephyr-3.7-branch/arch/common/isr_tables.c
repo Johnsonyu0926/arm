@@ -1,16 +1,14 @@
-/*
- * Copyright (c) 2017 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/common/include/isr_tables.c
 #include <zephyr/toolchain.h>
 #include <zephyr/linker/sections.h>
 #include <zephyr/sw_isr_table.h>
 #include <zephyr/arch/cpu.h>
 
-/* There is an additional member at the end populated by the linker script
- * which indicates the number of interrupts specified
+/**
+ * @brief Interrupt list header structure
+ *
+ * This structure represents the header of the interrupt list section, which is
+ * used by gen_isr_tables.py to create the vector and software ISR tables.
  */
 struct int_list_header {
 	uint32_t table_size;
@@ -24,7 +22,7 @@ struct int_list_header {
 
 /* These values are not included in the resulting binary, but instead form the
  * header of the initList section, which is used by gen_isr_tables.py to create
- * the vector and sw isr tables,
+ * the vector and sw isr tables.
  */
 Z_GENERIC_SECTION(.irq_info) __used struct int_list_header _iheader = {
 	.table_size = IRQ_TABLE_SIZE,
@@ -46,7 +44,7 @@ Z_GENERIC_SECTION(.irq_info) __used struct int_list_header _iheader = {
  * the same symbols as the second linker pass for the code generation to work.
  */
 
-/* Some arches don't use a vector table, they have a common exception entry
+/* Some architectures don't use a vector table, they have a common exception entry
  * point for all interrupts. Don't generate a table in this case.
  */
 #ifdef CONFIG_GEN_IRQ_VECTOR_TABLE
@@ -73,7 +71,7 @@ Z_GENERIC_SECTION(.irq_info) __used struct int_list_header _iheader = {
 
 /* The IRQ vector table contains the jump opcodes towards the vector routine */
 void __irq_vector_table __attribute__((naked)) _irq_vector_table(void) {
-	 LISTIFY(CONFIG_NUM_IRQS, BUILD_VECTOR, (;));
+	LISTIFY(CONFIG_NUM_IRQS, BUILD_VECTOR, (;));
 };
 #else
 
@@ -98,3 +96,4 @@ struct _isr_table_entry __sw_isr_table _sw_isr_table[IRQ_TABLE_SIZE] = {
 struct z_shared_isr_table_entry __shared_sw_isr_table z_shared_sw_isr_table[IRQ_TABLE_SIZE] = {
 };
 #endif
+//GST

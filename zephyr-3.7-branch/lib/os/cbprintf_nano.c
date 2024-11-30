@@ -1,10 +1,4 @@
-/*
- * Copyright (c) 2010, 2013-2014 Wind River Systems, Inc.
- * Copyright (c) 2020 Nordic Semiconductor ASA
- * Copyright (c) 2021 BayLibre, SAS
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/os/cbprintf_nano.c
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -354,3 +348,4 @@ start:
 		goto start;
 	}
 }
+//GST

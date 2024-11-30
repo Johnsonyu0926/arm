@@ -1,11 +1,5 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//kernel/usage.c
 #include <zephyr/kernel.h>
-
 #include <zephyr/timing/timing.h>
 #include <ksched.h>
 #include <zephyr/spinlock.h>
@@ -18,6 +12,14 @@
 
 static struct k_spinlock usage_lock;
 
+/**
+ * @brief Get the current usage time
+ *
+ * This function retrieves the current usage time based on the configured
+ * timing functions.
+ *
+ * @return The current usage time
+ */
 static uint32_t usage_now(void)
 {
 	uint32_t now;
@@ -33,6 +35,15 @@ static uint32_t usage_now(void)
 }
 
 #ifdef CONFIG_SCHED_THREAD_USAGE_ALL
+/**
+ * @brief Update CPU usage statistics
+ *
+ * This function updates the CPU usage statistics based on the specified
+ * number of cycles.
+ *
+ * @param cpu Pointer to the CPU structure
+ * @param cycles Number of cycles to update
+ */
 static void sched_cpu_update_usage(struct _cpu *cpu, uint32_t cycles)
 {
 	if (!cpu->usage->track_usage) {
@@ -58,6 +69,15 @@ static void sched_cpu_update_usage(struct _cpu *cpu, uint32_t cycles)
 #define sched_cpu_update_usage(cpu, cycles)   do { } while (0)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ALL */
 
+/**
+ * @brief Update thread usage statistics
+ *
+ * This function updates the thread usage statistics based on the specified
+ * number of cycles.
+ *
+ * @param thread Pointer to the thread structure
+ * @param cycles Number of cycles to update
+ */
 static void sched_thread_update_usage(struct k_thread *thread, uint32_t cycles)
 {
 	thread->base.usage.total += cycles;
@@ -71,6 +91,13 @@ static void sched_thread_update_usage(struct k_thread *thread, uint32_t cycles)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ANALYSIS */
 }
 
+/**
+ * @brief Start tracking thread usage
+ *
+ * This function starts tracking the usage statistics for the specified thread.
+ *
+ * @param thread Pointer to the thread structure
+ */
 void z_sched_usage_start(struct k_thread *thread)
 {
 #ifdef CONFIG_SCHED_THREAD_USAGE_ANALYSIS
@@ -96,6 +123,11 @@ void z_sched_usage_start(struct k_thread *thread)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ANALYSIS */
 }
 
+/**
+ * @brief Stop tracking thread usage
+ *
+ * This function stops tracking the usage statistics for the current thread.
+ */
 void z_sched_usage_stop(void)
 {
 	k_spinlock_key_t k   = k_spin_lock(&usage_lock);
@@ -119,6 +151,14 @@ void z_sched_usage_stop(void)
 }
 
 #ifdef CONFIG_SCHED_THREAD_USAGE_ALL
+/**
+ * @brief Get CPU usage statistics
+ *
+ * This function retrieves the usage statistics for the specified CPU.
+ *
+ * @param cpu_id CPU ID
+ * @param stats Pointer to the structure to store the statistics
+ */
 void z_sched_cpu_usage(uint8_t cpu_id, struct k_thread_runtime_stats *stats)
 {
 	k_spinlock_key_t  key;
@@ -126,7 +166,6 @@ void z_sched_cpu_usage(uint8_t cpu_id, struct k_thread_runtime_stats *stats)
 
 	key = k_spin_lock(&usage_lock);
 	cpu = _current_cpu;
-
 
 	if (&_kernel.cpus[cpu_id] == cpu) {
 		uint32_t  now = usage_now();
@@ -170,6 +209,14 @@ void z_sched_cpu_usage(uint8_t cpu_id, struct k_thread_runtime_stats *stats)
 }
 #endif /* CONFIG_SCHED_THREAD_USAGE_ALL */
 
+/**
+ * @brief Get thread usage statistics
+ *
+ * This function retrieves the usage statistics for the specified thread.
+ *
+ * @param thread Pointer to the thread structure
+ * @param stats Pointer to the structure to store the statistics
+ */
 void z_sched_thread_usage(struct k_thread *thread,
 			  struct k_thread_runtime_stats *stats)
 {
@@ -178,7 +225,6 @@ void z_sched_thread_usage(struct k_thread *thread,
 
 	key = k_spin_lock(&usage_lock);
 	cpu = _current_cpu;
-
 
 	if (thread == cpu->current) {
 		uint32_t now = usage_now();
@@ -225,6 +271,15 @@ void z_sched_thread_usage(struct k_thread *thread,
 }
 
 #ifdef CONFIG_SCHED_THREAD_USAGE_ANALYSIS
+/**
+ * @brief Enable runtime statistics for a thread
+ *
+ * This function enables the tracking of runtime statistics for the specified
+ * thread.
+ *
+ * @param thread Pointer to the thread structure
+ * @return 0 on success, or an error code
+ */
 int k_thread_runtime_stats_enable(k_tid_t  thread)
 {
 	k_spinlock_key_t  key;
@@ -246,6 +301,15 @@ int k_thread_runtime_stats_enable(k_tid_t  thread)
 	return 0;
 }
 
+/**
+ * @brief Disable runtime statistics for a thread
+ *
+ * This function disables the tracking of runtime statistics for the specified
+ * thread.
+ *
+ * @param thread Pointer to the thread structure
+ * @return 0 on success, or an error code
+ */
 int k_thread_runtime_stats_disable(k_tid_t  thread)
 {
 	k_spinlock_key_t key;
@@ -275,6 +339,11 @@ int k_thread_runtime_stats_disable(k_tid_t  thread)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ANALYSIS */
 
 #ifdef CONFIG_SCHED_THREAD_USAGE_ALL
+/**
+ * @brief Enable system-wide runtime statistics
+ *
+ * This function enables the tracking of runtime statistics for all CPUs.
+ */
 void k_sys_runtime_stats_enable(void)
 {
 	k_spinlock_key_t  key;
@@ -308,6 +377,11 @@ void k_sys_runtime_stats_enable(void)
 	k_spin_unlock(&usage_lock, key);
 }
 
+/**
+ * @brief Disable system-wide runtime statistics
+ *
+ * This function disables the tracking of runtime statistics for all CPUs.
+ */
 void k_sys_runtime_stats_disable(void)
 {
 	struct _cpu *cpu;
@@ -344,6 +418,15 @@ void k_sys_runtime_stats_disable(void)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ALL */
 
 #ifdef CONFIG_OBJ_CORE_STATS_THREAD
+/**
+ * @brief Get raw thread statistics
+ *
+ * This function retrieves the raw statistics for the specified thread.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_thread_stats_raw(struct k_obj_core *obj_core, void *stats)
 {
 	k_spinlock_key_t  key;
@@ -355,6 +438,15 @@ int z_thread_stats_raw(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Query thread statistics
+ *
+ * This function retrieves the usage statistics for the specified thread.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_thread_stats_query(struct k_obj_core *obj_core, void *stats)
 {
 	struct k_thread *thread;
@@ -366,6 +458,14 @@ int z_thread_stats_query(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Reset thread statistics
+ *
+ * This function resets the usage statistics for the specified thread.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @return 0 on success, or an error code
+ */
 int z_thread_stats_reset(struct k_obj_core *obj_core)
 {
 	k_spinlock_key_t  key;
@@ -412,6 +512,15 @@ int z_thread_stats_reset(struct k_obj_core *obj_core)
 	return 0;
 }
 
+/**
+ * @brief Disable thread statistics
+ *
+ * This function disables the tracking of usage statistics for the specified
+ * thread.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @return 0 on success, or an error code
+ */
 int z_thread_stats_disable(struct k_obj_core *obj_core)
 {
 #ifdef CONFIG_SCHED_THREAD_USAGE_ANALYSIS
@@ -425,6 +534,15 @@ int z_thread_stats_disable(struct k_obj_core *obj_core)
 #endif /* CONFIG_SCHED_THREAD_USAGE_ANALYSIS */
 }
 
+/**
+ * @brief Enable thread statistics
+ *
+ * This function enables the tracking of usage statistics for the specified
+ * thread.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @return 0 on success, or an error code
+ */
 int z_thread_stats_enable(struct k_obj_core *obj_core)
 {
 #ifdef CONFIG_SCHED_THREAD_USAGE_ANALYSIS
@@ -440,6 +558,15 @@ int z_thread_stats_enable(struct k_obj_core *obj_core)
 #endif /* CONFIG_OBJ_CORE_STATS_THREAD */
 
 #ifdef CONFIG_OBJ_CORE_STATS_SYSTEM
+/**
+ * @brief Get raw CPU statistics
+ *
+ * This function retrieves the raw statistics for the specified CPU.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_cpu_stats_raw(struct k_obj_core *obj_core, void *stats)
 {
 	k_spinlock_key_t  key;
@@ -451,6 +578,15 @@ int z_cpu_stats_raw(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Query CPU statistics
+ *
+ * This function retrieves the usage statistics for the specified CPU.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_cpu_stats_query(struct k_obj_core *obj_core, void *stats)
 {
 	struct _cpu  *cpu;
@@ -464,6 +600,15 @@ int z_cpu_stats_query(struct k_obj_core *obj_core, void *stats)
 #endif /* CONFIG_OBJ_CORE_STATS_SYSTEM */
 
 #ifdef CONFIG_OBJ_CORE_STATS_SYSTEM
+/**
+ * @brief Get raw kernel statistics
+ *
+ * This function retrieves the raw statistics for the kernel.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_kernel_stats_raw(struct k_obj_core *obj_core, void *stats)
 {
 	k_spinlock_key_t  key;
@@ -476,6 +621,15 @@ int z_kernel_stats_raw(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Query kernel statistics
+ *
+ * This function retrieves the usage statistics for the kernel.
+ *
+ * @param obj_core Pointer to the object core structure
+ * @param stats Pointer to the structure to store the statistics
+ * @return 0 on success, or an error code
+ */
 int z_kernel_stats_query(struct k_obj_core *obj_core, void *stats)
 {
 	ARG_UNUSED(obj_core);
@@ -483,3 +637,4 @@ int z_kernel_stats_query(struct k_obj_core *obj_core, void *stats)
 	return k_thread_runtime_stats_all_get(stats);
 }
 #endif /* CONFIG_OBJ_CORE_STATS_SYSTEM */
+GST

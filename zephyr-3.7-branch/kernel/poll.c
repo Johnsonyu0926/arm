@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2017 Wind River Systems, Inc.
- * Copyright (c) 2023 Arm Limited (or its affiliates). All rights reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * @brief Kernel asynchronous event polling interface.
- *
- * This polling mechanism allows waiting on multiple events concurrently,
- * either events triggered directly, or from kernel objects or other kernel
- * constructs.
- */
+// kernel/poll.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
@@ -813,3 +798,4 @@ int k_work_poll_cancel(struct k_work_poll *work)
 
 	return retval;
 }
+//GST

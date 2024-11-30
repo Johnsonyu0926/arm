@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2023 Basalte bv
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief CoAP Events code public header
- */
+// zephyr-3.7-branch/include/zephyr/net/coap_mgmt.h
 
 #ifndef ZEPHYR_INCLUDE_NET_COAP_MGMT_H_
 #define ZEPHYR_INCLUDE_NET_COAP_MGMT_H_
@@ -100,3 +91,4 @@ struct net_event_coap_observer {
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_COAP_MGMT_H_ */
+//GST

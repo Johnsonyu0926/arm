@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Ethernet Management interface public header
- */
+// zephyr-3.7-branch/include/zephyr/net/ethernet_mgmt.h
 
 #ifndef ZEPHYR_INCLUDE_NET_ETHERNET_MGMT_H_
 #define ZEPHYR_INCLUDE_NET_ETHERNET_MGMT_H_
@@ -281,3 +272,4 @@ static inline void ethernet_mgmt_raise_vlan_disabled_event(struct net_if *iface,
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_ETHERNET_MGMT_H_ */
+//GST

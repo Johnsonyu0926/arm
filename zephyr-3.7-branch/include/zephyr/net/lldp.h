@@ -1,21 +1,11 @@
-/** @file
- @brief LLDP definitions and handler
-
- This is not to be included by the application.
- */
-
-/*
- * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/lldp.h
 
 #ifndef ZEPHYR_INCLUDE_NET_LLDP_H_
 #define ZEPHYR_INCLUDE_NET_LLDP_H_
 
 /**
- * @brief LLDP definitions and helpers
- * @defgroup lldp Link Layer Discovery Protocol definitions and helpers
+ * @brief LLDP定义和助手
+ * @defgroup lldp 链路层发现协议定义和助手
  * @ingroup networking
  * @{
  */
@@ -29,17 +19,16 @@ extern "C" {
 #define LLDP_TLV_GET_LENGTH(type_length)	(type_length & BIT_MASK(9))
 #define LLDP_TLV_GET_TYPE(type_length)		((uint8_t)(type_length >> 9))
 
-/* LLDP Definitions */
+/* LLDP定义 */
 
-/* According to the spec, End of LLDPDU TLV value is constant. */
+/* 根据规范，LLDPDU结束TLV值是常量。 */
 #define NET_LLDP_END_LLDPDU_VALUE 0x0000
 
 /*
- * For the Chassis ID TLV Value, if subtype is a MAC address then we must
- * use values from CONFIG_NET_LLDP_CHASSIS_ID_MAC0 through
- * CONFIG_NET_LLDP_CHASSIS_ID_MAC5. If not, we use CONFIG_NET_LLDP_CHASSIS_ID.
+ * 对于机箱ID TLV值，如果子类型是MAC地址，则必须使用CONFIG_NET_LLDP_CHASSIS_ID_MAC0到CONFIG_NET_LLDP_CHASSIS_ID_MAC5的值。
+ * 如果不是，则使用CONFIG_NET_LLDP_CHASSIS_ID。
  *
- * FIXME: implement a similar scheme for subtype 5 (network address).
+ * FIXME: 为子类型5（网络地址）实现类似的方案。
  */
 #if defined(CONFIG_NET_LLDP_CHASSIS_ID_SUBTYPE)
 #if (CONFIG_NET_LLDP_CHASSIS_ID_SUBTYPE == 4)
@@ -64,11 +53,10 @@ extern "C" {
 #endif
 
 /*
- * For the Port ID TLV Value, if subtype is a MAC address then we must
- * use values from CONFIG_NET_LLDP_PORT_ID_MAC0 through
- * CONFIG_NET_LLDP_PORT_ID_MAC5. If not, we use CONFIG_NET_LLDP_PORT_ID.
+ * 对于端口ID TLV值，如果子类型是MAC地址，则必须使用CONFIG_NET_LLDP_PORT_ID_MAC0到CONFIG_NET_LLDP_PORT_ID_MAC5的值。
+ * 如果不是，则使用CONFIG_NET_LLDP_PORT_ID。
  *
- * FIXME: implement a similar scheme for subtype 4 (network address).
+ * FIXME: 为子类型4（网络地址）实现类似的方案。
  */
 #if defined(CONFIG_NET_LLDP_PORT_ID_SUBTYPE)
 #if (CONFIG_NET_LLDP_PORT_ID_SUBTYPE == 3)
@@ -93,152 +81,148 @@ extern "C" {
 #endif
 
 /*
- * TLVs Length.
- * Note that TLVs that have a subtype must have a byte added to their length.
+ * TLV长度。
+ * 请注意，具有子类型的TLV必须在其长度上加一个字节。
  */
 #define NET_LLDP_CHASSIS_ID_TLV_LEN (NET_LLDP_CHASSIS_ID_VALUE_LEN + 1)
 #define NET_LLDP_PORT_ID_TLV_LEN (NET_LLDP_PORT_ID_VALUE_LEN + 1)
 #define NET_LLDP_TTL_TLV_LEN (2)
 
 /*
- * Time to Live value.
- * Calculate based on section 9.2.5.22 from LLDP spec.
+ * 生存时间值。
+ * 根据LLDP规范第9.2.5.22节计算。
  *
- * FIXME: when the network interface is about to be ‘disabled’ TTL shall be set
- * to zero so LLDP Rx agents can invalidate the entry related to this node.
+ * FIXME: 当网络接口即将“禁用”时，TTL应设置为零，以便LLDP Rx代理可以使与此节点相关的条目无效。
  */
 #if defined(CONFIG_NET_LLDP_TX_INTERVAL) && defined(CONFIG_NET_LLDP_TX_HOLD)
 #define NET_LLDP_TTL \
 	MIN((CONFIG_NET_LLDP_TX_INTERVAL * CONFIG_NET_LLDP_TX_HOLD) + 1, 65535)
 #endif
 
-
 struct net_if;
 
 /** @endcond */
 
-/** TLV Types. Please refer to table 8-1 from IEEE 802.1AB standard. */
+/** TLV类型。请参阅IEEE 802.1AB标准的表8-1。 */
 enum net_lldp_tlv_type {
-	LLDP_TLV_END_LLDPDU          = 0, /**< End Of LLDPDU (optional)      */
-	LLDP_TLV_CHASSIS_ID          = 1, /**< Chassis ID (mandatory)        */
-	LLDP_TLV_PORT_ID             = 2, /**< Port ID (mandatory)           */
-	LLDP_TLV_TTL                 = 3, /**< Time To Live (mandatory)      */
-	LLDP_TLV_PORT_DESC           = 4, /**< Port Description (optional)   */
-	LLDP_TLV_SYSTEM_NAME         = 5, /**< System Name (optional)        */
-	LLDP_TLV_SYSTEM_DESC         = 6, /**< System Description (optional) */
-	LLDP_TLV_SYSTEM_CAPABILITIES = 7, /**< System Capability (optional)  */
-	LLDP_TLV_MANAGEMENT_ADDR     = 8, /**< Management Address (optional) */
-	/* Types 9 - 126 are reserved. */
-	LLDP_TLV_ORG_SPECIFIC       = 127, /**< Org specific TLVs (optional) */
+	LLDP_TLV_END_LLDPDU          = 0, /**< LLDPDU结束（可选） */
+	LLDP_TLV_CHASSIS_ID          = 1, /**< 机箱ID（必选） */
+	LLDP_TLV_PORT_ID             = 2, /**< 端口ID（必选） */
+	LLDP_TLV_TTL                 = 3, /**< 生存时间（必选） */
+	LLDP_TLV_PORT_DESC           = 4, /**< 端口描述（可选） */
+	LLDP_TLV_SYSTEM_NAME         = 5, /**< 系统名称（可选） */
+	LLDP_TLV_SYSTEM_DESC         = 6, /**< 系统描述（可选） */
+	LLDP_TLV_SYSTEM_CAPABILITIES = 7, /**< 系统能力（可选） */
+	LLDP_TLV_MANAGEMENT_ADDR     = 8, /**< 管理地址（可选） */
+	/* 类型9 - 126保留。 */
+	LLDP_TLV_ORG_SPECIFIC       = 127, /**< 组织特定TLV（可选） */
 };
 
-/** Chassis ID TLV, see chapter 8.5.2 in IEEE 802.1AB */
+/** 机箱ID TLV，参见IEEE 802.1AB第8.5.2章 */
 struct net_lldp_chassis_tlv {
-	/** 7 bits for type, 9 bits for length */
+	/** 7位类型，9位长度 */
 	uint16_t type_length;
-	/** ID subtype */
+	/** ID子类型 */
 	uint8_t subtype;
-	/** Chassis ID value */
+	/** 机箱ID值 */
 	uint8_t value[NET_LLDP_CHASSIS_ID_VALUE_LEN];
 } __packed;
 
-/** Port ID TLV, see chapter 8.5.3 in IEEE 802.1AB */
+/** 端口ID TLV，参见IEEE 802.1AB第8.5.3章 */
 struct net_lldp_port_tlv {
-	/** 7 bits for type, 9 bits for length */
+	/** 7位类型，9位长度 */
 	uint16_t type_length;
-	/** ID subtype */
+	/** ID子类型 */
 	uint8_t subtype;
-	/** Port ID value */
+	/** 端口ID值 */
 	uint8_t value[NET_LLDP_PORT_ID_VALUE_LEN];
 } __packed;
 
-/** Time To Live TLV, see chapter 8.5.4 in IEEE 802.1AB */
+/** 生存时间TLV，参见IEEE 802.1AB第8.5.4章 */
 struct net_lldp_time_to_live_tlv {
-	/** 7 bits for type, 9 bits for length */
+	/** 7位类型，9位长度 */
 	uint16_t type_length;
-	/** Time To Live (TTL) value */
+	/** 生存时间（TTL）值 */
 	uint16_t ttl;
 } __packed;
 
 /**
- * LLDP Data Unit (LLDPDU) shall contain the following ordered TLVs
- * as stated in "8.2 LLDPDU format" from the IEEE 802.1AB
+ * LLDP数据单元（LLDPDU）应包含以下有序TLV，
+ * 如IEEE 802.1AB的“8.2 LLDPDU格式”中所述
  */
 struct net_lldpdu {
-	struct net_lldp_chassis_tlv chassis_id;	/**< Mandatory Chassis TLV */
-	struct net_lldp_port_tlv port_id;	/**< Mandatory Port TLV */
-	struct net_lldp_time_to_live_tlv ttl;	/**< Mandatory TTL TLV */
+	struct net_lldp_chassis_tlv chassis_id;	/**< 必选机箱TLV */
+	struct net_lldp_port_tlv port_id;	/**< 必选端口TLV */
+	struct net_lldp_time_to_live_tlv ttl;	/**< 必选TTL TLV */
 } __packed;
 
 /**
- * @brief Set the LLDP data unit for a network interface.
+ * @brief 为网络接口设置LLDP数据单元。
  *
- * @param iface Network interface
- * @param lldpdu LLDP data unit struct
+ * @param iface 网络接口
+ * @param lldpdu LLDP数据单元结构
  *
- * @return 0 if ok, <0 if error
+ * @return 如果成功则返回0，否则返回<0
  */
 int net_lldp_config(struct net_if *iface, const struct net_lldpdu *lldpdu);
 
 /**
- * @brief Set the Optional LLDP TLVs for a network interface.
+ * @brief 为网络接口设置可选LLDP TLV。
  *
- * @param iface Network interface
- * @param tlv LLDP optional TLVs following mandatory part
- * @param len Length of the optional TLVs
+ * @param iface 网络接口
+ * @param tlv 跟随必选部分的LLDP可选TLV
+ * @param len 可选TLV的长度
  *
- * @return 0 if ok, <0 if error
+ * @return 如果成功则返回0，否则返回<0
  */
 int net_lldp_config_optional(struct net_if *iface, const uint8_t *tlv,
 			     size_t len);
 
 /**
- * @brief Initialize LLDP engine.
+ * @brief 初始化LLDP引擎。
  */
 void net_lldp_init(void);
 
 /**
- * @brief LLDP Receive packet callback
+ * @brief LLDP接收数据包回调
  *
- * Callback gets called upon receiving packet. It is responsible for
- * freeing packet or indicating to the stack that it needs to free packet
- * by returning correct net_verdict.
+ * 回调在接收到数据包时调用。它负责释放数据包或指示堆栈需要释放数据包
+ * 通过返回正确的net_verdict。
  *
- * Returns:
- *  - NET_DROP, if packet was invalid, rejected or we want the stack to free it.
- *    In this case the core stack will free the packet.
- *  - NET_OK, if the packet was accepted, in this case the ownership of the
- *    net_pkt goes to callback and core network stack will forget it.
+ * 返回：
+ *  - NET_DROP，如果数据包无效、被拒绝或我们希望堆栈释放它。
+ *    在这种情况下，核心堆栈将释放数据包。
+ *  - NET_OK，如果数据包被接受，在这种情况下，net_pkt的所有权将转移到回调，核心网络堆栈将忘记它。
  */
 typedef enum net_verdict (*net_lldp_recv_cb_t)(struct net_if *iface,
 					       struct net_pkt *pkt);
 
 /**
- * @brief Register LLDP Rx callback function
+ * @brief 注册LLDP Rx回调函数
  *
- * @param iface Network interface
- * @param cb Callback function
+ * @param iface 网络接口
+ * @param cb 回调函数
  *
- * @return 0 if ok, < 0 if error
+ * @return 如果成功则返回0，否则返回<0
  */
 int net_lldp_register_callback(struct net_if *iface, net_lldp_recv_cb_t cb);
 
 /**
- * @brief Parse LLDP packet
+ * @brief 解析LLDP数据包
  *
- * @param iface Network interface
- * @param pkt Network packet
+ * @param iface 网络接口
+ * @param pkt 网络数据包
  *
- * @return Return the policy for network buffer
+ * @return 返回网络缓冲区的策略
  */
 enum net_verdict net_lldp_recv(struct net_if *iface, struct net_pkt *pkt);
 
 /**
- * @brief Set LLDP protocol data unit (LLDPDU) for the network interface.
+ * @brief 为网络接口设置LLDP协议数据单元（LLDPDU）。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return <0 if error, index in lldp array if iface is found there
+ * @return 如果错误则返回<0，如果在lldp数组中找到iface则返回索引
  */
 #if defined(CONFIG_NET_LLDP)
 int net_lldp_set_lldpdu(struct net_if *iface);
@@ -247,9 +231,9 @@ int net_lldp_set_lldpdu(struct net_if *iface);
 #endif
 
 /**
- * @brief Unset LLDP protocol data unit (LLDPDU) for the network interface.
+ * @brief 为网络接口取消设置LLDP协议数据单元（LLDPDU）。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  */
 #if defined(CONFIG_NET_LLDP)
 void net_lldp_unset_lldpdu(struct net_if *iface);
@@ -266,3 +250,5 @@ void net_lldp_unset_lldpdu(struct net_if *iface);
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_LLDP_H_ */
+
+// By GST @Data

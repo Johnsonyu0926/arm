@@ -1,12 +1,8 @@
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ieee802154_radio_openthread.h
 
 /**
  * @file
- * @brief This file extends interface of ieee802154_radio.h for OpenThread.
+ * @brief 扩展ieee802154_radio.h接口以支持OpenThread。
  */
 
 #ifndef ZEPHYR_INCLUDE_NET_IEEE802154_RADIO_OPENTHREAD_H_
@@ -15,137 +11,116 @@
 #include <zephyr/net/ieee802154_radio.h>
 
 /**
- *  OpenThread specific capabilities of ieee802154 driver.
- *  This type extends @ref ieee802154_hw_caps.
+ *  OpenThread特定的ieee802154驱动程序功能。
+ *  此类型扩展了@ref ieee802154_hw_caps。
  */
 enum ieee802154_openthread_hw_caps {
-	/** Capability to transmit with @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA
-	 *  mode.
-	 */
+	/** 支持使用@ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA模式进行传输的功能。 */
 	IEEE802154_OPENTHREAD_HW_MULTIPLE_CCA = BIT(IEEE802154_HW_CAPS_BITS_PRIV_START),
 };
 
-/** @brief TX mode */
+/** @brief 传输模式 */
 enum ieee802154_openthread_tx_mode {
 	/**
-	 * The @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA mode allows to send
-	 * a scheduled packet if the channel is reported idle after at most
-	 * 1 + max_extra_cca_attempts CCAs performed back-to-back.
+	 * @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA模式允许在最多1 + max_extra_cca_attempts次连续CCA报告空闲后发送计划的数据包。
 	 *
-	 * This mode is a non-standard experimental OpenThread feature. It allows transmission
-	 * of a packet within a certain time window.
-	 * The earliest transmission time is specified as in the other TXTIME modes:
-	 * When the first CCA reports an idle channel then the first symbol of the packet's PHR
-	 * SHALL be present at the local antenna at the time represented by the scheduled
-	 * TX timestamp (referred to as T_tx below).
+	 * 该模式是一个非标准的实验性OpenThread功能。它允许在特定时间窗口内传输数据包。
+	 * 最早的传输时间与其他TXTIME模式相同：当第一个CCA报告空闲信道时，数据包的PHR的第一个符号应在计划的TX时间戳（以下简称T_tx）表示的时间出现在本地天线上。
 	 *
-	 * If the first CCA reports a busy channel, then additional CCAs up to
-	 * max_extra_cca_attempts will be done until one of them reports an idle channel and
-	 * the packet is sent out or the max number of attempts is reached in which case
-	 * the transmission fails.
+	 * 如果第一个CCA报告信道忙，则将进行最多max_extra_cca_attempts次额外的CCA，直到其中一个报告空闲信道并发送数据包，或者达到最大尝试次数，此时传输失败。
 	 *
-	 * The timing of these additional CCAs depends on the capabilities of the driver
-	 * which reports them in the T_recca and T_ccatx driver attributes
-	 * (see @ref IEEE802154_OPENTHREAD_ATTR_T_RECCA and
-	 * @ref IEEE802154_OPENTHREAD_ATTR_T_CCATX). Based on these attributes the upper layer
-	 * can calculate the latest point in time (T_txmax) that the first symbol of the scheduled
-	 * packet's PHR SHALL be present at the local antenna:
+	 * 这些额外CCA的时间取决于驱动程序的能力，驱动程序在T_recca和T_ccatx驱动程序属性中报告这些能力（参见@ref IEEE802154_OPENTHREAD_ATTR_T_RECCA和@ref IEEE802154_OPENTHREAD_ATTR_T_CCATX）。
+	 * 基于这些属性，上层可以计算计划数据包的PHR的第一个符号应在本地天线上出现的最晚时间点（T_txmax）：
 	 *
 	 * T_maxtxdelay = max_extra_cca_attempts * (aCcaTime + T_recca) - T_recca + T_ccatx
 	 * T_txmax = T_tx + T_maxtxdelay
 	 *
-	 * See IEEE 802.15.4-2020, section 11.3, table 11-1 for the definition of aCcaTime.
+	 * 参见IEEE 802.15.4-2020，第11.3节，表11-1，了解aCcaTime的定义。
 	 *
-	 * Drivers implementing this TX mode SHOULD keep T_recca and T_ccatx as short as possible.
-	 * T_ccatx SHALL be less than or equal aTurnaroundTime as defined in ibid.,
-	 * section 11.3, table 11-1.
+	 * 实现此传输模式的驱动程序应尽可能缩短T_recca和T_ccatx。T_ccatx应小于或等于aTurnaroundTime，定义见前述标准，第11.3节，表11-1。
 	 *
-	 * CCA SHALL be executed as defined by the phyCcaMode PHY PIB attribute (see ibid.,
-	 * section 11.3, table 11-2).
+	 * CCA应按phyCcaMode PHY PIB属性定义执行（参见前述标准，第11.3节，表11-2）。
 	 *
-	 * Requires IEEE802154_OPENTHREAD_HW_MULTIPLE_CCA capability.
+	 * 需要IEEE802154_OPENTHREAD_HW_MULTIPLE_CCA功能。
 	 */
 	IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA = IEEE802154_TX_MODE_PRIV_START
 };
 
 /**
- *  OpenThread specific configuration types of ieee802154 driver.
- *  This type extends @ref ieee802154_config_type.
+ *  OpenThread特定的ieee802154驱动程序配置类型。
+ *  此类型扩展了@ref ieee802154_config_type。
  */
 enum ieee802154_openthread_config_type {
-	/** Allows to configure extra CCA for transmission requested with mode
-	 *  @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA.
-	 *  Requires IEEE802154_OPENTHREAD_HW_MULTIPLE_CCA capability.
+	/** 允许配置请求使用@ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA模式传输的额外CCA。
+	 *  需要IEEE802154_OPENTHREAD_HW_MULTIPLE_CCA功能。
 	 */
 	IEEE802154_OPENTHREAD_CONFIG_MAX_EXTRA_CCA_ATTEMPTS  = IEEE802154_CONFIG_PRIV_START
 };
 
 /**
- * Thread vendor OUI for vendor specific header or nested information elements,
- * see IEEE 802.15.4-2020, sections 7.4.2.2 and 7.4.4.30.
+ * 供应商特定头部或嵌套信息元素的Thread供应商OUI，
+ * 参见IEEE 802.15.4-2020，第7.4.2.2节和第7.4.4.30节。
  *
- * in little endian
+ * 小端序
  */
 #define IEEE802154_OPENTHREAD_THREAD_IE_VENDOR_OUI { 0x9b, 0xb8, 0xea }
 
-/** length of IEEE 802.15.4-2020 vendor OUIs */
+/** IEEE 802.15.4-2020供应商OUI的长度 */
 #define IEEE802154_OPENTHREAD_VENDOR_OUI_LEN 3
 
-/** OpenThread specific configuration data of ieee802154 driver. */
+/** OpenThread特定的ieee802154驱动程序配置数据。 */
 struct ieee802154_openthread_config {
 	union {
-		/** Common configuration */
+		/** 通用配置 */
 		struct ieee802154_config common;
 
 		/** ``IEEE802154_OPENTHREAD_CONFIG_MAX_EXTRA_CCA_ATTEMPTS``
 		 *
-		 *  The maximum number of extra CCAs to be performed when transmission is
-		 *  requested with mode @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA.
+		 *  请求使用@ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA模式传输时要执行的最大额外CCA次数。
 		 */
 		uint8_t max_extra_cca_attempts;
 	};
 };
 
 /**
- *  OpenThread specific attributes of ieee802154 driver.
- *  This type extends @ref ieee802154_attr
+ *  OpenThread特定的ieee802154驱动程序属性。
+ *  此类型扩展了@ref ieee802154_attr
  */
 enum ieee802154_openthread_attr {
 
-	/** Attribute: Maximum time between consecutive CCAs performed back-to-back.
+	/** 属性：连续CCA之间的最大时间。
 	 *
-	 *  This is attribute for T_recca parameter mentioned for
-	 *  @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA.
-	 *  Time is expressed in microseconds.
+	 *  这是@ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA提到的T_recca参数的属性。
+	 *  时间以微秒为单位表示。
 	 */
 	IEEE802154_OPENTHREAD_ATTR_T_RECCA = IEEE802154_ATTR_PRIV_START,
 
-	/** Attribute: Maximum time between detection of CCA idle channel and the moment of
-	 *  start of SHR at the local antenna.
+	/** 属性：检测到CCA空闲信道和SHR在本地天线上开始之间的最大时间。
 	 *
-	 *  This is attribute for T_ccatx parameter mentioned for
-	 *  @ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA.
-	 *  Time is expressed in microseconds.
+	 *  这是@ref IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA提到的T_ccatx参数的属性。
+	 *  时间以微秒为单位表示。
 	 */
 	IEEE802154_OPENTHREAD_ATTR_T_CCATX
 };
 
 /**
- *  OpenThread specific attribute value data of ieee802154 driver.
- *  This type extends @ref ieee802154_attr_value
+ *  OpenThread特定的ieee802154驱动程序属性值数据。
+ *  此类型扩展了@ref ieee802154_attr_value
  */
 struct ieee802154_openthread_attr_value {
 	union {
-		/** Common attribute value */
+		/** 通用属性值 */
 		struct ieee802154_attr_value common;
 
-		/** @brief Attribute value for @ref IEEE802154_OPENTHREAD_ATTR_T_RECCA */
+		/** @brief @ref IEEE802154_OPENTHREAD_ATTR_T_RECCA的属性值 */
 		uint16_t t_recca;
 
-		/** @brief Attribute value for @ref IEEE802154_OPENTHREAD_ATTR_T_CCATX */
+		/** @brief @ref IEEE802154_OPENTHREAD_ATTR_T_CCATX的属性值 */
 		uint16_t t_ccatx;
 
 	};
 };
 
 #endif /* ZEPHYR_INCLUDE_NET_IEEE802154_RADIO_OPENTHREAD_H_ */
+
+// By GST @Data

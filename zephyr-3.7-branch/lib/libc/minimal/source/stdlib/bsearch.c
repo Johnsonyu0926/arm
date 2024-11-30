@@ -1,24 +1,18 @@
-/*
- * Copyright (c) 2019 Balaji Kulkarni
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/minimal/source/stdlib/bsearch.c
 #include <stdlib.h>
 #include <stdio.h>
 
 /**
  * @brief Generic implementation of Binary Search
  *
- * @param key	pointer to first element to search
- * @param array	pointer to item being searched for
- * @param count	number of elements
- * @param size	size of each element
- * @param cmp	pointer to comparison function
+ * @param key Pointer to the item being searched for
+ * @param array Pointer to the array to search
+ * @param count Number of elements in the array
+ * @param size Size of each element in the array
+ * @param cmp Pointer to the comparison function
  *
- * @return	pointer to key if present in the array, or NULL otherwise
+ * @return Pointer to the key if present in the array, or NULL otherwise
  */
-
 void *bsearch(const void *key, const void *array, size_t count, size_t size,
 	      int (*cmp)(const void *key, const void *element))
 {
@@ -39,8 +33,8 @@ void *bsearch(const void *key, const void *array, size_t count, size_t size,
 			low = index + 1;
 		} else {
 			high = index;
-
 		}
 	}
 	return NULL;
 }
+//GST

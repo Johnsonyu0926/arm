@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arch_interface.h
 
 /**
  * @defgroup arch-interface Architecture Interface
@@ -612,7 +608,8 @@ static inline uintptr_t arch_syscall_invoke3(uintptr_t arg1, uintptr_t arg2,
  *	          kernel-side dispatch table
  * @return Return value of the system call. Void system calls return 0 here.
  */
-static inline uintptr_t arch_syscall_invoke4(uintptr_t arg1, uintptr_t arg2,
+static inline uintptr_t arch_syscall_invoke4(uintptr_t arg1,
+					     uintptr_t arg2,
 					     uintptr_t arg3, uintptr_t arg4,
 					     uintptr_t call_id);
 
@@ -671,13 +668,12 @@ int arch_mem_domain_max_partitions_get(void);
 
 #ifdef CONFIG_ARCH_MEM_DOMAIN_DATA
 /**
- *
  * @brief Architecture-specific hook for memory domain initialization
  *
  * Perform any tasks needed to initialize architecture-specific data within
  * the memory domain, such as reserving memory for page tables. All members
  * of the provided memory domain aside from `arch` will be initialized when
- * this is called, but no threads will be a assigned yet.
+ * this is called, but no threads will be assigned yet.
  *
  * This function may fail if initializing the memory domain requires allocation,
  * such as for page tables.
@@ -1145,7 +1141,6 @@ void arch_timing_stop(void);
  * @see timing_counter_get()
  */
 timing_t arch_timing_counter_get(void);
-
 /**
  * @brief Get number of cycles between @p start and @p end.
  *
@@ -1162,7 +1157,6 @@ timing_t arch_timing_counter_get(void);
  */
 uint64_t arch_timing_cycles_get(volatile timing_t *const start,
 				volatile timing_t *const end);
-
 /**
  * @brief Get frequency of counter used (in Hz).
  *
@@ -1171,7 +1165,6 @@ uint64_t arch_timing_cycles_get(volatile timing_t *const start,
  * @see timing_freq_get()
  */
 uint64_t arch_timing_freq_get(void);
-
 /**
  * @brief Convert number of @p cycles into nanoseconds.
  *
@@ -1181,7 +1174,6 @@ uint64_t arch_timing_freq_get(void);
  * @see timing_cycles_to_ns()
  */
 uint64_t arch_timing_cycles_to_ns(uint64_t cycles);
-
 /**
  * @brief Convert number of @p cycles into nanoseconds with averaging.
  *
@@ -1192,7 +1184,6 @@ uint64_t arch_timing_cycles_to_ns(uint64_t cycles);
  * @see timing_cycles_to_ns_avg()
  */
 uint64_t arch_timing_cycles_to_ns_avg(uint64_t cycles, uint32_t count);
-
 /**
  * @brief Get frequency of counter used (in MHz).
  *
@@ -1201,16 +1192,11 @@ uint64_t arch_timing_cycles_to_ns_avg(uint64_t cycles, uint32_t count);
  * @see timing_freq_get_mhz()
  */
 uint32_t arch_timing_freq_get_mhz(void);
-
 /** @} */
-
 #endif /* CONFIG_TIMING_FUNCTIONS */
-
 #ifdef CONFIG_PCIE_MSI_MULTI_VECTOR
-
 struct msi_vector;
 typedef struct msi_vector msi_vector_t;
-
 /**
  * @brief Allocate vector(s) for the endpoint MSI message(s).
  *
@@ -1223,7 +1209,6 @@ typedef struct msi_vector msi_vector_t;
 uint8_t arch_pcie_msi_vectors_allocate(unsigned int priority,
 				       msi_vector_t *vectors,
 				       uint8_t n_vector);
-
 /**
  * @brief Connect an MSI vector to the given routine
  *
@@ -1238,9 +1223,7 @@ bool arch_pcie_msi_vector_connect(msi_vector_t *vector,
 				  void (*routine)(const void *parameter),
 				  const void *parameter,
 				  uint32_t flags);
-
 #endif /* CONFIG_PCIE_MSI_MULTI_VECTOR */
-
 /**
  * @brief Perform architecture specific processing within spin loops
  *
@@ -1250,7 +1233,6 @@ bool arch_pcie_msi_vector_connect(msi_vector_t *vector,
  * checks or power management tricks if needed.
  */
 void arch_spin_relax(void);
-
 /**
  * stack_trace_callback_fn - Callback for @ref arch_stack_walk
  * @param cookie Caller supplied pointer handed back by @ref arch_stack_walk
@@ -1259,7 +1241,6 @@ void arch_spin_relax(void);
  * @return True, if the entry was consumed or skipped. False, if there is no space left to store
  */
 typedef bool (*stack_trace_callback_fn)(void *cookie, unsigned long addr);
-
 /**
  * @brief Architecture-specific function to walk the stack
  *
@@ -1277,13 +1258,10 @@ typedef bool (*stack_trace_callback_fn)(void *cookie, unsigned long addr);
  */
 void arch_stack_walk(stack_trace_callback_fn callback_fn, void *cookie,
 		     const struct k_thread *thread, const struct arch_esf *esf);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #include <zephyr/arch/arch_inlines.h>
-
 #endif /* _ASMLANGUAGE */
-
 #endif /* ZEPHYR_INCLUDE_ARCH_ARCH_INTERFACE_H_ */
+//GST

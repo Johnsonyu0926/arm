@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/heap.c
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/sys/heap_listener.h>
@@ -543,3 +539,4 @@ void sys_heap_init(struct sys_heap *heap, void *mem, size_t bytes)
 
 	free_list_add(h, chunk0_size);
 }
+//GST

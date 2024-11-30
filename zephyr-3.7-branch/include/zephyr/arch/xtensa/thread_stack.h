@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/thread_stack.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_STACK_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_STACK_H_
@@ -17,19 +13,18 @@
 #define ARCH_STACK_PTR_ALIGN 16
 #endif
 
-
 #ifdef CONFIG_USERSPACE
 #ifdef CONFIG_XTENSA_MMU
-#define XTENSA_STACK_BASE_ALIGN		CONFIG_MMU_PAGE_SIZE
-#define XTENSA_STACK_SIZE_ALIGN		CONFIG_MMU_PAGE_SIZE
+#define XTENSA_STACK_BASE_ALIGN        CONFIG_MMU_PAGE_SIZE
+#define XTENSA_STACK_SIZE_ALIGN        CONFIG_MMU_PAGE_SIZE
 #endif
 #ifdef CONFIG_XTENSA_MPU
-#define XTENSA_STACK_BASE_ALIGN		XCHAL_MPU_ALIGN
-#define XTENSA_STACK_SIZE_ALIGN		XCHAL_MPU_ALIGN
+#define XTENSA_STACK_BASE_ALIGN        XCHAL_MPU_ALIGN
+#define XTENSA_STACK_SIZE_ALIGN        XCHAL_MPU_ALIGN
 #endif
 #else
-#define XTENSA_STACK_BASE_ALIGN		ARCH_STACK_PTR_ALIGN
-#define XTENSA_STACK_SIZE_ALIGN		ARCH_STACK_PTR_ALIGN
+#define XTENSA_STACK_BASE_ALIGN        ARCH_STACK_PTR_ALIGN
+#define XTENSA_STACK_SIZE_ALIGN        ARCH_STACK_PTR_ALIGN
 #endif
 
 /*
@@ -51,26 +46,31 @@
 
 #ifndef _ASMLANGUAGE
 
-/* thread stack */
+/**
+ * @brief Thread stack header for Xtensa architecture
+ *
+ * This structure represents the header for a thread stack in the Xtensa architecture.
+ */
 struct xtensa_thread_stack_header {
 #if defined(CONFIG_XTENSA_MMU) || defined(CONFIG_XTENSA_MPU)
-	char privilege_stack[CONFIG_PRIVILEGED_STACK_SIZE];
+    char privilege_stack[CONFIG_PRIVILEGED_STACK_SIZE]; /**< Privileged stack */
 #endif /* CONFIG_XTENSA_MPU */
 } __packed __aligned(XTENSA_STACK_BASE_ALIGN);
 
 #if defined(CONFIG_XTENSA_MMU) || defined(CONFIG_XTENSA_MPU)
-#define ARCH_THREAD_STACK_RESERVED		\
-	sizeof(struct xtensa_thread_stack_header)
+#define ARCH_THREAD_STACK_RESERVED        \
+    sizeof(struct xtensa_thread_stack_header)
 #endif /* CONFIG_XTENSA_MMU || CONFIG_XTENSA_MPU */
 
-#define ARCH_THREAD_STACK_OBJ_ALIGN(size)	XTENSA_STACK_BASE_ALIGN
-#define ARCH_THREAD_STACK_SIZE_ADJUST(size)	\
-	ROUND_UP((size), XTENSA_STACK_SIZE_ALIGN)
+#define ARCH_THREAD_STACK_OBJ_ALIGN(size) XTENSA_STACK_BASE_ALIGN
+#define ARCH_THREAD_STACK_SIZE_ADJUST(size) \
+    ROUND_UP((size), XTENSA_STACK_SIZE_ALIGN)
 
 /* kernel stack */
-#define ARCH_KERNEL_STACK_RESERVED		0
-#define ARCH_KERNEL_STACK_OBJ_ALIGN		ARCH_STACK_PTR_ALIGN
+#define ARCH_KERNEL_STACK_RESERVED        0
+#define ARCH_KERNEL_STACK_OBJ_ALIGN       ARCH_STACK_PTR_ALIGN
 
 #endif /* _ASMLANGUAGE */
 
-#endif
+#endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_STACK_H_ */
+//GST

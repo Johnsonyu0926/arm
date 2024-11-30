@@ -1,8 +1,5 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/app_memory/app_memdomain.h
+
 #ifndef ZEPHYR_INCLUDE_APP_MEMORY_APP_MEMDOMAIN_H_
 #define ZEPHYR_INCLUDE_APP_MEMORY_APP_MEMDOMAIN_H_
 
@@ -11,8 +8,8 @@
 #include <zephyr/kernel.h>
 
 /**
- * @brief Application memory domain APIs
- * @defgroup mem_domain_apis_app Application memory domain APIs
+ * @brief 应用程序内存域API
+ * @defgroup mem_domain_apis_app 应用程序内存域API
  * @ingroup mem_domain_apis
  * @{
  */
@@ -20,43 +17,38 @@
 #ifdef CONFIG_USERSPACE
 
 /**
- * @brief Name of the data section for a particular partition
+ * @brief 特定分区的数据段名称
  *
- * Useful for defining memory pools, or any other macro that takes a
- * section name as a parameter.
+ * 用于定义内存池或任何其他以段名称作为参数的宏。
  *
- * @param id Partition name
+ * @param id 分区名称
  */
 #define K_APP_DMEM_SECTION(id) data_smem_##id##_data
 
 /**
- * @brief Name of the bss section for a particular partition
+ * @brief 特定分区的bss段名称
  *
- * Useful for defining memory pools, or any other macro that takes a
- * section name as a parameter.
+ * 用于定义内存池或任何其他以段名称作为参数的宏。
  *
- * @param id Partition name
+ * @param id 分区名称
  */
 #define K_APP_BMEM_SECTION(id) data_smem_##id##_bss
 
 /**
- * @brief Place data in a partition's data section
+ * @brief 将数据放置在分区的数据段中
  *
- * Globals tagged with this will end up in the data section for the
- * specified memory partition. This data should be initialized to some
- * desired value.
+ * 使用此标记的全局变量将最终位于指定内存分区的数据段中。此数据应初始化为某个期望值。
  *
- * @param id Name of the memory partition to associate this data
+ * @param id 要关联此数据的内存分区名称
  */
 #define K_APP_DMEM(id) Z_GENERIC_SECTION(K_APP_DMEM_SECTION(id))
 
 /**
- * @brief Place data in a partition's bss section
+ * @brief 将数据放置在分区的bss段中
  *
- * Globals tagged with this will end up in the bss section for the
- * specified memory partition. This data will be zeroed at boot.
+ * 使用此标记的全局变量将最终位于指定内存分区的bss段中。此数据将在启动时清零。
  *
- * @param id Name of the memory partition to associate this data
+ * @param id 要关联此数据的内存分区名称
  */
 #define K_APP_BMEM(id) Z_GENERIC_SECTION(K_APP_BMEM_SECTION(id))
 
@@ -70,33 +62,26 @@ struct z_app_region {
 #define Z_APP_BSS_START(id) z_data_smem_##id##_bss_start
 #define Z_APP_BSS_SIZE(id) z_data_smem_##id##_bss_size
 
-/* If a partition is declared with K_APPMEM_PARTITION, but never has any
- * data assigned to its contents, then no symbols with its prefix will end
- * up in the symbol table. This prevents gen_app_partitions.py from detecting
- * that the partition exists, and the linker symbols which specify partition
- * bounds will not be generated, resulting in build errors.
+/* 如果使用K_APPMEM_PARTITION声明了一个分区，但从未将任何数据分配给其内容，
+ * 则其前缀的符号将不会出现在符号表中。这会阻止gen_app_partitions.py检测到分区的存在，
+ * 并且不会生成指定分区边界的链接器符号，从而导致构建错误。
  *
- * What this inline assembly code does is define a symbol with no data.
- * This should work for all arches that produce ELF binaries, see
+ * 此内联汇编代码所做的是定义一个没有数据的符号。
+ * 这应该适用于所有生成ELF二进制文件的架构，参见
  * https://sourceware.org/binutils/docs/as/Section.html
  *
- * We don't know what active flags/type of the pushed section were, so we are
- * specific: "aw" indicates section is allocatable and writable,
- * and "@progbits" indicates the section has data.
+ * 我们不知道推送段的活动标志/类型是什么，所以我们是具体的："aw"表示段是可分配和可写的，
+ * "@progbits"表示段有数据。
  */
 #if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
-/* ARM has a quirk in that '@' denotes a comment, so we have to send
- * %progbits to the assembler instead.
- */
+/* ARM有一个怪癖，即'@'表示注释，所以我们必须将%progbits发送给汇编器。 */
 #define Z_PROGBITS_SYM	"%"
 #else
 #define Z_PROGBITS_SYM "@"
 #endif
 
 #if defined(CONFIG_ARC) && defined(__CCAC__)
-/* ARC MWDT assembler has slightly different pushsection/popsection directives
- * names.
- */
+/* ARC MWDT汇编器具有略有不同的pushsection/popsection指令名称。 */
 #define Z_PUSHSECTION_DIRECTIV		".pushsect"
 #define Z_POPSECTION_DIRECTIVE		".popsect"
 #else
@@ -113,16 +98,14 @@ struct z_app_region {
 		Z_POPSECTION_DIRECTIVE "\n\t")
 
 /**
- * @brief Define an application memory partition with linker support
+ * @brief 使用链接器支持定义应用程序内存分区
  *
- * Defines a k_mem_paritition with the provided name.
- * This name may be used with the K_APP_DMEM and K_APP_BMEM macros to
- * place globals automatically in this partition.
+ * 使用提供的名称定义k_mem_partition。
+ * 此名称可与K_APP_DMEM和K_APP_BMEM宏一起使用，以自动将全局变量放置在此分区中。
  *
- * NOTE: placeholder char variable is defined here to prevent build errors
- * if a partition is defined but nothing ever placed in it.
+ * 注意：此处定义了占位符字符变量，以防止如果定义了分区但从未在其中放置任何内容时出现构建错误。
  *
- * @param name Name of the k_mem_partition to declare
+ * @param name 要声明的k_mem_partition的名称
  */
 #define K_APPMEM_PARTITION_DEFINE(name) \
 	extern char Z_APP_START(name)[]; \
@@ -155,3 +138,5 @@ struct z_app_region {
  */
 
 #endif /* ZEPHYR_INCLUDE_APP_MEMORY_APP_MEMDOMAIN_H_ */
+
+// By GST @Data

@@ -1,24 +1,20 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * System workqueue.
- */
-
+//kernel/system_work_q.c
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
 
-static K_KERNEL_STACK_DEFINE(sys_work_q_stack,
-			     CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE);
+/* Define the stack for the system work queue */
+static K_KERNEL_STACK_DEFINE(sys_work_q_stack, CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE);
 
+/* Declare the system work queue */
 struct k_work_q k_sys_work_q;
 
+/**
+ * @brief Initialize the system work queue
+ *
+ * This function initializes and starts the system work queue.
+ *
+ * @return 0 on success
+ */
 static int k_sys_work_q_init(void)
 {
 	struct k_work_queue_config cfg = {
@@ -34,4 +30,6 @@ static int k_sys_work_q_init(void)
 	return 0;
 }
 
+/* Initialize the system work queue after the kernel has started */
 SYS_INIT(k_sys_work_q_init, POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
+//GST

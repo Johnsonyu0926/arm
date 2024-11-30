@@ -1,1 +1,0 @@
-The NIC_Ctrl icon is renamed and resized version of the system-control-network.png file from the GPLv2 licensed Buttonized icon theme.

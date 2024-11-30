@@ -1,27 +1,35 @@
-/*
- * Copyright (c) 2018, 2024 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//kernel/timeslicing.c
 #include <zephyr/kernel.h>
 #include <kswap.h>
 #include <ksched.h>
 #include <ipi.h>
 
+/* Time slice duration in ticks */
 static int slice_ticks = DIV_ROUND_UP(CONFIG_TIMESLICE_SIZE * Z_HZ_ticks, Z_HZ_ms);
+/* Maximum priority for time slicing */
 static int slice_max_prio = CONFIG_TIMESLICE_PRIORITY;
+/* Timeouts for each CPU */
 static struct _timeout slice_timeouts[CONFIG_MP_MAX_NUM_CPUS];
+/* Flags indicating if the time slice has expired for each CPU */
 static bool slice_expired[CONFIG_MP_MAX_NUM_CPUS];
 
 #ifdef CONFIG_SWAP_NONATOMIC
 /* If z_swap() isn't atomic, then it's possible for a timer interrupt
  * to try to timeslice away _current after it has already pended
- * itself but before the corresponding context switch.  Treat that as
+ * itself but before the corresponding context switch. Treat that as
  * a noop condition in z_time_slice().
  */
 struct k_thread *pending_current;
 #endif
 
+/**
+ * @brief Get the time slice duration for a thread
+ *
+ * This function returns the time slice duration for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ * @return Time slice duration in ticks
+ */
 static inline int slice_time(struct k_thread *thread)
 {
 	int ret = slice_ticks;
@@ -36,6 +44,14 @@ static inline int slice_time(struct k_thread *thread)
 	return ret;
 }
 
+/**
+ * @brief Check if a thread is sliceable
+ *
+ * This function checks if the specified thread is eligible for time slicing.
+ *
+ * @param thread Pointer to the thread
+ * @return true if the thread is sliceable, false otherwise
+ */
 bool thread_is_sliceable(struct k_thread *thread)
 {
 	bool ret = thread_is_preemptible(thread)
@@ -51,6 +67,13 @@ bool thread_is_sliceable(struct k_thread *thread)
 	return ret;
 }
 
+/**
+ * @brief Timeout handler for time slicing
+ *
+ * This function is called when the time slice duration expires.
+ *
+ * @param timeout Pointer to the timeout structure
+ */
 static void slice_timeout(struct _timeout *timeout)
 {
 	int cpu = ARRAY_INDEX(slice_timeouts, timeout);
@@ -65,6 +88,13 @@ static void slice_timeout(struct _timeout *timeout)
 	}
 }
 
+/**
+ * @brief Reset the time slice for a thread
+ *
+ * This function resets the time slice for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ */
 void z_reset_time_slice(struct k_thread *thread)
 {
 	int cpu = _current_cpu->id;
@@ -77,6 +107,14 @@ void z_reset_time_slice(struct k_thread *thread)
 	}
 }
 
+/**
+ * @brief Set the global time slice duration and priority
+ *
+ * This function sets the global time slice duration and priority.
+ *
+ * @param slice Time slice duration in milliseconds
+ * @param prio Maximum priority for time slicing
+ */
 void k_sched_time_slice_set(int32_t slice, int prio)
 {
 	K_SPINLOCK(&_sched_spinlock) {
@@ -87,6 +125,16 @@ void k_sched_time_slice_set(int32_t slice, int prio)
 }
 
 #ifdef CONFIG_TIMESLICE_PER_THREAD
+/**
+ * @brief Set the time slice duration for a specific thread
+ *
+ * This function sets the time slice duration for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ * @param thread_slice_ticks Time slice duration in ticks
+ * @param expired Callback function to call when the time slice expires
+ * @param data Data to pass to the callback function
+ */
 void k_thread_time_slice_set(struct k_thread *thread, int32_t thread_slice_ticks,
 			     k_thread_timeslice_fn_t expired, void *data)
 {
@@ -99,7 +147,12 @@ void k_thread_time_slice_set(struct k_thread *thread, int32_t thread_slice_ticks
 }
 #endif
 
-/* Called out of each timer interrupt */
+/**
+ * @brief Handle time slice expiration
+ *
+ * This function is called from each timer interrupt to handle time slice
+ * expiration.
+ */
 void z_time_slice(void)
 {
 	k_spinlock_key_t key = k_spin_lock(&_sched_spinlock);
@@ -129,3 +182,4 @@ void z_time_slice(void)
 	}
 	k_spin_unlock(&_sched_spinlock, key);
 }
+//GST

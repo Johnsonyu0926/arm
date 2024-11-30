@@ -1,648 +1,5 @@
-/*
- * Copyright (c) 1997-2010, 2012-2015 Wind River Systems, Inc.
- * Copyright (c) 2020 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/os/cbprintf_complete.c
 
-#include <ctype.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
-#include <zephyr/toolchain.h>
-#include <sys/types.h>
-#include <zephyr/sys/util.h>
-#include <zephyr/sys/cbprintf.h>
-
-/* newlib doesn't declare this function unless __POSIX_VISIBLE >= 200809.  No
- * idea how to make that happen, so lets put it right here.
- */
-size_t strnlen(const char *s, size_t maxlen);
-
-/* Provide typedefs used for signed and unsigned integral types
- * capable of holding all convertible integral values.
- */
-#ifdef CONFIG_CBPRINTF_FULL_INTEGRAL
-typedef intmax_t sint_value_type;
-typedef uintmax_t uint_value_type;
-#else
-typedef int32_t sint_value_type;
-typedef uint32_t uint_value_type;
-#endif
-
-/* The maximum buffer size required is for octal formatting: one character for
- * every 3 bits.  Neither EOS nor alternate forms are required.
- */
-#define CONVERTED_INT_BUFLEN ((CHAR_BIT * sizeof(uint_value_type) + 2) / 3)
-
-/* The float code may extract up to 16 digits, plus a prefix, a
- * leading 0, a dot, and an exponent in the form e+xxx for a total of
- * 24. Add a trailing NULL so the buffer length required is 25.
- */
-#define CONVERTED_FP_BUFLEN 25U
-
-#ifdef CONFIG_CBPRINTF_FP_SUPPORT
-#define CONVERTED_BUFLEN MAX(CONVERTED_INT_BUFLEN, CONVERTED_FP_BUFLEN)
-#else
-#define CONVERTED_BUFLEN CONVERTED_INT_BUFLEN
-#endif
-
-/* The allowed types of length modifier. */
-enum length_mod_enum {
-	LENGTH_NONE,		/* int */
-	LENGTH_HH,		/* char */
-	LENGTH_H,		/* short */
-	LENGTH_L,		/* long */
-	LENGTH_LL,		/* long long */
-	LENGTH_J,		/* intmax */
-	LENGTH_Z,		/* size_t */
-	LENGTH_T,		/* ptrdiff_t */
-	LENGTH_UPPER_L,		/* long double */
-};
-
-/* Categories of conversion specifiers. */
-enum specifier_cat_enum {
-	/* unrecognized */
-	SPECIFIER_INVALID,
-	/* d, i */
-	SPECIFIER_SINT,
-	/* c, o, u, x, X */
-	SPECIFIER_UINT,
-	/* n, p, s */
-	SPECIFIER_PTR,
-	/* a, A, e, E, f, F, g, G */
-	SPECIFIER_FP,
-};
-
-#define CHAR_IS_SIGNED (CHAR_MIN != 0)
-#if CHAR_IS_SIGNED
-#define CASE_SINT_CHAR case 'c':
-#define CASE_UINT_CHAR
-#else
-#define CASE_SINT_CHAR
-#define CASE_UINT_CHAR case 'c':
-#endif
-
-/* We need two pieces of information about wchar_t:
- * * WCHAR_IS_SIGNED: whether it's signed or unsigned;
- * * WINT_TYPE: the type to use when extracting it from va_args
- *
- * The former can be determined from the value of WCHAR_MIN if it's defined.
- * It's not for minimal libc, so treat it as whatever char is.
- *
- * The latter should be wint_t, but minimal libc doesn't provide it.  We can
- * substitute wchar_t as long as that type does not undergo default integral
- * promotion as an argument.  But it does for at least one toolchain (xtensa),
- * and where it does we need to use the promoted type in va_arg() to avoid
- * build errors, otherwise we can use the base type.  We can tell that
- * integral promotion occurs if WCHAR_MAX is strictly less than INT_MAX.
- */
-#ifndef WCHAR_MIN
-#define WCHAR_IS_SIGNED CHAR_IS_SIGNED
-#if WCHAR_IS_SIGNED
-#define WINT_TYPE int
-#else /* wchar signed */
-#define WINT_TYPE unsigned int
-#endif /* wchar signed */
-#else /* WCHAR_MIN defined */
-#define WCHAR_IS_SIGNED ((WCHAR_MIN - 0) != 0)
-#if WCHAR_MAX < INT_MAX
-/* Signed or unsigned, it'll be int */
-#define WINT_TYPE int
-#else /* wchar rank vs int */
-#define WINT_TYPE wchar_t
-#endif /* wchar rank vs int */
-#endif /* WCHAR_MIN defined */
-
-/* Case label to identify conversions for signed integral values.  The
- * corresponding argument_value tag is sint and category is
- * SPECIFIER_SINT.
- */
-#define SINT_CONV_CASES				\
-	'd':					\
-	CASE_SINT_CHAR				\
-	case 'i'
-
-/* Case label to identify conversions for signed integral arguments.
- * The corresponding argument_value tag is uint and category is
- * SPECIFIER_UINT.
- */
-#define UINT_CONV_CASES				\
-	'o':					\
-	CASE_UINT_CHAR				\
-	case 'u':				\
-	case 'x':				\
-	case 'X'
-
-/* Case label to identify conversions for floating point arguments.
- * The corresponding argument_value tag is either dbl or ldbl,
- * depending on length modifier, and the category is SPECIFIER_FP.
- */
-#define FP_CONV_CASES				\
-	'a':					\
-	case 'A':				\
-	case 'e':				\
-	case 'E':				\
-	case 'f':				\
-	case 'F':				\
-	case 'g':				\
-	case 'G'
-
-/* Case label to identify conversions for pointer arguments.  The
- * corresponding argument_value tag is ptr and the category is
- * SPECIFIER_PTR.
- */
-#define PTR_CONV_CASES				\
-	'n':					\
-	case 'p':				\
-	case 's'
-
-/* Storage for an argument value. */
-union argument_value {
-	/* For SINT conversions */
-	sint_value_type sint;
-
-	/* For UINT conversions */
-	uint_value_type uint;
-
-	/* For FP conversions without L length */
-	double dbl;
-
-	/* For FP conversions with L length */
-	long double ldbl;
-
-	/* For PTR conversions */
-	void *ptr;
-};
-
-/* Structure capturing all attributes of a conversion
- * specification.
- *
- * Initial values come from the specification, but are updated during
- * the conversion.
- */
-struct conversion {
-	/** Indicates flags are inconsistent */
-	bool invalid: 1;
-
-	/** Indicates flags are valid but not supported */
-	bool unsupported: 1;
-
-	/** Left-justify value in width */
-	bool flag_dash: 1;
-
-	/** Explicit sign */
-	bool flag_plus: 1;
-
-	/** Space for non-negative sign */
-	bool flag_space: 1;
-
-	/** Alternative form */
-	bool flag_hash: 1;
-
-	/** Pad with leading zeroes */
-	bool flag_zero: 1;
-
-	/** Width field present */
-	bool width_present: 1;
-
-	/** Width value from int argument
-	 *
-	 * width_value is set to the absolute value of the argument.
-	 * If the argument is negative flag_dash is also set.
-	 */
-	bool width_star: 1;
-
-	/** Precision field present */
-	bool prec_present: 1;
-
-	/** Precision from int argument
-	 *
-	 * prec_value is set to the value of a non-negative argument.
-	 * If the argument is negative prec_present is cleared.
-	 */
-	bool prec_star: 1;
-
-	/** Length modifier (value from length_mod_enum) */
-	unsigned int length_mod: 4;
-
-	/** Indicates an a or A conversion specifier.
-	 *
-	 * This affects how precision is handled.
-	 */
-	bool specifier_a: 1;
-
-	/** Conversion specifier category (value from specifier_cat_enum) */
-	unsigned int specifier_cat: 3;
-
-	/** If set alternate form requires 0 before octal. */
-	bool altform_0: 1;
-
-	/** If set alternate form requires 0x before hex. */
-	bool altform_0c: 1;
-
-	/** Set when pad0_value zeroes are to be to be inserted after
-	 * the decimal point in a floating point conversion.
-	 */
-	bool pad_postdp: 1;
-
-	/** Set for floating point values that have a non-zero
-	 * pad0_prefix or pad0_pre_exp.
-	 */
-	bool pad_fp: 1;
-
-	/** Conversion specifier character */
-	unsigned char specifier;
-
-	union {
-		/** Width value from specification.
-		 *
-		 * Valid until conversion begins.
-		 */
-		int width_value;
-
-		/** Number of extra zeroes to be inserted around a
-		 * formatted value:
-		 *
-		 * * before a formatted integer value due to precision
-		 *   and flag_zero; or
-		 * * before a floating point mantissa decimal point
-		 *   due to precision; or
-		 * * after a floating point mantissa decimal point due
-		 *   to precision.
-		 *
-		 * For example for zero-padded hexadecimal integers
-		 * this would insert where the angle brackets are in:
-		 * 0x<>hhhh.
-		 *
-		 * For floating point numbers this would insert at
-		 * either <1> or <2> depending on #pad_postdp:
-		 * VVV<1>.<2>FFFFeEEE
-		 *
-		 * Valid after conversion begins.
-		 */
-		int pad0_value;
-	};
-
-	union {
-		/** Precision from specification.
-		 *
-		 * Valid until conversion begins.
-		 */
-		int prec_value;
-
-		/** Number of extra zeros to be inserted after a decimal
-		 * point due to precision.
-		 *
-		 * Inserts at <> in: VVVV.FFFF<>eEE
-		 *
-		 * Valid after conversion begins.
-		 */
-		int pad0_pre_exp;
-	};
-};
-
-/** Get a size represented as a sequence of decimal digits.
- *
- * @param[inout] str where to read from.  Updated to point to the first
- * unconsumed character.  There must be at least one non-digit character in
- * the referenced text.
- *
- * @return the decoded integer value.
- */
-static size_t extract_decimal(const char **str)
-{
-	const char *sp = *str;
-	size_t val = 0;
-
-	while (isdigit((int)(unsigned char)*sp) != 0) {
-		val = 10U * val + *sp++ - '0';
-	}
-	*str = sp;
-	return val;
-}
-
-/** Extract C99 conversion specification flags.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the first character after the % of a conversion
- * specifier.
- *
- * @return a pointer the first character that follows the flags.
- */
-static inline const char *extract_flags(struct conversion *conv,
-					const char *sp)
-{
-	bool loop = true;
-
-	do {
-		switch (*sp) {
-		case '-':
-			conv->flag_dash = true;
-			break;
-		case '+':
-			conv->flag_plus = true;
-			break;
-		case ' ':
-			conv->flag_space = true;
-			break;
-		case '#':
-			conv->flag_hash = true;
-			break;
-		case '0':
-			conv->flag_zero = true;
-			break;
-		default:
-			loop = false;
-		}
-		if (loop) {
-			++sp;
-		}
-	} while (loop);
-
-	/* zero && dash => !zero */
-	if (conv->flag_zero && conv->flag_dash) {
-		conv->flag_zero = false;
-	}
-
-	/* space && plus => !plus, handled in emitter code */
-
-	return sp;
-}
-
-/** Extract a C99 conversion specification width.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the first character after the flags element of a
- * conversion specification.
- *
- * @return a pointer the first character that follows the width.
- */
-static inline const char *extract_width(struct conversion *conv,
-					const char *sp)
-{
-	conv->width_present = true;
-
-	if (*sp == '*') {
-		conv->width_star = true;
-		return ++sp;
-	}
-
-	const char *wp = sp;
-	size_t width = extract_decimal(&sp);
-
-	if (sp != wp) {
-		conv->width_present = true;
-		conv->width_value = width;
-		conv->unsupported |= ((conv->width_value < 0)
-				      || (width != (size_t)conv->width_value));
-	}
-
-	return sp;
-}
-
-/** Extract a C99 conversion specification precision.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the first character after the width element of a
- * conversion specification.
- *
- * @return a pointer the first character that follows the precision.
- */
-static inline const char *extract_prec(struct conversion *conv,
-				       const char *sp)
-{
-	conv->prec_present = (*sp == '.');
-
-	if (!conv->prec_present) {
-		return sp;
-	}
-	++sp;
-
-	if (*sp == '*') {
-		conv->prec_star = true;
-		return ++sp;
-	}
-
-	size_t prec = extract_decimal(&sp);
-
-	conv->prec_value = prec;
-	conv->unsupported |= ((conv->prec_value < 0)
-			      || (prec != (size_t)conv->prec_value));
-
-	return sp;
-}
-
-/** Extract a C99 conversion specification length.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the first character after the precision element of a
- * conversion specification.
- *
- * @return a pointer the first character that follows the precision.
- */
-static inline const char *extract_length(struct conversion *conv,
-					 const char *sp)
-{
-	switch (*sp) {
-	case 'h':
-		if (*++sp == 'h') {
-			conv->length_mod = LENGTH_HH;
-			++sp;
-		} else {
-			conv->length_mod = LENGTH_H;
-		}
-		break;
-	case 'l':
-		if (*++sp == 'l') {
-			conv->length_mod = LENGTH_LL;
-			++sp;
-		} else {
-			conv->length_mod = LENGTH_L;
-		}
-		break;
-	case 'j':
-		conv->length_mod = LENGTH_J;
-		++sp;
-		break;
-	case 'z':
-		conv->length_mod = LENGTH_Z;
-		++sp;
-		break;
-	case 't':
-		conv->length_mod = LENGTH_T;
-		++sp;
-		break;
-	case 'L':
-		conv->length_mod = LENGTH_UPPER_L;
-		++sp;
-
-		/* We recognize and consume these, but can't format
-		 * them.
-		 */
-		conv->unsupported = true;
-		break;
-	default:
-		conv->length_mod = LENGTH_NONE;
-		break;
-	}
-	return sp;
-}
-
-/* Extract a C99 conversion specifier.
- *
- * This is the character that identifies the representation of the converted
- * value.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the first character after the length element of a
- * conversion specification.
- *
- * @return a pointer the first character that follows the specifier.
- */
-static inline const char *extract_specifier(struct conversion *conv,
-					    const char *sp)
-{
-	bool unsupported = false;
-
-	conv->specifier = *sp;
-	++sp;
-
-	switch (conv->specifier) {
-	case SINT_CONV_CASES:
-		conv->specifier_cat = SPECIFIER_SINT;
-		goto int_conv;
-	case UINT_CONV_CASES:
-		conv->specifier_cat = SPECIFIER_UINT;
-int_conv:
-		/* L length specifier not acceptable */
-		if (conv->length_mod == LENGTH_UPPER_L) {
-			conv->invalid = true;
-		}
-
-		/* For c LENGTH_NONE and LENGTH_L would be ok,
-		 * but we don't support formatting wide characters.
-		 */
-		if (conv->specifier == 'c') {
-			unsupported = (conv->length_mod != LENGTH_NONE);
-		} else if (!IS_ENABLED(CONFIG_CBPRINTF_FULL_INTEGRAL)) {
-			/* Disable conversion that might produce truncated
-			 * results with buffers sized for 32 bits.
-			 */
-			switch (conv->length_mod) {
-			case LENGTH_L:
-				unsupported = sizeof(long) > 4;
-				break;
-			case LENGTH_LL:
-				unsupported = sizeof(long long) > 4;
-				break;
-			case LENGTH_J:
-				unsupported = sizeof(uintmax_t) > 4;
-				break;
-			case LENGTH_Z:
-				unsupported = sizeof(size_t) > 4;
-				break;
-			case LENGTH_T:
-				unsupported = sizeof(ptrdiff_t) > 4;
-				break;
-			default:
-				/* Add an empty default with break, this is a defensive
-				 * programming. Static analysis tool won't raise a violation
-				 * if default is empty, but has that comment.
-				 */
-				break;
-			}
-		} else {
-			;
-		}
-		break;
-
-	case FP_CONV_CASES:
-		conv->specifier_cat = SPECIFIER_FP;
-
-		/* Don't support if disabled */
-		if (!IS_ENABLED(CONFIG_CBPRINTF_FP_SUPPORT)) {
-			unsupported = true;
-			break;
-		}
-
-		/* When FP enabled %a support is still conditional. */
-		conv->specifier_a = (conv->specifier == 'a')
-			|| (conv->specifier == 'A');
-		if (conv->specifier_a
-		    && !IS_ENABLED(CONFIG_CBPRINTF_FP_A_SUPPORT)) {
-			unsupported = true;
-			break;
-		}
-
-		/* The l specifier has no effect.  Otherwise length
-		 * modifiers other than L are invalid.
-		 */
-		if (conv->length_mod == LENGTH_L) {
-			conv->length_mod = LENGTH_NONE;
-		} else if ((conv->length_mod != LENGTH_NONE)
-			   && (conv->length_mod != LENGTH_UPPER_L)) {
-			conv->invalid = true;
-		} else {
-			;
-		}
-
-		break;
-
-		/* PTR cases are distinct */
-	case 'n':
-		conv->specifier_cat = SPECIFIER_PTR;
-		/* Anything except L */
-		if (conv->length_mod == LENGTH_UPPER_L) {
-			unsupported = true;
-		}
-		break;
-
-	case 's':
-	case 'p':
-		conv->specifier_cat = SPECIFIER_PTR;
-
-		/* p: only LENGTH_NONE
-		 *
-		 * s: LENGTH_NONE or LENGTH_L but wide
-		 * characters not supported.
-		 */
-		if (conv->length_mod != LENGTH_NONE) {
-			unsupported = true;
-		}
-		break;
-
-	default:
-		conv->invalid = true;
-		break;
-	}
-
-	conv->unsupported |= unsupported;
-
-	return sp;
-}
-
-/* Extract the complete C99 conversion specification.
- *
- * @param conv pointer to the conversion being defined.
- *
- * @param sp pointer to the % that introduces a conversion specification.
- *
- * @return pointer to the first character that follows the specification.
- */
-static inline const char *extract_conversion(struct conversion *conv,
-					     const char *sp)
-{
 	*conv = (struct conversion) {
 	   .invalid = false,
 	};
@@ -1207,19 +564,18 @@ static char *encode_float(double value,
 		}
 
 		/* Emit the decimal point only if required by the alternative
+		 *
 		 * format, or if more digits are to follow.
 		 */
 		if (conv->flag_hash || (precision > 0)) {
 			*buf = '.';
 			++buf;
 		}
-
 		if ((decexp < 0) && (precision > 0)) {
 			conv->pad0_value = -decexp;
 			if (conv->pad0_value > precision) {
 				conv->pad0_value = precision;
 			}
-
 			precision -= conv->pad0_value;
 			conv->pad_postdp = (conv->pad0_value > 0);
 		}
@@ -1231,7 +587,6 @@ static char *encode_float(double value,
 		if (*buf++ != '0') {
 			decexp--;
 		}
-
 		/* Emit the decimal point only if required by the alternative
 		 * format, or if more digits are to follow.
 		 */
@@ -1240,15 +595,12 @@ static char *encode_float(double value,
 			++buf;
 		}
 	}
-
 	while ((precision > 0) && (digit_count > 0)) {
 		*buf = _get_digit(&fract, &digit_count);
 		++buf;
 		precision--;
 	}
-
 	conv->pad0_pre_exp = precision;
-
 	if (prune_zero) {
 		conv->pad0_pre_exp = 0;
 		do {
@@ -1258,7 +610,6 @@ static char *encode_float(double value,
 			++buf;
 		}
 	}
-
 	/* Emit the explicit exponent, if format requires it. */
 	if ((c == 'e') || (c == 'E')) {
 		*buf = c;
@@ -1271,23 +622,19 @@ static char *encode_float(double value,
 			*buf = '+';
 			++buf;
 		}
-
 		/* At most 3 digits to the decimal.  Spit them out. */
 		if (decexp >= 100) {
 			*buf = (decexp / 100) + '0';
 			++buf;
 			decexp %= 100;
 		}
-
 		buf[0] = (decexp / 10) + '0';
 		buf[1] = (decexp % 10) + '0';
 		buf += 2;
 	}
-
 	/* Cache whether there's padding required */
 	conv->pad_fp = (conv->pad0_value > 0)
 		|| (conv->pad0_pre_exp > 0);
-
 	/* Set the end of the encoded sequence, and return its start.  Also
 	 * store EOS as a non-digit/non-decimal value so we don't have to
 	 * check against bpe when iterating in multiple places.
@@ -1296,7 +643,6 @@ static char *encode_float(double value,
 	*buf = 0;
 	return bps;
 }
-
 /* Store a count into the pointer provided in a %n specifier.
  *
  * @param conv the specifier that indicates the size of the value into which
@@ -1343,7 +689,6 @@ static inline void store_count(const struct conversion *conv,
 		break;
 	}
 }
-
 /* Outline function to emit all characters in [sp, ep). */
 static int outs(cbprintf_cb __out,
 		void *ctx,
@@ -1352,20 +697,16 @@ static int outs(cbprintf_cb __out,
 {
 	size_t count = 0;
 	cbprintf_cb_local out = __out;
-
 	while ((sp < ep) || ((ep == NULL) && *sp)) {
 		int rc = out((int)*sp, ctx);
 		++sp;
-
 		if (rc < 0) {
 			return rc;
 		}
 		++count;
 	}
-
 	return (int)count;
 }
-
 int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		     va_list ap, uint32_t flags)
 {
@@ -1373,10 +714,8 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 	size_t count = 0;
 	sint_value_type sint;
 	cbprintf_cb_local out = __out;
-
 	const bool tagged_ap = (flags & Z_CBVPRINTF_PROCESS_FLAG_TAGGED_ARGS)
 			       == Z_CBVPRINTF_PROCESS_FLAG_TAGGED_ARGS;
-
 /* Output character, returning EOF if output failed, otherwise
  * updating count.
  *
@@ -1390,11 +729,9 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 	} \
 	++count; \
 } while (false)
-
 /* Output sequence of characters, returning a negative error if output
  * failed.
  */
-
 #define OUTS(_sp, _ep) do { \
 	int rc = outs(out, ctx, (_sp), (_ep)); \
 	\
@@ -1403,14 +740,12 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 	} \
 	count += rc; \
 } while (false)
-
 	while (*fp != 0) {
 		if (*fp != '%') {
 			OUTC(*fp);
 			++fp;
 			continue;
 		}
-
 		/* Force union into RAM with conversion state to
 		 * mitigate LLVM code generation bug.
 		 */
@@ -1430,9 +765,7 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		const char *bps = NULL;
 		const char *bpe = buf + sizeof(buf);
 		char sign = 0;
-
 		fp = extract_conversion(conv, sp);
-
 		if (conv->specifier_cat != SPECIFIER_INVALID) {
 			if (IS_ENABLED(CONFIG_CBPRINTF_PACKAGE_SUPPORT_TAGGED_ARGUMENTS)
 			    && tagged_ap) {
@@ -1442,13 +775,11 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 				(void)va_arg(ap, int);
 			}
 		}
-
 		/* If dynamic width is specified, process it,
 		 * otherwise set width if present.
 		 */
 		if (conv->width_star) {
 			width = va_arg(ap, int);
-
 			if (width < 0) {
 				conv->flag_dash = true;
 				width = -width;
@@ -1458,14 +789,12 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		} else {
 			;
 		}
-
 		/* If dynamic precision is specified, process it, otherwise
 		 * set precision if present.  For floating point where
 		 * precision is not present use 6.
 		 */
 		if (conv->prec_star) {
 			int arg = va_arg(ap, int);
-
 			if (arg < 0) {
 				conv->prec_present = false;
 			} else {
@@ -1476,13 +805,11 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		} else {
 			;
 		}
-
 		/* Reuse width and precision memory in conv for value
 		 * padding counts.
 		 */
 		conv->pad0_value = 0;
 		conv->pad0_pre_exp = 0;
-
 		/* FP conversion requires knowing the precision. */
 		if (IS_ENABLED(CONFIG_CBPRINTF_FP_SUPPORT)
 		    && (conv->specifier_cat == SPECIFIER_FP)
@@ -1493,7 +820,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 				precision = 6;
 			}
 		}
-
 		/* Get the value to be converted from the args.
 		 *
 		 * This can't be extracted to a helper function because
@@ -1504,7 +830,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			= (enum specifier_cat_enum)conv->specifier_cat;
 		enum length_mod_enum length_mod
 			= (enum length_mod_enum)conv->length_mod;
-
 		/* Extract the value based on the argument category and length.
 		 *
 		 * Note that the length modifier doesn't affect the value of a
@@ -1600,7 +925,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		} else if (specifier_cat == SPECIFIER_PTR) {
 			value->ptr = va_arg(ap, void *);
 		}
-
 		/* We've now consumed all arguments related to this
 		 * specification.  If the conversion is invalid, or is
 		 * something we don't support, then output the original
@@ -1610,7 +934,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			OUTS(sp, fp);
 			continue;
 		}
-
 		/* Do formatting, either into the buffer or
 		 * referencing external data.
 		 */
@@ -1620,18 +943,14 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			break;
 		case 's': {
 			bps = (const char *)value->ptr;
-
 			size_t len;
-
 			if (precision >= 0) {
 				len = strnlen(bps, precision);
 			} else {
 				len = strlen(bps);
 			}
-
 			bpe = bps + len;
 			precision = -1;
-
 			break;
 		}
 		case 'p':
@@ -1642,17 +961,13 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			if (value->ptr != NULL) {
 				bps = encode_uint((uintptr_t)value->ptr, conv,
 						  buf, bpe);
-
 				/* Use 0x prefix */
 				conv->altform_0c = true;
 				conv->specifier = 'x';
-
 				goto prec_int_pad0;
 			}
-
 			bps = "(nil)";
 			bpe = bps + 5;
-
 			break;
 		case 'c':
 			bps = buf;
@@ -1666,7 +981,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			} else if (conv->flag_space) {
 				sign = ' ';
 			}
-
 			/* sint/uint overlay in the union, and so
 			 * can't appear in read and write operations
 			 * in the same statement.
@@ -1678,14 +992,12 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			} else {
 				value->uint = (uint_value_type)sint;
 			}
-
 			__fallthrough;
 		case 'o':
 		case 'u':
 		case 'x':
 		case 'X':
 			bps = encode_uint(value->uint, conv, buf, bpe);
-
 		prec_int_pad0:
 			/* Update pad0 values based on precision and converted
 			 * length.  Note that a non-empty sign is not in the
@@ -1694,26 +1006,21 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			 */
 			if (precision >= 0) {
 				size_t len = bpe - bps;
-
 				/* Zero-padding flag is ignored for integer
 				 * conversions with precision.
 				 */
 				conv->flag_zero = false;
-
 				/* Set pad0_value to satisfy precision */
 				if (len < (size_t)precision) {
 					conv->pad0_value = precision - (int)len;
 				}
 			}
-
 			break;
 		case 'n':
 			if (IS_ENABLED(CONFIG_CBPRINTF_N_SPECIFIER)) {
 				store_count(conv, value->ptr, count);
 			}
-
 			break;
-
 		case FP_CONV_CASES:
 			if (IS_ENABLED(CONFIG_CBPRINTF_FP_SUPPORT)) {
 				bps = encode_float(value->dbl, conv, precision,
@@ -1727,19 +1034,16 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 			 */
 			break;
 		}
-
 		/* If we don't have a converted value to emit, move
 		 * on.
 		 */
 		if (bps == NULL) {
 			continue;
 		}
-
 		/* The converted value is now stored in [bps, bpe), excluding
 		 * any required zero padding.
 		 *
 		 * The unjustified output will be:
-		 *
 		 * * any sign character (sint-only)
 		 * * any altform prefix
 		 * * for FP:
@@ -1756,22 +1060,18 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		 */
 		size_t nj_len = (bpe - bps);
 		int pad_len = 0;
-
 		if (sign != 0) {
 			nj_len += 1U;
 		}
-
 		if (conv->altform_0c) {
 			nj_len += 2U;
 		} else if (conv->altform_0) {
 			nj_len += 1U;
 		}
-
 		nj_len += conv->pad0_value;
 		if (conv->pad_fp) {
 			nj_len += conv->pad0_pre_exp;
 		}
-
 		/* If we have a width update width to hold the padding we need
 		 * for justification.  The result may be negative, which will
 		 * result in no padding.
@@ -1781,7 +1081,6 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 		 */
 		if (width > 0) {
 			width -= (int)nj_len;
-
 			if (!conv->flag_dash) {
 				char pad = ' ';
 
@@ -1881,3 +1180,4 @@ int z_cbvprintf_impl(cbprintf_cb __out, void *ctx, const char *fp,
 #undef OUTS
 #undef OUTC
 }
+//GST

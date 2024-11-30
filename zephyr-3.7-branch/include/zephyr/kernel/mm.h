@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/kernel/mm.h
 
 #ifndef ZEPHYR_INCLUDE_KERNEL_MM_H
 #define ZEPHYR_INCLUDE_KERNEL_MM_H
@@ -215,3 +211,4 @@ size_t k_mem_region_align(uintptr_t *aligned_addr, size_t *aligned_size,
 
 #endif /* !_ASMLANGUAGE */
 #endif /* ZEPHYR_INCLUDE_KERNEL_MM_H */
+//GST

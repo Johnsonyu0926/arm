@@ -1,13 +1,18 @@
-/*
- * Copyright (c) 2020 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/cbprintf.c
 #include <stdarg.h>
 #include <stddef.h>
 #include <zephyr/sys/cbprintf.h>
 
+/**
+ * @brief cbprintf implementation
+ *
+ * @param out Output callback function
+ * @param ctx Context for the callback function
+ * @param format Format string
+ * @param ... Additional arguments
+ *
+ * @return Number of characters printed
+ */
 int cbprintf(cbprintf_cb out, void *ctx, const char *format, ...)
 {
 	va_list ap;
@@ -32,8 +37,15 @@ struct str_ctx {
 	char *const dpe;
 };
 
-static int str_out(int c,
-		   void *ctx)
+/**
+ * @brief Output character to string buffer
+ *
+ * @param c Character to output
+ * @param ctx Context for the callback function
+ *
+ * @return Character output
+ */
+static int str_out(int c, void *ctx)
 {
 	struct str_ctx *scp = ctx;
 
@@ -48,6 +60,15 @@ static int str_out(int c,
 	return c;
 }
 
+/**
+ * @brief fprintfcb implementation
+ *
+ * @param stream Output stream
+ * @param format Format string
+ * @param ... Additional arguments
+ *
+ * @return Number of characters printed
+ */
 int fprintfcb(FILE *stream, const char *format, ...)
 {
 	va_list ap;
@@ -60,11 +81,28 @@ int fprintfcb(FILE *stream, const char *format, ...)
 	return rc;
 }
 
+/**
+ * @brief vfprintfcb implementation
+ *
+ * @param stream Output stream
+ * @param format Format string
+ * @param ap Variable argument list
+ *
+ * @return Number of characters printed
+ */
 int vfprintfcb(FILE *stream, const char *format, va_list ap)
 {
 	return cbvprintf(fputc, stream, format, ap);
 }
 
+/**
+ * @brief printfcb implementation
+ *
+ * @param format Format string
+ * @param ... Additional arguments
+ *
+ * @return Number of characters printed
+ */
 int printfcb(const char *format, ...)
 {
 	va_list ap;
@@ -77,11 +115,29 @@ int printfcb(const char *format, ...)
 	return rc;
 }
 
+/**
+ * @brief vprintfcb implementation
+ *
+ * @param format Format string
+ * @param ap Variable argument list
+ *
+ * @return Number of characters printed
+ */
 int vprintfcb(const char *format, va_list ap)
 {
 	return cbvprintf(fputc, stdout, format, ap);
 }
 
+/**
+ * @brief snprintfcb implementation
+ *
+ * @param str Output string buffer
+ * @param size Size of the buffer
+ * @param format Format string
+ * @param ... Additional arguments
+ *
+ * @return Number of characters printed
+ */
 int snprintfcb(char *str, size_t size, const char *format, ...)
 {
 	va_list ap;
@@ -94,6 +150,16 @@ int snprintfcb(char *str, size_t size, const char *format, ...)
 	return rc;
 }
 
+/**
+ * @brief vsnprintfcb implementation
+ *
+ * @param str Output string buffer
+ * @param size Size of the buffer
+ * @param format Format string
+ * @param ap Variable argument list
+ *
+ * @return Number of characters printed
+ */
 int vsnprintfcb(char *str, size_t size, const char *format, va_list ap)
 {
 	struct str_ctx ctx = {
@@ -112,3 +178,4 @@ int vsnprintfcb(char *str, size_t size, const char *format, va_list ap)
 }
 
 #endif /* CONFIG_CBPRINTF_LIBC_SUBSTS */
+//GST

@@ -1,13 +1,7 @@
-/*
- * Copyright 2020 NXP
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- */
-
+//arch/arc/core/smp.c
 /**
  * @file
- * @brief codes required for AArch64 multicore and Zephyr smp support
+ * @brief Codes required for AArch64 multicore and Zephyr SMP support
  */
 
 #include <zephyr/cache.h>
@@ -27,11 +21,11 @@
 #include <zephyr/irq.h>
 #include "boot.h"
 
-#define INV_MPID	UINT64_MAX
+#define INV_MPID UINT64_MAX
 
-#define SGI_SCHED_IPI	0
-#define SGI_MMCFG_IPI	1
-#define SGI_FPU_IPI	2
+#define SGI_SCHED_IPI 0
+#define SGI_MMCFG_IPI 1
+#define SGI_FPU_IPI 2
 
 struct boot_params {
 	uint64_t mpid;
@@ -55,14 +49,22 @@ const uint64_t cpu_node_list[] = {
 	DT_FOREACH_CHILD_STATUS_OKAY_SEP(DT_PATH(cpus), DT_REG_ADDR, (,))
 };
 
-/* cpu_map saves the maping of core id and mpid */
+/* cpu_map saves the mapping of core id and mpid */
 static uint64_t cpu_map[CONFIG_MP_MAX_NUM_CPUS] = {
 	[0 ... (CONFIG_MP_MAX_NUM_CPUS - 1)] = INV_MPID
 };
 
 extern void z_arm64_mm_init(bool is_primary_core);
 
-/* Called from Zephyr initialization */
+/**
+ * @brief Start a CPU
+ *
+ * @param cpu_num CPU number
+ * @param stack Stack pointer
+ * @param sz Stack size
+ * @param fn Function to execute
+ * @param arg Argument to pass to the function
+ */
 void arch_cpu_start(int cpu_num, k_thread_stack_t *stack, int sz,
 		    arch_cpustart_t fn, void *arg)
 {
@@ -133,7 +135,11 @@ void arch_cpu_start(int cpu_num, k_thread_stack_t *stack, int sz,
 	printk("Secondary CPU core %d (MPID:%#llx) is up\n", cpu_num, cpu_mpid);
 }
 
-/* the C entry of secondary cores */
+/**
+ * @brief Initialize secondary CPU
+ *
+ * @param cpu_num CPU number
+ */
 void arch_secondary_cpu_init(int cpu_num)
 {
 	cpu_num = arm64_cpu_boot_params.cpu_num;
@@ -181,6 +187,12 @@ void arch_secondary_cpu_init(int cpu_num)
 
 #ifdef CONFIG_SMP
 
+/**
+ * @brief Send an IPI to the specified CPUs
+ *
+ * @param ipi IPI number
+ * @param cpu_bitmap Bitmap of CPUs to send the IPI to
+ */
 static void send_ipi(unsigned int ipi, uint32_t cpu_bitmap)
 {
 	uint64_t mpidr = MPIDR_TO_CORE(GET_MPIDR());
@@ -207,6 +219,11 @@ static void send_ipi(unsigned int ipi, uint32_t cpu_bitmap)
 	}
 }
 
+/**
+ * @brief Handler for scheduling IPI
+ *
+ * @param unused Unused parameter
+ */
 void sched_ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
@@ -214,17 +231,30 @@ void sched_ipi_handler(const void *unused)
 	z_sched_ipi();
 }
 
+/**
+ * @brief Broadcast a scheduling IPI to all CPUs
+ */
 void arch_sched_broadcast_ipi(void)
 {
 	send_ipi(SGI_SCHED_IPI, IPI_ALL_CPUS_MASK);
 }
 
+/**
+ * @brief Send a directed scheduling IPI to specified CPUs
+ *
+ * @param cpu_bitmap Bitmap of CPUs to send the IPI to
+ */
 void arch_sched_directed_ipi(uint32_t cpu_bitmap)
 {
 	send_ipi(SGI_SCHED_IPI, cpu_bitmap);
 }
 
 #ifdef CONFIG_USERSPACE
+/**
+ * @brief Handler for memory configuration IPI
+ *
+ * @param unused Unused parameter
+ */
 void mem_cfg_ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
@@ -239,6 +269,9 @@ void mem_cfg_ipi_handler(const void *unused)
 	arch_irq_unlock(key);
 }
 
+/**
+ * @brief Send a memory configuration IPI to all CPUs
+ */
 void z_arm64_mem_cfg_ipi(void)
 {
 	send_ipi(SGI_MMCFG_IPI, IPI_ALL_CPUS_MASK);
@@ -246,6 +279,11 @@ void z_arm64_mem_cfg_ipi(void)
 #endif
 
 #ifdef CONFIG_FPU_SHARING
+/**
+ * @brief Handler for FPU flush IPI
+ *
+ * @param unused Unused parameter
+ */
 void flush_fpu_ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
@@ -255,6 +293,11 @@ void flush_fpu_ipi_handler(const void *unused)
 	/* no need to re-enable IRQs here */
 }
 
+/**
+ * @brief Send an FPU flush IPI to a specified CPU
+ *
+ * @param cpu CPU number
+ */
 void arch_flush_fpu_ipi(unsigned int cpu)
 {
 	const uint64_t mpidr = cpu_map[cpu];
@@ -268,12 +311,8 @@ void arch_flush_fpu_ipi(unsigned int cpu)
 	gic_raise_sgi(SGI_FPU_IPI, mpidr, 1 << aff0);
 }
 
-/*
- * Make sure there is no pending FPU flush request for this CPU while
- * waiting for a contended spinlock to become available. This prevents
- * a deadlock when the lock we need is already taken by another CPU
- * that also wants its FPU content to be reinstated while such content
- * is still live in this CPU's FPU.
+/**
+ * @brief Relax the spinlock and handle pending FPU flush requests
  */
 void arch_spin_relax(void)
 {
@@ -288,12 +327,17 @@ void arch_spin_relax(void)
 }
 #endif
 
+/**
+ * @brief Initialize SMP support
+ *
+ * @return 0 on success
+ */
 int arch_smp_init(void)
 {
 	cpu_map[0] = MPIDR_TO_CORE(GET_MPIDR());
 
 	/*
-	 * SGI0 is use for sched ipi, this might be changed to use Kconfig
+	 * SGI0 is used for sched IPI, this might be changed to use Kconfig
 	 * option
 	 */
 	IRQ_CONNECT(SGI_SCHED_IPI, IRQ_DEFAULT_PRIORITY, sched_ipi_handler, NULL, 0);
@@ -312,4 +356,5 @@ int arch_smp_init(void)
 	return 0;
 }
 
-#endif
+#endif /* CONFIG_SMP */
+//GST

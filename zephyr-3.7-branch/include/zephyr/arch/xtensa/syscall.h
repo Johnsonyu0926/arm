@@ -1,17 +1,4 @@
-/*
- * Copyright (c) 2022 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Xtensa specific syscall header
- *
- * This header contains the Xtensa specific syscall interface.  It is
- * included by the syscall interface architecture-abstraction header
- * (include/arch/syscall.h)
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/syscall.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_SYSCALL_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_SYSCALL_H_
@@ -23,7 +10,6 @@
 #include <stdbool.h>
 #include <zephyr/linker/sections.h>
 #include <zephyr/sys/util_macro.h>
-
 #include <xtensa/config/core-isa.h>
 
 #ifdef __cplusplus
@@ -197,9 +183,9 @@ static SYSINL uintptr_t arch_syscall_invoke0(uintptr_t call_id)
 }
 
 /*
- * There is no easy (or generic) way to figure out if a thread is runnining
+ * There is no easy (or generic) way to figure out if a thread is running
  * in un-privileged mode. Reading the current ring (PS.CRING) is a privileged
- * instruction and not thread local storage is not available in xcc.
+ * instruction and thread local storage is not available in xcc.
  */
 static inline bool arch_is_user_context(void)
 {
@@ -238,3 +224,4 @@ static inline bool arch_is_user_context(void)
 #endif /* _ASMLANGUAGE */
 #endif /* CONFIG_USERSPACE */
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_SYSCALL_H_ */
+//GST

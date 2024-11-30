@@ -1,9 +1,5 @@
-/*  NVS: non volatile storage in flash
- *
- * Copyright (c) 2018 Laczen
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/nvs.h
+
 #ifndef ZEPHYR_INCLUDE_FS_NVS_H_
 #define ZEPHYR_INCLUDE_FS_NVS_H_
 
@@ -37,7 +33,7 @@ extern "C" {
  * @brief Non-volatile Storage File system structure
  */
 struct nvs_fs {
-	 /** File system offset in flash **/
+	/** File system offset in flash **/
 	off_t offset;
 	/** Allocation table entry write address.
 	 * Addresses are stored as uint32_t:
@@ -173,3 +169,4 @@ ssize_t nvs_calc_free_space(struct nvs_fs *fs);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_FS_NVS_H_ */
+//GST

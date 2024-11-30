@@ -1,9 +1,5 @@
-/*
- * Copyright 2019 Broadcom
- * The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arm64/arm_mmu.h
+
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_ARM_MMU_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_ARM_MMU_H_
 
@@ -15,23 +11,23 @@
 /* Following Memory types supported through MAIR encodings can be passed
  * by user through "attrs"(attributes) field of specified memory region.
  * As MAIR supports such 8 encodings, we will reserve attrs[2:0];
- * so that we can provide encodings upto 7 if needed in future.
+ * so that we can provide encodings up to 7 if needed in future.
  */
-#define MT_TYPE_MASK		0x7U
-#define MT_TYPE(attr)		(attr & MT_TYPE_MASK)
-#define MT_DEVICE_nGnRnE	0U
-#define MT_DEVICE_nGnRE		1U
-#define MT_DEVICE_GRE		2U
-#define MT_NORMAL_NC		3U
-#define MT_NORMAL		4U
-#define MT_NORMAL_WT		5U
+#define MT_TYPE_MASK        0x7U
+#define MT_TYPE(attr)       (attr & MT_TYPE_MASK)
+#define MT_DEVICE_nGnRnE    0U
+#define MT_DEVICE_nGnRE     1U
+#define MT_DEVICE_GRE       2U
+#define MT_NORMAL_NC        3U
+#define MT_NORMAL           4U
+#define MT_NORMAL_WT        5U
 
-#define MEMORY_ATTRIBUTES	((0x00 << (MT_DEVICE_nGnRnE * 8)) |	\
-				(0x04 << (MT_DEVICE_nGnRE * 8))   |	\
-				(0x0c << (MT_DEVICE_GRE * 8))     |	\
-				(0x44 << (MT_NORMAL_NC * 8))      |	\
-				(0xffUL << (MT_NORMAL * 8))	  |	\
-				(0xbbUL << (MT_NORMAL_WT * 8)))
+#define MEMORY_ATTRIBUTES   ((0x00 << (MT_DEVICE_nGnRnE * 8)) | \
+                             (0x04 << (MT_DEVICE_nGnRE * 8))   | \
+                             (0x0c << (MT_DEVICE_GRE * 8))     | \
+                             (0x44 << (MT_NORMAL_NC * 8))      | \
+                             (0xffUL << (MT_NORMAL * 8))       | \
+                             (0xbbUL << (MT_NORMAL_WT * 8)))
 
 /* More flags from user's perspective are supported using remaining bits
  * of "attrs" field, i.e. attrs[31:3], underlying code will take care
@@ -47,75 +43,81 @@
  * attrs[9] : non-Global mapping (nG)
  *
  */
-#define MT_PERM_SHIFT		3U
-#define MT_SEC_SHIFT		4U
-#define MT_P_EXECUTE_SHIFT	5U
-#define MT_U_EXECUTE_SHIFT	6U
-#define MT_RW_AP_SHIFT		7U
-#define MT_NO_OVERWRITE_SHIFT	8U
-#define MT_NON_GLOBAL_SHIFT	9U
+#define MT_PERM_SHIFT       3U
+#define MT_SEC_SHIFT        4U
+#define MT_P_EXECUTE_SHIFT  5U
+#define MT_U_EXECUTE_SHIFT  6U
+#define MT_RW_AP_SHIFT      7U
+#define MT_NO_OVERWRITE_SHIFT 8U
+#define MT_NON_GLOBAL_SHIFT 9U
 
-#define MT_RO			(0U << MT_PERM_SHIFT)
-#define MT_RW			(1U << MT_PERM_SHIFT)
+#define MT_RO               (0U << MT_PERM_SHIFT)
+#define MT_RW               (1U << MT_PERM_SHIFT)
 
-#define MT_RW_AP_ELx		(1U << MT_RW_AP_SHIFT)
-#define MT_RW_AP_EL_HIGHER	(0U << MT_RW_AP_SHIFT)
+#define MT_RW_AP_ELx        (1U << MT_RW_AP_SHIFT)
+#define MT_RW_AP_EL_HIGHER  (0U << MT_RW_AP_SHIFT)
 
-#define MT_SECURE		(0U << MT_SEC_SHIFT)
-#define MT_NS			(1U << MT_SEC_SHIFT)
+#define MT_SECURE           (0U << MT_SEC_SHIFT)
+#define MT_NS               (1U << MT_SEC_SHIFT)
 
-#define MT_P_EXECUTE		(0U << MT_P_EXECUTE_SHIFT)
-#define MT_P_EXECUTE_NEVER	(1U << MT_P_EXECUTE_SHIFT)
+#define MT_P_EXECUTE        (0U << MT_P_EXECUTE_SHIFT)
+#define MT_P_EXECUTE_NEVER  (1U << MT_P_EXECUTE_SHIFT)
 
-#define MT_U_EXECUTE		(0U << MT_U_EXECUTE_SHIFT)
-#define MT_U_EXECUTE_NEVER	(1U << MT_U_EXECUTE_SHIFT)
+#define MT_U_EXECUTE        (0U << MT_U_EXECUTE_SHIFT)
+#define MT_U_EXECUTE_NEVER  (1U << MT_U_EXECUTE_SHIFT)
 
-#define MT_NO_OVERWRITE		(1U << MT_NO_OVERWRITE_SHIFT)
+#define MT_NO_OVERWRITE     (1U << MT_NO_OVERWRITE_SHIFT)
 
-#define MT_G			(0U << MT_NON_GLOBAL_SHIFT)
-#define MT_NG			(1U << MT_NON_GLOBAL_SHIFT)
+#define MT_G                (0U << MT_NON_GLOBAL_SHIFT)
+#define MT_NG               (1U << MT_NON_GLOBAL_SHIFT)
 
-#define MT_P_RW_U_RW		(MT_RW | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
-#define MT_P_RW_U_NA		(MT_RW | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
-#define MT_P_RO_U_RO		(MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
-#define MT_P_RO_U_NA		(MT_RO | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
-#define MT_P_RO_U_RX		(MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE)
-#define MT_P_RX_U_RX		(MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE | MT_U_EXECUTE)
-#define MT_P_RX_U_NA		(MT_RO | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE | MT_U_EXECUTE_NEVER)
+#define MT_P_RW_U_RW        (MT_RW | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
+#define MT_P_RW_U_NA        (MT_RW | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
+#define MT_P_RO_U_RO        (MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
+#define MT_P_RO_U_NA        (MT_RO | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE_NEVER | MT_U_EXECUTE_NEVER)
+#define MT_P_RO_U_RX        (MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE_NEVER | MT_U_EXECUTE)
+#define MT_P_RX_U_RX        (MT_RO | MT_RW_AP_ELx | MT_P_EXECUTE | MT_U_EXECUTE)
+#define MT_P_RX_U_NA        (MT_RO | MT_RW_AP_EL_HIGHER  | MT_P_EXECUTE | MT_U_EXECUTE_NEVER)
 
 #ifdef CONFIG_ARMV8_A_NS
-#define MT_DEFAULT_SECURE_STATE	MT_NS
+#define MT_DEFAULT_SECURE_STATE MT_NS
 #else
-#define MT_DEFAULT_SECURE_STATE	MT_SECURE
+#define MT_DEFAULT_SECURE_STATE MT_SECURE
 #endif
 
 #ifndef _ASMLANGUAGE
 
-/* Region definition data structure */
+/**
+ * @brief Region definition data structure
+ *
+ * This structure represents the definition of a memory region.
+ */
 struct arm_mmu_region {
-	/* Region Base Physical Address */
-	uintptr_t base_pa;
-	/* Region Base Virtual Address */
-	uintptr_t base_va;
-	/* Region size */
-	size_t size;
-	/* Region Name */
-	const char *name;
-	/* Region Attributes */
-	uint32_t attrs;
+	uintptr_t base_pa; /**< Region Base Physical Address */
+	uintptr_t base_va; /**< Region Base Virtual Address */
+	size_t size; /**< Region size */
+	const char *name; /**< Region Name */
+	uint32_t attrs; /**< Region Attributes */
 };
 
-/* MMU configuration data structure */
+/**
+ * @brief MMU configuration data structure
+ *
+ * This structure represents the configuration of the MMU.
+ */
 struct arm_mmu_config {
-	/* Number of regions */
-	unsigned int num_regions;
-	/* Regions */
-	const struct arm_mmu_region *mmu_regions;
+	unsigned int num_regions; /**< Number of regions */
+	const struct arm_mmu_region *mmu_regions; /**< Regions */
 };
 
+/**
+ * @brief Page tables structure
+ *
+ * This structure represents the page tables used by the MMU.
+ */
 struct arm_mmu_ptables {
-	uint64_t *base_xlat_table;
-	uint64_t ttbr0;
+	uint64_t *base_xlat_table; /**< Base translation table */
+	uint64_t ttbr0; /**< Translation table base register 0 */
 };
 
 /* Convenience macros to represent the ARMv8-A-specific
@@ -123,19 +125,18 @@ struct arm_mmu_ptables {
  * cache-ability attribution.
  */
 
-#define MMU_REGION_ENTRY(_name, _base_pa, _base_va, _size, _attrs) \
-	{\
-		.name = _name, \
-		.base_pa = _base_pa, \
-		.base_va = _base_va, \
-		.size = _size, \
-		.attrs = _attrs, \
-	}
+#define MMU_REGION_ENTRY(_name, _base_pa, _base_va, _size, _attrs) { \
+	.name = _name, \
+	.base_pa = _base_pa, \
+	.base_va = _base_va, \
+	.size = _size, \
+	.attrs = _attrs, \
+}
 
 #define MMU_REGION_FLAT_ENTRY(name, adr, sz, attrs) \
 	MMU_REGION_ENTRY(name, adr, adr, sz, attrs)
 
-/*
+/**
  * @brief Auto generate mmu region entry for node_id
  *
  * Example usage:
@@ -155,9 +156,9 @@ struct arm_mmu_ptables {
 	MMU_REGION_FLAT_ENTRY(DT_NODE_FULL_NAME(node_id), \
 				  DT_REG_ADDR(node_id), \
 				  DT_REG_SIZE(node_id), \
-				  attrs),
+				  attrs)
 
-/*
+/**
  * @brief Auto generate mmu region entry for status = "okay"
  *        nodes compatible to a driver
  *
@@ -209,3 +210,4 @@ extern const struct arm_mmu_config mmu_config;
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_ARM_MMU_H_ */
+//GST

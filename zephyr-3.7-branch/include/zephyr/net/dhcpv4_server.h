@@ -1,12 +1,4 @@
-/** @file
- *  @brief DHCPv4 Server API
- */
-
-/*
- * Copyright (c) 2024 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/dhcpv4_server.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DHCPV4_SERVER_H_
 #define ZEPHYR_INCLUDE_NET_DHCPV4_SERVER_H_
@@ -116,3 +108,4 @@ int net_dhcpv4_server_foreach_lease(struct net_if *iface,
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_DHCPV4_SERVER_H_ */
+//GST

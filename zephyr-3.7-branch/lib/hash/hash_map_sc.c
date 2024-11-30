@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/hash/hash_map_sc.c
 #include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,6 +17,13 @@ struct sys_hashmap_sc_entry {
 	sys_dnode_t node;
 };
 
+/**
+ * @brief Initialize a hashmap entry
+ *
+ * @param entry Pointer to the hashmap entry
+ * @param key Key for the entry
+ * @param value Value for the entry
+ */
 static void sys_hashmap_sc_entry_init(struct sys_hashmap_sc_entry *entry, uint64_t key,
 				      uint64_t value)
 {
@@ -30,6 +32,12 @@ static void sys_hashmap_sc_entry_init(struct sys_hashmap_sc_entry *entry, uint64
 	sys_dnode_init(&entry->node);
 }
 
+/**
+ * @brief Insert an entry into the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param entry Pointer to the hashmap entry
+ */
 static void sys_hashmap_sc_insert_entry(struct sys_hashmap *map, struct sys_hashmap_sc_entry *entry)
 {
 	sys_dlist_t *buckets = map->data->buckets;
@@ -39,6 +47,12 @@ static void sys_hashmap_sc_insert_entry(struct sys_hashmap *map, struct sys_hash
 	++map->data->size;
 }
 
+/**
+ * @brief Insert all entries from a list into the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param list Pointer to the list of entries
+ */
 static void sys_hashmap_sc_insert_all(struct sys_hashmap *map, sys_dlist_t *list)
 {
 	__unused int ret;
@@ -50,6 +64,12 @@ static void sys_hashmap_sc_insert_all(struct sys_hashmap *map, sys_dlist_t *list
 	}
 }
 
+/**
+ * @brief Extract all entries from the hashmap into a list
+ *
+ * @param map Pointer to the hashmap
+ * @param list Pointer to the list to store the entries
+ */
 static void sys_hashmap_sc_to_list(struct sys_hashmap *map, sys_dlist_t *list)
 {
 	sys_dlist_t *bucket;
@@ -68,6 +88,13 @@ static void sys_hashmap_sc_to_list(struct sys_hashmap *map, sys_dlist_t *list)
 	}
 }
 
+/**
+ * @brief Rehash the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param grow Whether to grow the hashmap
+ * @return 0 on success, or an error code on failure
+ */
 static int sys_hashmap_sc_rehash(struct sys_hashmap *map, bool grow)
 {
 	sys_dlist_t list;
@@ -106,6 +133,13 @@ static int sys_hashmap_sc_rehash(struct sys_hashmap *map, bool grow)
 	return 0;
 }
 
+/**
+ * @brief Find an entry in the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param key Key to search for
+ * @return Pointer to the found entry, or NULL if not found
+ */
 static struct sys_hashmap_sc_entry *sys_hashmap_sc_find(const struct sys_hashmap *map, uint64_t key)
 {
 	uint32_t hash;
@@ -132,6 +166,11 @@ static struct sys_hashmap_sc_entry *sys_hashmap_sc_find(const struct sys_hashmap
 	return NULL;
 }
 
+/**
+ * @brief Move to the next entry in the hashmap iterator
+ *
+ * @param it Pointer to the hashmap iterator
+ */
 static void sys_hashmap_sc_iter_next(struct sys_hashmap_iterator *it)
 {
 	sys_dlist_t *bucket;
@@ -159,8 +198,7 @@ static void sys_hashmap_sc_iter_next(struct sys_hashmap_iterator *it)
 				continue;
 			}
 
-			/* save the bucket to state so we can restart scanning from a saved position
-			 */
+			/* save the bucket to state so we can restart scanning from a saved position */
 			it->state = bucket;
 			it->key = entry->key;
 			it->value = entry->value;
@@ -177,6 +215,12 @@ static void sys_hashmap_sc_iter_next(struct sys_hashmap_iterator *it)
  * Separate Chaining Hashmap API
  */
 
+/**
+ * @brief Initialize the hashmap iterator
+ *
+ * @param map Pointer to the hashmap
+ * @param it Pointer to the hashmap iterator
+ */
 static void sys_hashmap_sc_iter(const struct sys_hashmap *map, struct sys_hashmap_iterator *it)
 {
 	it->map = map;
@@ -188,6 +232,13 @@ static void sys_hashmap_sc_iter(const struct sys_hashmap *map, struct sys_hashma
 	*((size_t *)&it->size) = map->data->size;
 }
 
+/**
+ * @brief Clear the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param cb Callback function to call for each entry
+ * @param cookie Pointer to pass to the callback function
+ */
 static void sys_hashmap_sc_clear(struct sys_hashmap *map, sys_hashmap_callback_t cb, void *cookie)
 {
 	sys_dlist_t list;
@@ -217,6 +268,15 @@ static void sys_hashmap_sc_clear(struct sys_hashmap *map, sys_hashmap_callback_t
 	}
 }
 
+/**
+ * @brief Insert an entry into the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param key Key for the entry
+ * @param value Value for the entry
+ * @param old_value Pointer to store the old value if the key already exists
+ * @return 1 if the entry was inserted, 0 if the key already exists, or an error code on failure
+ */
 static int sys_hashmap_sc_insert(struct sys_hashmap *map, uint64_t key, uint64_t value,
 				 uint64_t *old_value)
 {
@@ -250,6 +310,14 @@ static int sys_hashmap_sc_insert(struct sys_hashmap *map, uint64_t key, uint64_t
 	return 1;
 }
 
+/**
+ * @brief Remove an entry from the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param key Key for the entry
+ * @param value Pointer to store the value of the removed entry
+ * @return true if the entry was removed, false otherwise
+ */
 static bool sys_hashmap_sc_remove(struct sys_hashmap *map, uint64_t key, uint64_t *value)
 {
 	__unused int ret;
@@ -277,6 +345,14 @@ static bool sys_hashmap_sc_remove(struct sys_hashmap *map, uint64_t key, uint64_
 	return true;
 }
 
+/**
+ * @brief Get the value of an entry in the hashmap
+ *
+ * @param map Pointer to the hashmap
+ * @param key Key for the entry
+ * @param value Pointer to store the value of the entry
+ * @return true if the entry was found, false otherwise
+ */
 static bool sys_hashmap_sc_get(const struct sys_hashmap *map, uint64_t key, uint64_t *value)
 {
 	struct sys_hashmap_sc_entry *entry;
@@ -293,6 +369,9 @@ static bool sys_hashmap_sc_get(const struct sys_hashmap *map, uint64_t key, uint
 	return true;
 }
 
+/**
+ * @brief Separate Chaining Hashmap API
+ */
 const struct sys_hashmap_api sys_hashmap_sc_api = {
 	.iter = sys_hashmap_sc_iter,
 	.clear = sys_hashmap_sc_clear,
@@ -300,3 +379,4 @@ const struct sys_hashmap_api sys_hashmap_sc_api = {
 	.remove = sys_hashmap_sc_remove,
 	.get = sys_hashmap_sc_get,
 };
+//GST

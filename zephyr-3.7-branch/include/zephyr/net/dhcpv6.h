@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- *  @brief DHCPv6 client
- */
+// zephyr-3.7-branch/include/zephyr/net/dhcpv6.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DHCPV6_H_
 #define ZEPHYR_INCLUDE_NET_DHCPV6_H_
@@ -117,3 +109,4 @@ const char *net_dhcpv6_state_name(enum net_dhcpv6_state state);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_DHCPV6_H_ */
+//GST

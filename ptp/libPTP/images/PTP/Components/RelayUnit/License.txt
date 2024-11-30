@@ -1,1 +1,0 @@
-The RelayUnit icon is renamed and resized version of the stock_shuffle.png file from the GPLv2 licensed Buttonized icon theme.

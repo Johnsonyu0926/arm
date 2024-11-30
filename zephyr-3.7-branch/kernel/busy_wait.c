@@ -1,14 +1,15 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/busy_wait.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/timer/system_timer.h>
 #include <zephyr/sys_clock.h>
 #include <kernel_arch_interface.h>
 
+/**
+ * @brief Busy wait for a specified number of microseconds
+ *
+ * @param usec_to_wait Number of microseconds to wait
+ */
 void z_impl_k_busy_wait(uint32_t usec_to_wait)
 {
 	SYS_PORT_TRACING_FUNC_ENTER(k_thread, busy_wait, usec_to_wait);
@@ -54,3 +55,4 @@ static inline void z_vrfy_k_busy_wait(uint32_t usec_to_wait)
 }
 #include <zephyr/syscalls/k_busy_wait_mrsh.c>
 #endif /* CONFIG_USERSPACE */
+//GST

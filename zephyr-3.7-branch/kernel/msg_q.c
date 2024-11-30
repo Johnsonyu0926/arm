@@ -1,18 +1,7 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Message queues.
- */
-
+// kernel/msg_g.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <zephyr/linker/sections.h>
 #include <string.h>
@@ -30,12 +19,26 @@ static struct k_obj_type obj_type_msgq;
 #endif /* CONFIG_OBJ_CORE_MSGQ */
 
 #ifdef CONFIG_POLL
+/**
+ * @brief Handle poll events for a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param state Poll state
+ */
 static inline void handle_poll_events(struct k_msgq *msgq, uint32_t state)
 {
 	z_handle_obj_poll_events(&msgq->poll_events, state);
 }
 #endif /* CONFIG_POLL */
 
+/**
+ * @brief Initialize a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param buffer Pointer to the buffer
+ * @param msg_size Size of each message
+ * @param max_msgs Maximum number of messages
+ */
 void k_msgq_init(struct k_msgq *msgq, char *buffer, size_t msg_size,
 		 uint32_t max_msgs)
 {
@@ -62,6 +65,14 @@ void k_msgq_init(struct k_msgq *msgq, char *buffer, size_t msg_size,
 	k_object_init(msgq);
 }
 
+/**
+ * @brief Allocate and initialize a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param msg_size Size of each message
+ * @param max_msgs Maximum number of messages
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_msgq_alloc_init(struct k_msgq *msgq, size_t msg_size,
 			    uint32_t max_msgs)
 {
@@ -100,6 +111,12 @@ int z_vrfy_k_msgq_alloc_init(struct k_msgq *msgq, size_t msg_size,
 #include <zephyr/syscalls/k_msgq_alloc_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Clean up a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @return 0 on success, or an error code on failure
+ */
 int k_msgq_cleanup(struct k_msgq *msgq)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_msgq, cleanup, msgq);
@@ -120,7 +137,14 @@ int k_msgq_cleanup(struct k_msgq *msgq)
 	return 0;
 }
 
-
+/**
+ * @brief Put a message into a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param data Pointer to the message data
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_msgq_put(struct k_msgq *msgq, const void *data, k_timeout_t timeout)
 {
 	__ASSERT(!arch_is_in_isr() || K_TIMEOUT_EQ(timeout, K_NO_WAIT), "");
@@ -195,6 +219,12 @@ static inline int z_vrfy_k_msgq_put(struct k_msgq *msgq, const void *data,
 #include <zephyr/syscalls/k_msgq_put_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Get attributes of a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param attrs Pointer to the attributes structure
+ */
 void z_impl_k_msgq_get_attrs(struct k_msgq *msgq, struct k_msgq_attrs *attrs)
 {
 	attrs->msg_size = msgq->msg_size;
@@ -213,6 +243,14 @@ static inline void z_vrfy_k_msgq_get_attrs(struct k_msgq *msgq,
 #include <zephyr/syscalls/k_msgq_get_attrs_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Get a message from a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param data Pointer to the message data
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_msgq_get(struct k_msgq *msgq, void *data, k_timeout_t timeout)
 {
 	__ASSERT(!arch_is_in_isr() || K_TIMEOUT_EQ(timeout, K_NO_WAIT), "");
@@ -293,6 +331,13 @@ static inline int z_vrfy_k_msgq_get(struct k_msgq *msgq, void *data,
 #include <zephyr/syscalls/k_msgq_get_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Peek at the first message in a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param data Pointer to the message data
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_msgq_peek(struct k_msgq *msgq, void *data)
 {
 	k_spinlock_key_t key;
@@ -327,6 +372,14 @@ static inline int z_vrfy_k_msgq_peek(struct k_msgq *msgq, void *data)
 #include <zephyr/syscalls/k_msgq_peek_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Peek at a specific message in a message queue
+ *
+ * @param msgq Pointer to the message queue
+ * @param data Pointer to the message data
+ * @param idx Index of the message to peek at
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_msgq_peek_at(struct k_msgq *msgq, void *data, uint32_t idx)
 {
 	k_spinlock_key_t key;
@@ -373,6 +426,11 @@ static inline int z_vrfy_k_msgq_peek_at(struct k_msgq *msgq, void *data, uint32_
 #include <zephyr/syscalls/k_msgq_peek_at_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Purge a message queue
+ *
+ * @param msgq Pointer to the message queue
+ */
 void z_impl_k_msgq_purge(struct k_msgq *msgq)
 {
 	k_spinlock_key_t key;
@@ -420,6 +478,11 @@ static inline uint32_t z_vrfy_k_msgq_num_used_get(struct k_msgq *msgq)
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_OBJ_CORE_MSGQ
+/**
+ * @brief Initialize message queue object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_msgq_obj_core_list(void)
 {
 	/* Initialize msgq object type */
@@ -440,3 +503,4 @@ SYS_INIT(init_msgq_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 
 #endif /* CONFIG_OBJ_CORE_MSGQ */
+//GST

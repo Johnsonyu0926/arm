@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023, Emna Rekik
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/frame.h
 
 /**
  * @file
@@ -89,4 +85,5 @@ enum http2_settings {
 }
 #endif
 
-#endif
+#endif /* ZEPHYR_INCLUDE_NET_HTTP_SERVER_FRAME_H_ */
+//GST

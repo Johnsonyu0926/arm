@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2019 Nordic Semiconductor ASA
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/* Copied from linker.ld */
-
-/* Non-cached region of RAM */
+//arch/arc/common/include/nocache.ld
 SECTION_DATA_PROLOGUE(_NOCACHE_SECTION_NAME,(NOLOAD),)
 {
 #if defined(CONFIG_MMU)

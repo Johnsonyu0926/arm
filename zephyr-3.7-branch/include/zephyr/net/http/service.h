@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/service.h
 
 #ifndef ZEPHYR_INCLUDE_NET_HTTP_SERVICE_H_
 #define ZEPHYR_INCLUDE_NET_HTTP_SERVICE_H_
@@ -257,3 +253,4 @@ struct http_service_desc {
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_HTTP_SERVICE_H_ */
+//GST

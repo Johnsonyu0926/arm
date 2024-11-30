@@ -1,16 +1,4 @@
-/*
- * Copyright (c) 2010, 2013-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Low-level debug output
- *
- * Low-level debugging output. Platform installs a character output routine at
- * init time. If no routine is installed, a nop routine is called.
- */
+//zephyr-3.7-branch/lib/os/printk.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
@@ -87,12 +75,24 @@ struct buf_out_context {
 	char buf[CONFIG_PRINTK_BUFFER_SIZE];
 };
 
+/**
+ * @brief Flush the buffer to the output
+ *
+ * @param ctx Pointer to the buffer context
+ */
 static void buf_flush(struct buf_out_context *ctx)
 {
 	k_str_out(ctx->buf, ctx->buf_count);
 	ctx->buf_count = 0U;
 }
 
+/**
+ * @brief Output a character to the buffer
+ *
+ * @param c Character to output
+ * @param ctx_p Pointer to the buffer context
+ * @return Character output
+ */
 static int buf_char_out(int c, void *ctx_p)
 {
 	struct buf_out_context *ctx = ctx_p;
@@ -106,12 +106,25 @@ static int buf_char_out(int c, void *ctx_p)
 	return c;
 }
 
+/**
+ * @brief Output a character to the console
+ *
+ * @param c Character to output
+ * @param ctx_p Unused
+ * @return Character output
+ */
 static int char_out(int c, void *ctx_p)
 {
 	ARG_UNUSED(ctx_p);
 	return _char_out(c);
 }
 
+/**
+ * @brief Print a formatted string
+ *
+ * @param fmt Format string
+ * @param ap Variable argument list
+ */
 void vprintk(const char *fmt, va_list ap)
 {
 	if (IS_ENABLED(CONFIG_LOG_PRINTK)) {
@@ -157,6 +170,12 @@ void vprintk(const char *fmt, va_list ap)
 }
 EXPORT_SYMBOL(vprintk);
 
+/**
+ * @brief Output a string to the console
+ *
+ * @param c Pointer to the string
+ * @param n Length of the string
+ */
 void z_impl_k_str_out(char *c, size_t n)
 {
 	size_t i;
@@ -174,6 +193,12 @@ void z_impl_k_str_out(char *c, size_t n)
 }
 
 #ifdef CONFIG_USERSPACE
+/**
+ * @brief Verify and output a string to the console
+ *
+ * @param c Pointer to the string
+ * @param n Length of the string
+ */
 static inline void z_vrfy_k_str_out(char *c, size_t n)
 {
 	K_OOPS(K_SYSCALL_MEMORY_READ(c, n));
@@ -183,7 +208,7 @@ static inline void z_vrfy_k_str_out(char *c, size_t n)
 #endif /* CONFIG_USERSPACE */
 
 /**
- * @brief Output a string
+ * @brief Output a formatted string
  *
  * Output a string on output installed by platform at init time. Some
  * printf-like formatting is available.
@@ -202,7 +227,6 @@ static inline void z_vrfy_k_str_out(char *c, size_t n)
  *
  * @param fmt formatted string to output
  */
-
 void printk(const char *fmt, ...)
 {
 	va_list ap;
@@ -224,6 +248,13 @@ struct str_context {
 	int count;
 };
 
+/**
+ * @brief Output a character to a string buffer
+ *
+ * @param c Character to output
+ * @param ctx Pointer to the string context
+ * @return Character output
+ */
 static int str_out(int c, struct str_context *ctx)
 {
 	if ((ctx->str == NULL) || (ctx->count >= ctx->max)) {
@@ -241,6 +272,15 @@ static int str_out(int c, struct str_context *ctx)
 	return c;
 }
 
+/**
+ * @brief Print a formatted string to a buffer
+ *
+ * @param str Pointer to the buffer
+ * @param size Size of the buffer
+ * @param fmt Format string
+ * @param ... Additional arguments
+ * @return Number of characters printed
+ */
 int snprintk(char *str, size_t size, const char *fmt, ...)
 {
 	va_list ap;
@@ -253,6 +293,15 @@ int snprintk(char *str, size_t size, const char *fmt, ...)
 	return ret;
 }
 
+/**
+ * @brief Print a formatted string to a buffer using a va_list
+ *
+ * @param str Pointer to the buffer
+ * @param size Size of the buffer
+ * @param fmt Format string
+ * @param ap Variable argument list
+ * @return Number of characters printed
+ */
 int vsnprintk(char *str, size_t size, const char *fmt, va_list ap)
 {
 	struct str_context ctx = { str, size, 0 };
@@ -267,3 +316,4 @@ int vsnprintk(char *str, size_t size, const char *fmt, va_list ap)
 }
 
 #endif
+//GST

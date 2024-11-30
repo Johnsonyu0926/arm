@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2017 Linaro Limited
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/mem_domain.c
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
@@ -21,10 +17,16 @@ static uint8_t max_partitions;
 
 struct k_mem_domain k_mem_domain_default;
 
+/**
+ * @brief Check if a partition can be added to a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param part Pointer to the memory partition
+ * @return true if the partition can be added, false otherwise
+ */
 static bool check_add_partition(struct k_mem_domain *domain,
 				struct k_mem_partition *part)
 {
-
 	int i;
 	uintptr_t pstart, pend, dstart, dend;
 
@@ -85,6 +87,14 @@ static bool check_add_partition(struct k_mem_domain *domain,
 	return true;
 }
 
+/**
+ * @brief Initialize a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param num_parts Number of partitions
+ * @param parts Array of pointers to the partitions
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_domain_init(struct k_mem_domain *domain, uint8_t num_parts,
 		      struct k_mem_partition *parts[])
 {
@@ -156,6 +166,13 @@ out:
 	return ret;
 }
 
+/**
+ * @brief Add a partition to a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param part Pointer to the memory partition
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_domain_add_partition(struct k_mem_domain *domain,
 			       struct k_mem_partition *part)
 {
@@ -209,6 +226,13 @@ out:
 	return ret;
 }
 
+/**
+ * @brief Remove a partition from a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param part Pointer to the memory partition
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_domain_remove_partition(struct k_mem_domain *domain,
 				  struct k_mem_partition *part)
 {
@@ -256,6 +280,13 @@ out:
 	return ret;
 }
 
+/**
+ * @brief Add a thread to a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param thread Pointer to the thread
+ * @return 0 on success, or an error code on failure
+ */
 static int add_thread_locked(struct k_mem_domain *domain,
 			     k_tid_t thread)
 {
@@ -276,6 +307,12 @@ static int add_thread_locked(struct k_mem_domain *domain,
 	return ret;
 }
 
+/**
+ * @brief Remove a thread from a memory domain
+ *
+ * @param thread Pointer to the thread
+ * @return 0 on success, or an error code on failure
+ */
 static int remove_thread_locked(struct k_thread *thread)
 {
 	int ret = 0;
@@ -293,6 +330,11 @@ static int remove_thread_locked(struct k_thread *thread)
 }
 
 /* Called from thread object initialization */
+/**
+ * @brief Initialize memory domain for a thread
+ *
+ * @param thread Pointer to the thread
+ */
 void z_mem_domain_init_thread(struct k_thread *thread)
 {
 	int ret;
@@ -307,6 +349,11 @@ void z_mem_domain_init_thread(struct k_thread *thread)
 }
 
 /* Called when thread aborts during teardown tasks. _sched_spinlock is held */
+/**
+ * @brief Exit memory domain for a thread
+ *
+ * @param thread Pointer to the thread
+ */
 void z_mem_domain_exit_thread(struct k_thread *thread)
 {
 	int ret;
@@ -320,6 +367,13 @@ void z_mem_domain_exit_thread(struct k_thread *thread)
 	k_spin_unlock(&z_mem_domain_lock, key);
 }
 
+/**
+ * @brief Add a thread to a memory domain
+ *
+ * @param domain Pointer to the memory domain
+ * @param thread Pointer to the thread
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_domain_add_thread(struct k_mem_domain *domain, k_tid_t thread)
 {
 	int ret = 0;
@@ -338,6 +392,11 @@ int k_mem_domain_add_thread(struct k_mem_domain *domain, k_tid_t thread)
 	return ret;
 }
 
+/**
+ * @brief Initialize the memory domain module
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_mem_domain_module(void)
 {
 	int ret;
@@ -366,3 +425,4 @@ static int init_mem_domain_module(void)
 
 SYS_INIT(init_mem_domain_module, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
+	 //GST

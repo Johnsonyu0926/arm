@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/heap_stress.c
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/kernel.h>
@@ -151,3 +147,4 @@ void sys_heap_stress(void *(*alloc_fn)(void *arg, size_t bytes),
 		result->accumulated_in_use_bytes += sr.bytes_alloced;
 	}
 }
+//GST

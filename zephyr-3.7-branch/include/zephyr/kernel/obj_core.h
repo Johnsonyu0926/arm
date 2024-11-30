@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023, Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/kernel/obj_core.h
 
 #ifndef __KERNEL_OBJ_CORE_H__
 #define __KERNEL_OBJ_CORE_H__
@@ -392,3 +388,4 @@ int k_obj_core_stats_enable(struct k_obj_core *obj_core);
 
 /** @} */
 #endif /* __KERNEL_OBJ_CORE_H__ */
+//GST

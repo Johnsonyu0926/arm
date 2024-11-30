@@ -1,14 +1,5 @@
-/** @file
- * @brief CoAP client API
- *
- * An API for applications to do CoAP requests
- */
+// zephyr-3.7-branch/include/zephyr/net/coap_client.h
 
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 #ifndef ZEPHYR_INCLUDE_NET_COAP_CLIENT_H_
 #define ZEPHYR_INCLUDE_NET_COAP_CLIENT_H_
 
@@ -143,7 +134,6 @@ int coap_client_init(struct coap_client *client, const char *info);
  * @param params Pointer to transmission parameters structure or NULL to use default values.
  * @return zero when operation started successfully or negative error code otherwise.
  */
-
 int coap_client_req(struct coap_client *client, int sock, const struct sockaddr *addr,
 		    struct coap_client_request *req, struct coap_transmission_parameters *params);
 
@@ -162,3 +152,4 @@ void coap_client_cancel_requests(struct coap_client *client);
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_COAP_CLIENT_H_ */
+//GST

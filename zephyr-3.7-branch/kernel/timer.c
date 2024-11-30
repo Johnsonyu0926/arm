@@ -1,365 +1,185 @@
-/*
- * Copyright (c) 1997-2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//kernel/timer.c
 #include <zephyr/kernel.h>
-
-#include <zephyr/init.h>
-#include <zephyr/internal/syscall_handler.h>
-#include <stdbool.h>
-#include <zephyr/spinlock.h>
+#include <kswap.h>
 #include <ksched.h>
-#include <wait_q.h>
+#include <ipi.h>
 
-static struct k_spinlock lock;
+/* Time slice duration in ticks */
+static int slice_ticks = DIV_ROUND_UP(CONFIG_TIMESLICE_SIZE * Z_HZ_ticks, Z_HZ_ms);
+/* Maximum priority for time slicing */
+static int slice_max_prio = CONFIG_TIMESLICE_PRIORITY;
+/* Timeouts for each CPU */
+static struct _timeout slice_timeouts[CONFIG_MP_MAX_NUM_CPUS];
+/* Flags indicating if the time slice has expired for each CPU */
+static bool slice_expired[CONFIG_MP_MAX_NUM_CPUS];
 
-#ifdef CONFIG_OBJ_CORE_TIMER
-static struct k_obj_type obj_type_timer;
-#endif /* CONFIG_OBJ_CORE_TIMER */
+#ifdef CONFIG_SWAP_NONATOMIC
+/* If z_swap() isn't atomic, then it's possible for a timer interrupt
+ * to try to timeslice away _current after it has already pended
+ * itself but before the corresponding context switch. Treat that as
+ * a noop condition in z_time_slice().
+ */
+struct k_thread *pending_current;
+#endif
 
 /**
- * @brief Handle expiration of a kernel timer object.
+ * @brief Get the time slice duration for a thread
  *
- * @param t  Timeout used by the timer.
+ * This function returns the time slice duration for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ * @return Time slice duration in ticks
  */
-void z_timer_expiration_handler(struct _timeout *t)
+static inline int slice_time(struct k_thread *thread)
 {
-	struct k_timer *timer = CONTAINER_OF(t, struct k_timer, timeout);
-	struct k_thread *thread;
-	k_spinlock_key_t key = k_spin_lock(&lock);
+	int ret = slice_ticks;
 
-	/* In sys_clock_announce(), when a timeout expires, it is first removed
-	 * from the timeout list, then its expiration handler is called (with
-	 * unlocked interrupts). For kernel timers, the expiration handler is
-	 * this function. Usually, the timeout structure related to the timer
-	 * that is handled here will not be linked to the timeout list at this
-	 * point. But it may happen that before this function is executed and
-	 * interrupts are locked again, a given timer gets restarted from an
-	 * interrupt context that has a priority higher than the system timer
-	 * interrupt. Then, the timeout structure for this timer will turn out
-	 * to be linked to the timeout list. And in such case, since the timer
-	 * was restarted, its expiration handler should not be executed then,
-	 * so the function exits immediately.
-	 */
-	if (sys_dnode_is_linked(&t->node)) {
-		k_spin_unlock(&lock, key);
-		return;
+#ifdef CONFIG_TIMESLICE_PER_THREAD
+	if (thread->base.slice_ticks != 0) {
+		ret = thread->base.slice_ticks;
 	}
-
-	/*
-	 * if the timer is periodic, start it again; don't add _TICK_ALIGN
-	 * since we're already aligned to a tick boundary
-	 */
-	if (!K_TIMEOUT_EQ(timer->period, K_NO_WAIT) &&
-	    !K_TIMEOUT_EQ(timer->period, K_FOREVER)) {
-		k_timeout_t next = timer->period;
-
-		/* see note about z_add_timeout() in z_impl_k_timer_start() */
-		next.ticks = MAX(next.ticks - 1, 0);
-
-#ifdef CONFIG_TIMEOUT_64BIT
-		/* Exploit the fact that uptime during a kernel
-		 * timeout handler reflects the time of the scheduled
-		 * event and not real time to get some inexpensive
-		 * protection against late interrupts.  If we're
-		 * delayed for any reason, we still end up calculating
-		 * the next expiration as a regular stride from where
-		 * we "should" have run.  Requires absolute timeouts.
-		 * (Note offset by one: we're nominally at the
-		 * beginning of a tick, so need to defeat the "round
-		 * down" behavior on timeout addition).
-		 */
-		next = K_TIMEOUT_ABS_TICKS(k_uptime_ticks() + 1 + next.ticks);
-#endif /* CONFIG_TIMEOUT_64BIT */
-		z_add_timeout(&timer->timeout, z_timer_expiration_handler,
-			      next);
-	}
-
-	/* update timer's status */
-	timer->status += 1U;
-
-	/* invoke timer expiry function */
-	if (timer->expiry_fn != NULL) {
-		/* Unlock for user handler. */
-		k_spin_unlock(&lock, key);
-		timer->expiry_fn(timer);
-		key = k_spin_lock(&lock);
-	}
-
-	if (!IS_ENABLED(CONFIG_MULTITHREADING)) {
-		k_spin_unlock(&lock, key);
-		return;
-	}
-
-	thread = z_waitq_head(&timer->wait_q);
-
-	if (thread == NULL) {
-		k_spin_unlock(&lock, key);
-		return;
-	}
-
-	z_unpend_thread_no_timeout(thread);
-
-	arch_thread_return_value_set(thread, 0);
-
-	k_spin_unlock(&lock, key);
-
-	z_ready_thread(thread);
+#else
+	ARG_UNUSED(thread);
+#endif
+	return ret;
 }
 
-
-void k_timer_init(struct k_timer *timer,
-			 k_timer_expiry_t expiry_fn,
-			 k_timer_stop_t stop_fn)
+/**
+ * @brief Check if a thread is sliceable
+ *
+ * This function checks if the specified thread is eligible for time slicing.
+ *
+ * @param thread Pointer to the thread
+ * @return true if the thread is sliceable, false otherwise
+ */
+bool thread_is_sliceable(struct k_thread *thread)
 {
-	timer->expiry_fn = expiry_fn;
-	timer->stop_fn = stop_fn;
-	timer->status = 0U;
+	bool ret = thread_is_preemptible(thread)
+		&& slice_time(thread) != 0
+		&& !z_is_prio_higher(thread->base.prio, slice_max_prio)
+		&& !z_is_thread_prevented_from_running(thread)
+		&& !z_is_idle_thread_object(thread);
 
-	if (IS_ENABLED(CONFIG_MULTITHREADING)) {
-		z_waitq_init(&timer->wait_q);
-	}
+#ifdef CONFIG_TIMESLICE_PER_THREAD
+	ret |= thread->base.slice_ticks != 0;
+#endif
 
-	z_init_timeout(&timer->timeout);
-
-	SYS_PORT_TRACING_OBJ_INIT(k_timer, timer);
-
-	timer->user_data = NULL;
-
-	k_object_init(timer);
-
-#ifdef CONFIG_OBJ_CORE_TIMER
-	k_obj_core_init_and_link(K_OBJ_CORE(timer), &obj_type_timer);
-#endif /* CONFIG_OBJ_CORE_TIMER */
+	return ret;
 }
 
-
-void z_impl_k_timer_start(struct k_timer *timer, k_timeout_t duration,
-			  k_timeout_t period)
+/**
+ * @brief Timeout handler for time slicing
+ *
+ * This function is called when the time slice duration expires.
+ *
+ * @param timeout Pointer to the timeout structure
+ */
+static void slice_timeout(struct _timeout *timeout)
 {
-	SYS_PORT_TRACING_OBJ_FUNC(k_timer, start, timer, duration, period);
+	int cpu = ARRAY_INDEX(slice_timeouts, timeout);
 
-	/* Acquire spinlock to ensure safety during concurrent calls to
-	 * k_timer_start for scheduling or rescheduling. This is necessary
-	 * since k_timer_start can be preempted, especially for the same
-	 * timer instance.
+	slice_expired[cpu] = true;
+
+	/* We need an IPI if we just handled a timeslice expiration
+	 * for a different CPU.
 	 */
-	k_spinlock_key_t key = k_spin_lock(&lock);
+	if (cpu != _current_cpu->id) {
+		flag_ipi(IPI_CPU_MASK(cpu));
+	}
+}
 
-	if (K_TIMEOUT_EQ(duration, K_FOREVER)) {
-		k_spin_unlock(&lock, key);
+/**
+ * @brief Reset the time slice for a thread
+ *
+ * This function resets the time slice for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ */
+void z_reset_time_slice(struct k_thread *thread)
+{
+	int cpu = _current_cpu->id;
+
+	z_abort_timeout(&slice_timeouts[cpu]);
+	slice_expired[cpu] = false;
+	if (thread_is_sliceable(thread)) {
+		z_add_timeout(&slice_timeouts[cpu], slice_timeout,
+			      K_TICKS(slice_time(thread) - 1));
+	}
+}
+
+/**
+ * @brief Set the global time slice duration and priority
+ *
+ * This function sets the global time slice duration and priority.
+ *
+ * @param slice Time slice duration in milliseconds
+ * @param prio Maximum priority for time slicing
+ */
+void k_sched_time_slice_set(int32_t slice, int prio)
+{
+	K_SPINLOCK(&_sched_spinlock) {
+		slice_ticks = k_ms_to_ticks_ceil32(slice);
+		slice_max_prio = prio;
+		z_reset_time_slice(_current);
+	}
+}
+
+#ifdef CONFIG_TIMESLICE_PER_THREAD
+/**
+ * @brief Set the time slice duration for a specific thread
+ *
+ * This function sets the time slice duration for the specified thread.
+ *
+ * @param thread Pointer to the thread
+ * @param thread_slice_ticks Time slice duration in ticks
+ * @param expired Callback function to call when the time slice expires
+ * @param data Data to pass to the callback function
+ */
+void k_thread_time_slice_set(struct k_thread *thread, int32_t thread_slice_ticks,
+			     k_thread_timeslice_fn_t expired, void *data)
+{
+	K_SPINLOCK(&_sched_spinlock) {
+		thread->base.slice_ticks = thread_slice_ticks;
+		thread->base.slice_expired = expired;
+		thread->base.slice_data = data;
+		z_reset_time_slice(thread);
+	}
+}
+#endif
+
+/**
+ * @brief Handle time slice expiration
+ *
+ * This function is called from each timer interrupt to handle time slice
+ * expiration.
+ */
+void z_time_slice(void)
+{
+	k_spinlock_key_t key = k_spin_lock(&_sched_spinlock);
+	struct k_thread *curr = _current;
+
+#ifdef CONFIG_SWAP_NONATOMIC
+	if (pending_current == curr) {
+		z_reset_time_slice(curr);
+		k_spin_unlock(&_sched_spinlock, key);
 		return;
 	}
+	pending_current = NULL;
+#endif
 
-	/* z_add_timeout() always adds one to the incoming tick count
-	 * to round up to the next tick (by convention it waits for
-	 * "at least as long as the specified timeout"), but the
-	 * period interval is always guaranteed to be reset from
-	 * within the timer ISR, so no round up is desired and 1 is
-	 * subtracted in there.
-	 *
-	 * Note that the duration (!) value gets the same treatment
-	 * for backwards compatibility.  This is unfortunate
-	 * (i.e. k_timer_start() doesn't treat its initial sleep
-	 * argument the same way k_sleep() does), but historical.  The
-	 * timer_api test relies on this behavior.
-	 */
-	if (Z_TICK_ABS(duration.ticks) < 0) {
-		duration.ticks = MAX(duration.ticks - 1, 0);
-	}
-
-	(void)z_abort_timeout(&timer->timeout);
-	timer->period = period;
-	timer->status = 0U;
-
-	z_add_timeout(&timer->timeout, z_timer_expiration_handler,
-		     duration);
-
-	k_spin_unlock(&lock, key);
-}
-
-#ifdef CONFIG_USERSPACE
-static inline void z_vrfy_k_timer_start(struct k_timer *timer,
-					k_timeout_t duration,
-					k_timeout_t period)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	z_impl_k_timer_start(timer, duration, period);
-}
-#include <zephyr/syscalls/k_timer_start_mrsh.c>
-#endif /* CONFIG_USERSPACE */
-
-void z_impl_k_timer_stop(struct k_timer *timer)
-{
-	SYS_PORT_TRACING_OBJ_FUNC(k_timer, stop, timer);
-
-	bool inactive = (z_abort_timeout(&timer->timeout) != 0);
-
-	if (inactive) {
-		return;
-	}
-
-	if (timer->stop_fn != NULL) {
-		timer->stop_fn(timer);
-	}
-
-	if (IS_ENABLED(CONFIG_MULTITHREADING)) {
-		struct k_thread *pending_thread = z_unpend1_no_timeout(&timer->wait_q);
-
-		if (pending_thread != NULL) {
-			z_ready_thread(pending_thread);
-			z_reschedule_unlocked();
+	if (slice_expired[_current_cpu->id] && thread_is_sliceable(curr)) {
+#ifdef CONFIG_TIMESLICE_PER_THREAD
+		if (curr->base.slice_expired) {
+			k_spin_unlock(&_sched_spinlock, key);
+			curr->base.slice_expired(curr, curr->base.slice_data);
+			key = k_spin_lock(&_sched_spinlock);
 		}
-	}
-}
-
-#ifdef CONFIG_USERSPACE
-static inline void z_vrfy_k_timer_stop(struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	z_impl_k_timer_stop(timer);
-}
-#include <zephyr/syscalls/k_timer_stop_mrsh.c>
-#endif /* CONFIG_USERSPACE */
-
-uint32_t z_impl_k_timer_status_get(struct k_timer *timer)
-{
-	k_spinlock_key_t key = k_spin_lock(&lock);
-	uint32_t result = timer->status;
-
-	timer->status = 0U;
-	k_spin_unlock(&lock, key);
-
-	return result;
-}
-
-#ifdef CONFIG_USERSPACE
-static inline uint32_t z_vrfy_k_timer_status_get(struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	return z_impl_k_timer_status_get(timer);
-}
-#include <zephyr/syscalls/k_timer_status_get_mrsh.c>
-#endif /* CONFIG_USERSPACE */
-
-uint32_t z_impl_k_timer_status_sync(struct k_timer *timer)
-{
-	__ASSERT(!arch_is_in_isr(), "");
-	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_timer, status_sync, timer);
-
-	if (!IS_ENABLED(CONFIG_MULTITHREADING)) {
-		uint32_t result;
-
-		do {
-			k_spinlock_key_t key = k_spin_lock(&lock);
-
-			if (!z_is_inactive_timeout(&timer->timeout)) {
-				result = *(volatile uint32_t *)&timer->status;
-				timer->status = 0U;
-				k_spin_unlock(&lock, key);
-				if (result > 0) {
-					break;
-				}
-			} else {
-				result = timer->status;
-				k_spin_unlock(&lock, key);
-				break;
-			}
-		} while (true);
-
-		return result;
-	}
-
-	k_spinlock_key_t key = k_spin_lock(&lock);
-	uint32_t result = timer->status;
-
-	if (result == 0U) {
-		if (!z_is_inactive_timeout(&timer->timeout)) {
-			SYS_PORT_TRACING_OBJ_FUNC_BLOCKING(k_timer, status_sync, timer, K_FOREVER);
-
-			/* wait for timer to expire or stop */
-			(void)z_pend_curr(&lock, key, &timer->wait_q, K_FOREVER);
-
-			/* get updated timer status */
-			key = k_spin_lock(&lock);
-			result = timer->status;
-		} else {
-			/* timer is already stopped */
+#endif
+		if (!z_is_thread_prevented_from_running(curr)) {
+			move_thread_to_end_of_prio_q(curr);
 		}
-	} else {
-		/* timer has already expired at least once */
+		z_reset_time_slice(curr);
 	}
-
-	timer->status = 0U;
-	k_spin_unlock(&lock, key);
-
-	/**
-	 * @note	New tracing hook
-	 */
-	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_timer, status_sync, timer, result);
-
-	return result;
+	k_spin_unlock(&_sched_spinlock, key);
 }
-
-#ifdef CONFIG_USERSPACE
-static inline uint32_t z_vrfy_k_timer_status_sync(struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	return z_impl_k_timer_status_sync(timer);
-}
-#include <zephyr/syscalls/k_timer_status_sync_mrsh.c>
-
-static inline k_ticks_t z_vrfy_k_timer_remaining_ticks(
-						const struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	return z_impl_k_timer_remaining_ticks(timer);
-}
-#include <zephyr/syscalls/k_timer_remaining_ticks_mrsh.c>
-
-static inline k_ticks_t z_vrfy_k_timer_expires_ticks(
-						const struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	return z_impl_k_timer_expires_ticks(timer);
-}
-#include <zephyr/syscalls/k_timer_expires_ticks_mrsh.c>
-
-static inline void *z_vrfy_k_timer_user_data_get(const struct k_timer *timer)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	return z_impl_k_timer_user_data_get(timer);
-}
-#include <zephyr/syscalls/k_timer_user_data_get_mrsh.c>
-
-static inline void z_vrfy_k_timer_user_data_set(struct k_timer *timer,
-						void *user_data)
-{
-	K_OOPS(K_SYSCALL_OBJ(timer, K_OBJ_TIMER));
-	z_impl_k_timer_user_data_set(timer, user_data);
-}
-#include <zephyr/syscalls/k_timer_user_data_set_mrsh.c>
-
-#endif /* CONFIG_USERSPACE */
-
-#ifdef CONFIG_OBJ_CORE_TIMER
-static int init_timer_obj_core_list(void)
-{
-	/* Initialize timer object type */
-
-	z_obj_type_init(&obj_type_timer, K_OBJ_TYPE_TIMER_ID,
-			offsetof(struct k_timer, obj_core));
-
-	/* Initialize and link statically defined timers */
-
-	STRUCT_SECTION_FOREACH(k_timer, timer) {
-		k_obj_core_init_and_link(K_OBJ_CORE(timer), &obj_type_timer);
-	}
-
-	return 0;
-}
-SYS_INIT(init_timer_obj_core_list, PRE_KERNEL_1,
-	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
-#endif /* CONFIG_OBJ_CORE_TIMER */
+//GST

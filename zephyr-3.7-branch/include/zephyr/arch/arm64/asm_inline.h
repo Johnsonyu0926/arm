@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arm64/asm_inline.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_ASM_INLINE_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_ASM_INLINE_H_
@@ -19,3 +15,4 @@
 #endif
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_ASM_INLINE_H_ */
+//GST

@@ -1,14 +1,15 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/mutex.c
 #include <zephyr/kernel.h>
 #include <zephyr/sys/mutex.h>
 #include <zephyr/internal/syscall_handler.h>
 #include <zephyr/kernel_structs.h>
 
+/**
+ * @brief Get the kernel mutex associated with a sys_mutex
+ *
+ * @param mutex Pointer to the sys_mutex
+ * @return Pointer to the kernel mutex, or NULL if not found
+ */
 static struct k_mutex *get_k_mutex(struct sys_mutex *mutex)
 {
 	struct k_object *obj;
@@ -21,6 +22,12 @@ static struct k_mutex *get_k_mutex(struct sys_mutex *mutex)
 	return obj->data.mutex;
 }
 
+/**
+ * @brief Check if the sys_mutex address is valid
+ *
+ * @param addr Pointer to the sys_mutex
+ * @return true if the address is valid, false otherwise
+ */
 static bool check_sys_mutex_addr(struct sys_mutex *addr)
 {
 	/* sys_mutex memory is never touched, just used to lookup the
@@ -30,6 +37,13 @@ static bool check_sys_mutex_addr(struct sys_mutex *addr)
 	return K_SYSCALL_MEMORY_WRITE(addr, sizeof(struct sys_mutex));
 }
 
+/**
+ * @brief Lock a sys_mutex
+ *
+ * @param mutex Pointer to the sys_mutex
+ * @param timeout Timeout for the lock operation
+ * @return 0 on success, or -EINVAL on error
+ */
 int z_impl_z_sys_mutex_kernel_lock(struct sys_mutex *mutex, k_timeout_t timeout)
 {
 	struct k_mutex *kernel_mutex = get_k_mutex(mutex);
@@ -41,6 +55,13 @@ int z_impl_z_sys_mutex_kernel_lock(struct sys_mutex *mutex, k_timeout_t timeout)
 	return k_mutex_lock(kernel_mutex, timeout);
 }
 
+/**
+ * @brief Verify and lock a sys_mutex
+ *
+ * @param mutex Pointer to the sys_mutex
+ * @param timeout Timeout for the lock operation
+ * @return 0 on success, or -EACCES on error
+ */
 static inline int z_vrfy_z_sys_mutex_kernel_lock(struct sys_mutex *mutex,
 						 k_timeout_t timeout)
 {
@@ -52,6 +73,12 @@ static inline int z_vrfy_z_sys_mutex_kernel_lock(struct sys_mutex *mutex,
 }
 #include <zephyr/syscalls/z_sys_mutex_kernel_lock_mrsh.c>
 
+/**
+ * @brief Unlock a sys_mutex
+ *
+ * @param mutex Pointer to the sys_mutex
+ * @return 0 on success, or -EINVAL on error
+ */
 int z_impl_z_sys_mutex_kernel_unlock(struct sys_mutex *mutex)
 {
 	struct k_mutex *kernel_mutex = get_k_mutex(mutex);
@@ -63,6 +90,12 @@ int z_impl_z_sys_mutex_kernel_unlock(struct sys_mutex *mutex)
 	return k_mutex_unlock(kernel_mutex);
 }
 
+/**
+ * @brief Verify and unlock a sys_mutex
+ *
+ * @param mutex Pointer to the sys_mutex
+ * @return 0 on success, or -EACCES on error
+ */
 static inline int z_vrfy_z_sys_mutex_kernel_unlock(struct sys_mutex *mutex)
 {
 	if (check_sys_mutex_addr(mutex)) {
@@ -72,3 +105,4 @@ static inline int z_vrfy_z_sys_mutex_kernel_unlock(struct sys_mutex *mutex)
 	return z_impl_z_sys_mutex_kernel_unlock(mutex);
 }
 #include <zephyr/syscalls/z_sys_mutex_kernel_unlock_mrsh.c>
+//GST

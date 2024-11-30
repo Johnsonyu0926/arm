@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2016 Intel Corporation
- * Copyright (c) 2017 ARM Ltd
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/libc/minimal/include/sys/types.h
 
 #ifndef ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_SYS_TYPES_H_
 #define ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_SYS_TYPES_H_
@@ -61,3 +56,4 @@ typedef uintptr_t mem_word_t;
 #endif
 
 #endif /* ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_SYS_TYPES_H_ */
+//GST

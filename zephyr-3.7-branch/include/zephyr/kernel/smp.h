@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/kernel/smp.h
 
 #ifndef ZEPHYR_INCLUDE_KERNEL_SMP_H_
 #define ZEPHYR_INCLUDE_KERNEL_SMP_H_
@@ -69,3 +65,4 @@ void k_smp_cpu_resume(int id, smp_init_fn fn, void *arg,
 		      bool reinit_timer, bool invoke_sched);
 
 #endif /* ZEPHYR_INCLUDE_KERNEL_SMP_H_ */
+//GST

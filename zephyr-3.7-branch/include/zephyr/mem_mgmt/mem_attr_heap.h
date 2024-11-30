@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023 Carlo Caione, <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/mem_mgmt/mem_attr_heap.h
 
 #ifndef ZEPHYR_INCLUDE_MEM_ATTR_HEAP_H_
 #define ZEPHYR_INCLUDE_MEM_ATTR_HEAP_H_
@@ -24,7 +20,7 @@ extern "C" {
  * @brief Init the memory pool
  *
  * This must be the first function to be called to initialize the memory pools
- * from all the memory regions with the a software attribute.
+ * from all the memory regions with a software attribute.
  *
  * @retval 0 on success.
  * @retval -EALREADY if the pool was already initialized.
@@ -67,7 +63,7 @@ void *mem_attr_heap_aligned_alloc(uint32_t attr, size_t align, size_t bytes);
  * @brief Free the allocated memory
  *
  * Used to free the passed block of memory that must be the return value of a
- * previously call to @ref mem_attr_heap_alloc or @ref
+ * previous call to @ref mem_attr_heap_alloc or @ref
  * mem_attr_heap_aligned_alloc.
  *
  * @param block block to free, must be a pointer to a block allocated by
@@ -96,3 +92,4 @@ const struct mem_attr_region_t *mem_attr_heap_get_region(void *addr);
  */
 
 #endif /* ZEPHYR_INCLUDE_MEM_ATTR_HEAP_H_ */
+//GST

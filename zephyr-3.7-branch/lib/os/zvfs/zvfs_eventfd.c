@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2020 Tobias Svehagen
- * Copyright (c) 2023, Meta
- * Copyright (c) 2024, Tenstorrent AI ULC
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/zvfs/zvfs_eventfd.c
 #include <zephyr/kernel.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/posix/fcntl.h>
@@ -405,6 +398,13 @@ out:
  * Public-facing API
  */
 
+/**
+ * @brief Create a new eventfd object
+ *
+ * @param initval Initial value
+ * @param flags Flags
+ * @return File descriptor, or -1 on error
+ */
 int zvfs_eventfd(unsigned int initval, int flags)
 {
 	int fd = 1;
@@ -446,6 +446,13 @@ int zvfs_eventfd(unsigned int initval, int flags)
 	return fd;
 }
 
+/**
+ * @brief Read from an eventfd object
+ *
+ * @param fd File descriptor
+ * @param value Pointer to store the read value
+ * @return 0 on success, or -1 on error
+ */
 int zvfs_eventfd_read(int fd, zvfs_eventfd_t *value)
 {
 	int ret;
@@ -465,6 +472,13 @@ int zvfs_eventfd_read(int fd, zvfs_eventfd_t *value)
 	return 0;
 }
 
+/**
+ * @brief Write to an eventfd object
+ *
+ * @param fd File descriptor
+ * @param value Value to write
+ * @return 0 on success, or -1 on error
+ */
 int zvfs_eventfd_write(int fd, zvfs_eventfd_t value)
 {
 	int ret;
@@ -483,3 +497,4 @@ int zvfs_eventfd_write(int fd, zvfs_eventfd_t value)
 
 	return 0;
 }
+//GST

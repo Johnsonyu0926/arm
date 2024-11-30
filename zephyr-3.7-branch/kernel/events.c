@@ -1,29 +1,7 @@
-/*
- * Copyright (c) 2021 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file event objects library
- *
- * Event objects are used to signal one or more threads that a custom set of
- * events has occurred. Threads wait on event objects until another thread or
- * ISR posts the desired set of events to the event object. Each time events
- * are posted to an event object, all threads waiting on that event object are
- * processed to determine if there is a match. All threads that whose wait
- * conditions match the current set of events now belonging to the event object
- * are awakened.
- *
- * Threads waiting on an event object have the option of either waking once
- * any or all of the events it desires have been posted to the event object.
- *
- * @brief Kernel event object
- */
+// kernel/events.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <zephyr/sys/dlist.h>
 #include <zephyr/init.h>
@@ -37,7 +15,6 @@
 #define K_EVENT_WAIT_ANY      0x00   /* Wait for any events */
 #define K_EVENT_WAIT_ALL      0x01   /* Wait for all events */
 #define K_EVENT_WAIT_MASK     0x01
-
 #define K_EVENT_WAIT_RESET    0x02   /* Reset events prior to waiting */
 
 struct event_walk_data {
@@ -49,6 +26,11 @@ struct event_walk_data {
 static struct k_obj_type obj_type_event;
 #endif /* CONFIG_OBJ_CORE_EVENT */
 
+/**
+ * @brief Initialize an event object
+ *
+ * @param event Pointer to the event object
+ */
 void z_impl_k_event_init(struct k_event *event)
 {
 	event->events = 0;
@@ -75,7 +57,7 @@ void z_vrfy_k_event_init(struct k_event *event)
 #endif /* CONFIG_USERSPACE */
 
 /**
- * @brief determine if desired set of events been satisfied
+ * @brief Determine if desired set of events been satisfied
  *
  * This routine determines if the current set of events satisfies the desired
  * set of events. If @a wait_condition is K_EVENT_WAIT_ALL, then at least
@@ -83,24 +65,28 @@ void z_vrfy_k_event_init(struct k_event *event)
  * wait_condition is not K_EVENT_WAIT_ALL, it is assumed to be K_EVENT_WAIT_ANY.
  * In the K_EVENT_WAIT_ANY case, the request is satisfied when any of the
  * current set of events are present in the desired set of events.
+ *
+ * @param desired Desired set of events
+ * @param current Current set of events
+ * @param wait_condition Wait condition (K_EVENT_WAIT_ALL or K_EVENT_WAIT_ANY)
+ * @return true if the wait conditions are met, false otherwise
  */
 static bool are_wait_conditions_met(uint32_t desired, uint32_t current,
 				    unsigned int wait_condition)
 {
-	uint32_t  match = current & desired;
+	uint32_t match = current & desired;
 
 	if (wait_condition == K_EVENT_WAIT_ALL) {
 		return match == desired;
 	}
 
 	/* wait_condition assumed to be K_EVENT_WAIT_ANY */
-
 	return match != 0;
 }
 
 static int event_walk_op(struct k_thread *thread, void *data)
 {
-	unsigned int      wait_condition;
+	unsigned int wait_condition;
 	struct event_walk_data *event_data = data;
 
 	wait_condition = thread->event_options & K_EVENT_WAIT_MASK;
@@ -131,8 +117,8 @@ static int event_walk_op(struct k_thread *thread, void *data)
 static uint32_t k_event_post_internal(struct k_event *event, uint32_t events,
 				  uint32_t events_mask)
 {
-	k_spinlock_key_t  key;
-	struct k_thread  *thread;
+	k_spinlock_key_t key;
+	struct k_thread *thread;
 	struct event_walk_data data;
 	uint32_t previous_events;
 
@@ -179,6 +165,13 @@ static uint32_t k_event_post_internal(struct k_event *event, uint32_t events,
 	return previous_events;
 }
 
+/**
+ * @brief Post events to an event object
+ *
+ * @param event Pointer to the event object
+ * @param events Events to post
+ * @return Previous events
+ */
 uint32_t z_impl_k_event_post(struct k_event *event, uint32_t events)
 {
 	return k_event_post_internal(event, events, events);
@@ -193,6 +186,13 @@ uint32_t z_vrfy_k_event_post(struct k_event *event, uint32_t events)
 #include <zephyr/syscalls/k_event_post_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Set events in an event object
+ *
+ * @param event Pointer to the event object
+ * @param events Events to set
+ * @return Previous events
+ */
 uint32_t z_impl_k_event_set(struct k_event *event, uint32_t events)
 {
 	return k_event_post_internal(event, events, ~0);
@@ -207,6 +207,14 @@ uint32_t z_vrfy_k_event_set(struct k_event *event, uint32_t events)
 #include <zephyr/syscalls/k_event_set_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Set masked events in an event object
+ *
+ * @param event Pointer to the event object
+ * @param events Events to set
+ * @param events_mask Mask of events to set
+ * @return Previous events
+ */
 uint32_t z_impl_k_event_set_masked(struct k_event *event, uint32_t events,
 			       uint32_t events_mask)
 {
@@ -223,6 +231,13 @@ uint32_t z_vrfy_k_event_set_masked(struct k_event *event, uint32_t events,
 #include <zephyr/syscalls/k_event_set_masked_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Clear events in an event object
+ *
+ * @param event Pointer to the event object
+ * @param events Events to clear
+ * @return Previous events
+ */
 uint32_t z_impl_k_event_clear(struct k_event *event, uint32_t events)
 {
 	return k_event_post_internal(event, 0, events);
@@ -240,9 +255,9 @@ uint32_t z_vrfy_k_event_clear(struct k_event *event, uint32_t events)
 static uint32_t k_event_wait_internal(struct k_event *event, uint32_t events,
 				      unsigned int options, k_timeout_t timeout)
 {
-	uint32_t  rv = 0;
-	unsigned int  wait_condition;
-	struct k_thread  *thread;
+	uint32_t rv = 0;
+	unsigned int wait_condition;
+	struct k_thread *thread;
 
 	__ASSERT(((arch_is_in_isr() == false) ||
 		  K_TIMEOUT_EQ(timeout, K_NO_WAIT)), "");
@@ -258,7 +273,7 @@ static uint32_t k_event_wait_internal(struct k_event *event, uint32_t events,
 	wait_condition = options & K_EVENT_WAIT_MASK;
 	thread = k_sched_current_thread_query();
 
-	k_spinlock_key_t  key = k_spin_lock(&event->lock);
+	k_spinlock_key_t key = k_spin_lock(&event->lock);
 
 	if (options & K_EVENT_WAIT_RESET) {
 		event->events = 0;
@@ -304,7 +319,13 @@ out:
 }
 
 /**
- * Wait for any of the specified events
+ * @brief Wait for any of the specified events
+ *
+ * @param event Pointer to the event object
+ * @param events Events to wait for
+ * @param reset Whether to reset events before waiting
+ * @param timeout Timeout value
+ * @return Set of events that occurred
  */
 uint32_t z_impl_k_event_wait(struct k_event *event, uint32_t events,
 			     bool reset, k_timeout_t timeout)
@@ -313,6 +334,7 @@ uint32_t z_impl_k_event_wait(struct k_event *event, uint32_t events,
 
 	return k_event_wait_internal(event, events, options, timeout);
 }
+
 #ifdef CONFIG_USERSPACE
 uint32_t z_vrfy_k_event_wait(struct k_event *event, uint32_t events,
 				    bool reset, k_timeout_t timeout)
@@ -324,7 +346,13 @@ uint32_t z_vrfy_k_event_wait(struct k_event *event, uint32_t events,
 #endif /* CONFIG_USERSPACE */
 
 /**
- * Wait for all of the specified events
+ * @brief Wait for all of the specified events
+ *
+ * @param event Pointer to the event object
+ * @param events Events to wait for
+ * @param reset Whether to reset events before waiting
+ * @param timeout Timeout value
+ * @return Set of events that occurred
  */
 uint32_t z_impl_k_event_wait_all(struct k_event *event, uint32_t events,
 				 bool reset, k_timeout_t timeout)
@@ -346,6 +374,11 @@ uint32_t z_vrfy_k_event_wait_all(struct k_event *event, uint32_t events,
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_OBJ_CORE_EVENT
+/**
+ * @brief Initialize event object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_event_obj_core_list(void)
 {
 	/* Initialize condvar object type */
@@ -365,3 +398,4 @@ static int init_event_obj_core_list(void)
 SYS_INIT(init_event_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_EVENT */
+//GST

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/os/p4wq.c
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/p4wq.h>
 #include <zephyr/kernel.h>
@@ -16,6 +12,12 @@ LOG_MODULE_REGISTER(p4wq, CONFIG_LOG_DEFAULT_LEVEL);
 
 struct device;
 
+/**
+ * @brief Set the priority and deadline of a thread
+ *
+ * @param th Pointer to the thread
+ * @param item Pointer to the work item
+ */
 static void set_prio(struct k_thread *th, struct k_p4wq_work *item)
 {
 	__ASSERT_NO_MSG(!IS_ENABLED(CONFIG_SMP) || !z_is_thread_queued(th));
@@ -23,6 +25,13 @@ static void set_prio(struct k_thread *th, struct k_p4wq_work *item)
 	th->base.prio_deadline = item->deadline;
 }
 
+/**
+ * @brief Compare two rbnode structures
+ *
+ * @param a Pointer to the first rbnode
+ * @param b Pointer to the second rbnode
+ * @return true if a is less than b, false otherwise
+ */
 static bool rb_lessthan(struct rbnode *a, struct rbnode *b)
 {
 	struct k_p4wq_work *aw = CONTAINER_OF(a, struct k_p4wq_work, rbnode);
@@ -39,25 +48,43 @@ static bool rb_lessthan(struct rbnode *a, struct rbnode *b)
 	return (uintptr_t)a < (uintptr_t)b;
 }
 
+/**
+ * @brief Set the requeued state of a thread
+ *
+ * @param th Pointer to the thread
+ */
 static void thread_set_requeued(struct k_thread *th)
 {
 	th->base.user_options |= K_CALLBACK_STATE;
 }
 
+/**
+ * @brief Clear the requeued state of a thread
+ *
+ * @param th Pointer to the thread
+ */
 static void thread_clear_requeued(struct k_thread *th)
 {
 	th->base.user_options &= ~K_CALLBACK_STATE;
 }
 
+/**
+ * @brief Check if a thread was requeued
+ *
+ * @param th Pointer to the thread
+ * @return true if the thread was requeued, false otherwise
+ */
 static bool thread_was_requeued(struct k_thread *th)
 {
 	return !!(th->base.user_options & K_CALLBACK_STATE);
 }
 
-/* Slightly different semantics: rb_lessthan must be perfectly
- * symmetric (to produce a single tree structure) and will use the
- * pointer value to break ties where priorities are equal, here we
- * tolerate equality as meaning "not lessthan"
+/**
+ * @brief Compare two work items
+ *
+ * @param a Pointer to the first work item
+ * @param b Pointer to the second work item
+ * @return true if a is less than b, false otherwise
  */
 static inline bool item_lessthan(struct k_p4wq_work *a, struct k_p4wq_work *b)
 {
@@ -72,6 +99,13 @@ static inline bool item_lessthan(struct k_p4wq_work *a, struct k_p4wq_work *b)
 	return false;
 }
 
+/**
+ * @brief Main loop for the p4wq worker thread
+ *
+ * @param p0 Pointer to the work queue
+ * @param p1 Unused
+ * @param p2 Unused
+ */
 static FUNC_NORETURN void p4wq_loop(void *p0, void *p1, void *p2)
 {
 	ARG_UNUSED(p1);
@@ -113,7 +147,13 @@ static FUNC_NORETURN void p4wq_loop(void *p0, void *p1, void *p2)
 	}
 }
 
-/* Must be called to regain ownership of the work item */
+/**
+ * @brief Wait for a work item to complete
+ *
+ * @param work Pointer to the work item
+ * @param timeout Timeout for the wait operation
+ * @return 0 on success, or -EBUSY if the work item is not complete
+ */
 int k_p4wq_wait(struct k_p4wq_work *work, k_timeout_t timeout)
 {
 	if (work->sync) {
@@ -123,6 +163,11 @@ int k_p4wq_wait(struct k_p4wq_work *work, k_timeout_t timeout)
 	return k_sem_count_get(&work->done_sem) ? 0 : -EBUSY;
 }
 
+/**
+ * @brief Initialize a work queue
+ *
+ * @param queue Pointer to the work queue
+ */
 void k_p4wq_init(struct k_p4wq *queue)
 {
 	memset(queue, 0, sizeof(*queue));
@@ -131,6 +176,14 @@ void k_p4wq_init(struct k_p4wq *queue)
 	sys_dlist_init(&queue->active);
 }
 
+/**
+ * @brief Add a thread to a work queue
+ *
+ * @param queue Pointer to the work queue
+ * @param thread Pointer to the thread
+ * @param stack Pointer to the thread stack
+ * @param stack_size Size of the thread stack
+ */
 void k_p4wq_add_thread(struct k_p4wq *queue, struct k_thread *thread,
 			k_thread_stack_t *stack,
 			size_t stack_size)
@@ -141,9 +194,13 @@ void k_p4wq_add_thread(struct k_p4wq *queue, struct k_thread *thread,
 			queue->flags & K_P4WQ_DELAYED_START ? K_FOREVER : K_NO_WAIT);
 }
 
+/**
+ * @brief Static initialization of work queues
+ *
+ * @return 0 on success
+ */
 static int static_init(void)
 {
-
 	STRUCT_SECTION_FOREACH(k_p4wq_initparam, pp) {
 		for (int i = 0; i < pp->num; i++) {
 			uintptr_t ssz = K_THREAD_STACK_LEN(pp->stack_size);
@@ -186,6 +243,13 @@ static int static_init(void)
 	return 0;
 }
 
+/**
+ * @brief Enable a static thread in a work queue
+ *
+ * @param queue Pointer to the work queue
+ * @param thread Pointer to the thread
+ * @param cpu_mask CPU mask for the thread
+ */
 void k_p4wq_enable_static_thread(struct k_p4wq *queue, struct k_thread *thread,
 				 uint32_t cpu_mask)
 {
@@ -215,6 +279,12 @@ void k_p4wq_enable_static_thread(struct k_p4wq *queue, struct k_thread *thread,
  */
 SYS_INIT(static_init, APPLICATION, 99);
 
+/**
+ * @brief Submit a work item to a work queue
+ *
+ * @param queue Pointer to the work queue
+ * @param item Pointer to the work item
+ */
 void k_p4wq_submit(struct k_p4wq *queue, struct k_p4wq_work *item)
 {
 	k_spinlock_key_t k = k_spin_lock(&queue->lock);
@@ -292,6 +362,13 @@ out:
 	k_spin_unlock(&queue->lock, k);
 }
 
+/**
+ * @brief Cancel a work item in a work queue
+ *
+ * @param queue Pointer to the work queue
+ * @param item Pointer to the work item
+ * @return true if the item was successfully canceled, false otherwise
+ */
 bool k_p4wq_cancel(struct k_p4wq *queue, struct k_p4wq_work *item)
 {
 	k_spinlock_key_t k = k_spin_lock(&queue->lock);
@@ -305,3 +382,4 @@ bool k_p4wq_cancel(struct k_p4wq *queue, struct k_p4wq_work *item)
 	k_spin_unlock(&queue->lock, k);
 	return ret;
 }
+//GST

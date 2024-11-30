@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//kernel/timeout.c
 #include <zephyr/kernel.h>
 #include <zephyr/spinlock.h>
 #include <ksched.h>
@@ -36,6 +31,11 @@ static inline int z_vrfy_sys_clock_hw_cycles_per_sec_runtime_get(void)
 #endif /* CONFIG_USERSPACE */
 #endif /* CONFIG_TIMER_READS_ITS_FREQUENCY_AT_RUNTIME */
 
+/**
+ * @brief Get the first timeout in the list
+ *
+ * @return Pointer to the first timeout, or NULL if the list is empty
+ */
 static struct _timeout *first(void)
 {
 	sys_dnode_t *t = sys_dlist_peek_head(&timeout_list);
@@ -43,6 +43,12 @@ static struct _timeout *first(void)
 	return (t == NULL) ? NULL : CONTAINER_OF(t, struct _timeout, node);
 }
 
+/**
+ * @brief Get the next timeout in the list
+ *
+ * @param t Pointer to the current timeout
+ * @return Pointer to the next timeout, or NULL if there is no next timeout
+ */
 static struct _timeout *next(struct _timeout *t)
 {
 	sys_dnode_t *n = sys_dlist_peek_next(&timeout_list, &t->node);
@@ -50,6 +56,11 @@ static struct _timeout *next(struct _timeout *t)
 	return (n == NULL) ? NULL : CONTAINER_OF(n, struct _timeout, node);
 }
 
+/**
+ * @brief Remove a timeout from the list
+ *
+ * @param t Pointer to the timeout to be removed
+ */
 static void remove_timeout(struct _timeout *t)
 {
 	if (next(t) != NULL) {
@@ -59,27 +70,21 @@ static void remove_timeout(struct _timeout *t)
 	sys_dlist_remove(&t->node);
 }
 
+/**
+ * @brief Get the elapsed ticks
+ *
+ * @return Number of elapsed ticks
+ */
 static int32_t elapsed(void)
 {
-	/* While sys_clock_announce() is executing, new relative timeouts will be
-	 * scheduled relatively to the currently firing timeout's original tick
-	 * value (=curr_tick) rather than relative to the current
-	 * sys_clock_elapsed().
-	 *
-	 * This means that timeouts being scheduled from within timeout callbacks
-	 * will be scheduled at well-defined offsets from the currently firing
-	 * timeout.
-	 *
-	 * As a side effect, the same will happen if an ISR with higher priority
-	 * preempts a timeout callback and schedules a timeout.
-	 *
-	 * The distinction is implemented by looking at announce_remaining which
-	 * will be non-zero while sys_clock_announce() is executing and zero
-	 * otherwise.
-	 */
 	return announce_remaining == 0 ? sys_clock_elapsed() : 0U;
 }
 
+/**
+ * @brief Get the next timeout value
+ *
+ * @return Number of ticks until the next timeout
+ */
 static int32_t next_timeout(void)
 {
 	struct _timeout *to = first();
@@ -96,6 +101,13 @@ static int32_t next_timeout(void)
 	return ret;
 }
 
+/**
+ * @brief Add a timeout to the list
+ *
+ * @param to Pointer to the timeout
+ * @param fn Timeout callback function
+ * @param timeout Timeout value
+ */
 void z_add_timeout(struct _timeout *to, _timeout_func_t fn,
 		   k_timeout_t timeout)
 {
@@ -141,6 +153,12 @@ void z_add_timeout(struct _timeout *to, _timeout_func_t fn,
 	}
 }
 
+/**
+ * @brief Abort a timeout
+ *
+ * @param to Pointer to the timeout to be aborted
+ * @return 0 on success, or -EINVAL if the timeout is not found
+ */
 int z_abort_timeout(struct _timeout *to)
 {
 	int ret = -EINVAL;
@@ -155,7 +173,12 @@ int z_abort_timeout(struct _timeout *to)
 	return ret;
 }
 
-/* must be locked */
+/**
+ * @brief Get the remaining ticks for a timeout
+ *
+ * @param timeout Pointer to the timeout
+ * @return Number of remaining ticks
+ */
 static k_ticks_t timeout_rem(const struct _timeout *timeout)
 {
 	k_ticks_t ticks = 0;
@@ -170,6 +193,12 @@ static k_ticks_t timeout_rem(const struct _timeout *timeout)
 	return ticks;
 }
 
+/**
+ * @brief Get the remaining ticks for a timeout
+ *
+ * @param timeout Pointer to the timeout
+ * @return Number of remaining ticks
+ */
 k_ticks_t z_timeout_remaining(const struct _timeout *timeout)
 {
 	k_ticks_t ticks = 0;
@@ -183,6 +212,12 @@ k_ticks_t z_timeout_remaining(const struct _timeout *timeout)
 	return ticks;
 }
 
+/**
+ * @brief Get the expiration tick for a timeout
+ *
+ * @param timeout Pointer to the timeout
+ * @return Expiration tick
+ */
 k_ticks_t z_timeout_expires(const struct _timeout *timeout)
 {
 	k_ticks_t ticks = 0;
@@ -197,6 +232,11 @@ k_ticks_t z_timeout_expires(const struct _timeout *timeout)
 	return ticks;
 }
 
+/**
+ * @brief Get the next timeout expiry
+ *
+ * @return Number of ticks until the next timeout expiry
+ */
 int32_t z_get_next_timeout_expiry(void)
 {
 	int32_t ret = (int32_t) K_TICKS_FOREVER;
@@ -207,16 +247,15 @@ int32_t z_get_next_timeout_expiry(void)
 	return ret;
 }
 
+/**
+ * @brief Announce the system clock
+ *
+ * @param ticks Number of ticks to announce
+ */
 void sys_clock_announce(int32_t ticks)
 {
 	k_spinlock_key_t key = k_spin_lock(&timeout_lock);
 
-	/* We release the lock around the callbacks below, so on SMP
-	 * systems someone might be already running the loop.  Don't
-	 * race (which will cause parallel execution of "sequential"
-	 * timeouts and confuse apps), just increment the tick count
-	 * and return.
-	 */
 	if (IS_ENABLED(CONFIG_SMP) && (announce_remaining != 0)) {
 		announce_remaining += ticks;
 		k_spin_unlock(&timeout_lock, key);
@@ -258,6 +297,11 @@ void sys_clock_announce(int32_t ticks)
 #endif /* CONFIG_TIMESLICING */
 }
 
+/**
+ * @brief Get the current system tick
+ *
+ * @return Current system tick
+ */
 int64_t sys_clock_tick_get(void)
 {
 	uint64_t t = 0U;
@@ -268,6 +312,11 @@ int64_t sys_clock_tick_get(void)
 	return t;
 }
 
+/**
+ * @brief Get the current system tick (32-bit)
+ *
+ * @return Current system tick (32-bit)
+ */
 uint32_t sys_clock_tick_get_32(void)
 {
 #ifdef CONFIG_TICKLESS_KERNEL
@@ -277,6 +326,11 @@ uint32_t sys_clock_tick_get_32(void)
 #endif /* CONFIG_TICKLESS_KERNEL */
 }
 
+/**
+ * @brief Get the current uptime in ticks
+ *
+ * @return Current uptime in ticks
+ */
 int64_t z_impl_k_uptime_ticks(void)
 {
 	return sys_clock_tick_get();
@@ -290,6 +344,12 @@ static inline int64_t z_vrfy_k_uptime_ticks(void)
 #include <zephyr/syscalls/k_uptime_ticks_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Calculate the timepoint for a timeout
+ *
+ * @param timeout Timeout value
+ * @return Calculated timepoint
+ */
 k_timepoint_t sys_timepoint_calc(k_timeout_t timeout)
 {
 	k_timepoint_t timepoint;
@@ -311,6 +371,12 @@ k_timepoint_t sys_timepoint_calc(k_timeout_t timeout)
 	return timepoint;
 }
 
+/**
+ * @brief Calculate the timeout for a timepoint
+ *
+ * @param timepoint Timepoint value
+ * @return Calculated timeout
+ */
 k_timeout_t sys_timepoint_timeout(k_timepoint_t timepoint)
 {
 	uint64_t now, remaining;
@@ -338,3 +404,4 @@ void z_vrfy_sys_clock_tick_set(uint64_t tick)
 	z_impl_sys_clock_tick_set(tick);
 }
 #endif /* CONFIG_ZTEST */
+//GST

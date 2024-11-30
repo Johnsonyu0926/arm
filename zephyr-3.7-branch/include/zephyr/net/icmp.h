@@ -1,17 +1,4 @@
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file icmp.h
- *
- * @brief ICMP sending and receiving.
- *
- * @defgroup icmp Send and receive IPv4 or IPv6 ICMP Echo Request messages.
- * @ingroup networking
- * @{
- */
+// zephyr-3.7-branch/include/zephyr/net/icmp.h
 
 #ifndef ZEPHYR_INCLUDE_NET_ICMP_H_
 #define ZEPHYR_INCLUDE_NET_ICMP_H_
@@ -258,3 +245,4 @@ int net_icmp_get_offload_rsp_handler(struct net_icmp_offload *ctx,
 #endif /* ZEPHYR_INCLUDE_NET_ICMP_H */
 
 /**@}  */
+//GST

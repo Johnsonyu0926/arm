@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Golioth, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/libc/common/source/thrd/time.c
 
 #include <time.h>
 

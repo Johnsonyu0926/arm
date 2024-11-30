@@ -1,12 +1,14 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/os/user_work.c
 
 #include <zephyr/kernel.h>
 
+/**
+ * @brief Main function for the user work queue
+ *
+ * @param work_q_ptr Pointer to the work queue
+ * @param p2 Unused
+ * @param p3 Unused
+ */
 static void z_work_user_q_main(void *work_q_ptr, void *p2, void *p3)
 {
 	struct k_work_user_q *work_q = work_q_ptr;
@@ -39,6 +41,15 @@ static void z_work_user_q_main(void *work_q_ptr, void *p2, void *p3)
 	}
 }
 
+/**
+ * @brief Start a user work queue
+ *
+ * @param work_q Pointer to the work queue
+ * @param stack Pointer to the stack
+ * @param stack_size Size of the stack
+ * @param prio Priority of the work queue thread
+ * @param name Name of the work queue thread
+ */
 void k_work_user_queue_start(struct k_work_user_q *work_q, k_thread_stack_t *stack,
 			     size_t stack_size, int prio, const char *name)
 {
@@ -57,3 +68,4 @@ void k_work_user_queue_start(struct k_work_user_q *work_q, k_thread_stack_t *sta
 
 	k_thread_start(&work_q->thread);
 }
+//GST

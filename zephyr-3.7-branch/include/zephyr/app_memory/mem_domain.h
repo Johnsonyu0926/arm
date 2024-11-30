@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2017 Linaro Limited
- * Copyright (c) 2018-2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/app_memory/mem_domain.h
 
 #ifndef INCLUDE_APP_MEMORY_MEM_DOMAIN_H
 #define INCLUDE_APP_MEMORY_MEM_DOMAIN_H
@@ -194,3 +189,4 @@ int k_mem_domain_add_thread(struct k_mem_domain *domain,
 
 /** @} */
 #endif /* INCLUDE_APP_MEMORY_MEM_DOMAIN_H */
+//GST

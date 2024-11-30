@@ -1,14 +1,4 @@
-/** @file
- * @brief DNS resolving library
- *
- * An API for applications to resolve a DNS name.
- */
-
-/*
- * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/dns_resolve.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DNS_RESOLVE_H_
 #define ZEPHYR_INCLUDE_NET_DNS_RESOLVE_H_
@@ -429,7 +419,7 @@ struct dns_resolve_context {
  * DNS context that is used by the actual resolver. DNS server addresses
  * can be specified either in textual form, or as struct sockaddr (or both).
  * Note that the recommended way to resolve DNS names is to use
- * the dns_get_addr_info() API. In that case user does not need to
+ * the dns_get_addr_info() API. In that case用户 does not need to
  * call dns_resolve_init() as the DNS servers are already setup by the system.
  *
  * @param ctx DNS context. If the context variable is allocated from
@@ -542,6 +532,7 @@ int dns_resolve_cancel_with_name(struct dns_resolve_context *ctx,
  * @param query What the caller wants to resolve.
  * @param type What kind of data the caller wants to get.
  * @param dns_id DNS id is returned to the caller. This is needed if one
+ * wishes to cancel the query. This can be set to
  * wishes to cancel the query. This can be set to NULL if there is no need
  * to cancel the query.
  * @param cb Callback to call after the resolving has finished or timeout
@@ -561,7 +552,6 @@ int dns_resolve_name(struct dns_resolve_context *ctx,
 		     dns_resolve_cb_t cb,
 		     void *user_data,
 		     int32_t timeout);
-
 /**
  * @brief Get default DNS context.
  *
@@ -573,7 +563,6 @@ int dns_resolve_name(struct dns_resolve_context *ctx,
  * @return Default DNS context.
  */
 struct dns_resolve_context *dns_resolve_get_default(void);
-
 /**
  * @brief Get IP address info from DNS.
  *
@@ -616,7 +605,6 @@ static inline int dns_get_addr_info(const char *query,
 				user_data,
 				timeout);
 }
-
 /**
  * @brief Cancel a pending DNS query.
  *
@@ -630,27 +618,21 @@ static inline int dns_cancel_addr_info(uint16_t dns_id)
 {
 	return dns_resolve_cancel(dns_resolve_get_default(), dns_id);
 }
-
 /**
  * @}
  */
-
 /** @cond INTERNAL_HIDDEN */
-
 /**
  * @brief Initialize DNS subsystem.
  */
 #if defined(CONFIG_DNS_RESOLVER_AUTO_INIT)
 void dns_init_resolver(void);
-
 #else
 #define dns_init_resolver(...)
 #endif /* CONFIG_DNS_RESOLVER_AUTO_INIT */
-
 /** @endcond */
-
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* ZEPHYR_INCLUDE_NET_DNS_RESOLVE_H_ */
+//GST

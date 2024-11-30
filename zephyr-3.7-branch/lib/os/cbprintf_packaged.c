@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 BayLibre, SAS
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/cbprintf_packaged.c
 #include <errno.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -1167,3 +1162,4 @@ calculate_string_length:
 
 	return out_len;
 }
+//GST

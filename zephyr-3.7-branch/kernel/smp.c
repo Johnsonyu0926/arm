@@ -1,6 +1,4 @@
-/* Copyright (c) 2022 Intel corporation
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/smp.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
@@ -54,6 +52,11 @@ static struct cpu_start_cb {
 
 static struct k_spinlock cpu_start_lock;
 
+/**
+ * @brief Acquire the global lock
+ *
+ * @return The previous interrupt lock state
+ */
 unsigned int z_smp_global_lock(void)
 {
 	unsigned int key = arch_irq_lock();
@@ -69,6 +72,11 @@ unsigned int z_smp_global_lock(void)
 	return key;
 }
 
+/**
+ * @brief Release the global lock
+ *
+ * @param key The previous interrupt lock state
+ */
 void z_smp_global_unlock(unsigned int key)
 {
 	if (_current->base.global_lock_count != 0U) {
@@ -82,7 +90,11 @@ void z_smp_global_unlock(unsigned int key)
 	arch_irq_unlock(key);
 }
 
-/* Called from within z_swap(), so assumes lock already held */
+/**
+ * @brief Release the global lock from within z_swap()
+ *
+ * @param thread Pointer to the thread
+ */
 void z_smp_release_global_lock(struct k_thread *thread)
 {
 	if (!thread->base.global_lock_count) {
@@ -90,8 +102,8 @@ void z_smp_release_global_lock(struct k_thread *thread)
 	}
 }
 
-/* Tiny delay that relaxes bus traffic to avoid spamming a shared
- * memory bus looking at an atomic variable
+/**
+ * @brief Tiny delay that relaxes bus traffic
  */
 static inline void local_delay(void)
 {
@@ -99,6 +111,11 @@ static inline void local_delay(void)
 	}
 }
 
+/**
+ * @brief Wait for the start signal
+ *
+ * @param start_flag Pointer to the start flag
+ */
 static void wait_for_start_signal(atomic_t *start_flag)
 {
 	/* Wait for the signal to begin scheduling */
@@ -107,6 +124,11 @@ static void wait_for_start_signal(atomic_t *start_flag)
 	}
 }
 
+/**
+ * @brief Initialize the CPU
+ *
+ * @param arg Pointer to the argument
+ */
 static inline void smp_init_top(void *arg)
 {
 	struct cpu_start_cb csc = arg ? *(struct cpu_start_cb *)arg : (struct cpu_start_cb){0};
@@ -148,6 +170,12 @@ static inline void smp_init_top(void *arg)
 	CODE_UNREACHABLE; /* LCOV_EXCL_LINE */
 }
 
+/**
+ * @brief Start the CPU
+ *
+ * @param id CPU ID
+ * @param csc Pointer to the CPU start callback struct
+ */
 static void start_cpu(int id, struct cpu_start_cb *csc)
 {
 	/* Clear the ready flag so the newly powered up CPU can
@@ -167,6 +195,13 @@ static void start_cpu(int id, struct cpu_start_cb *csc)
 	}
 }
 
+/**
+ * @brief Start a CPU
+ *
+ * @param id CPU ID
+ * @param fn Function to be called before handing off to scheduler
+ * @param arg Argument to the function
+ */
 void k_smp_cpu_start(int id, smp_init_fn fn, void *arg)
 {
 	k_spinlock_key_t key = k_spin_lock(&cpu_start_lock);
@@ -193,6 +228,15 @@ void k_smp_cpu_start(int id, smp_init_fn fn, void *arg)
 	k_spin_unlock(&cpu_start_lock, key);
 }
 
+/**
+ * @brief Resume a CPU
+ *
+ * @param id CPU ID
+ * @param fn Function to be called before handing off to scheduler
+ * @param arg Argument to the function
+ * @param reinit_timer True if smp_timer_init() needs to be called
+ * @param invoke_sched True if scheduler should be invoked after CPU has started
+ */
 void k_smp_cpu_resume(int id, smp_init_fn fn, void *arg,
 		      bool reinit_timer, bool invoke_sched)
 {
@@ -219,6 +263,9 @@ void k_smp_cpu_resume(int id, smp_init_fn fn, void *arg,
 	k_spin_unlock(&cpu_start_lock, key);
 }
 
+/**
+ * @brief Initialize SMP
+ */
 void z_smp_init(void)
 {
 	/* We are powering up all CPUs and we want to synchronize their
@@ -240,6 +287,11 @@ void z_smp_init(void)
 	(void)atomic_set(&cpu_start_flag, 1);
 }
 
+/**
+ * @brief Check if the CPU is mobile
+ *
+ * @return true if the CPU is mobile, false otherwise
+ */
 bool z_smp_cpu_mobile(void)
 {
 	unsigned int k = arch_irq_lock();
@@ -248,3 +300,4 @@ bool z_smp_cpu_mobile(void)
 	arch_irq_unlock(k);
 	return !pinned;
 }
+//GST

@@ -1,12 +1,6 @@
-/** @file
- *  @brief Buffer management.
- */
+//zephyr-3.7-branch/include/zephyr/net/buf.h
 
-/*
- * Copyright (c) 2015 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+
 #ifndef ZEPHYR_INCLUDE_NET_BUF_H_
 #define ZEPHYR_INCLUDE_NET_BUF_H_
 
@@ -21,13 +15,13 @@ extern "C" {
 #endif
 
 /**
- * @brief Network buffer library
- * @defgroup net_buf Network Buffer Library
+ * @brief 网络缓冲区库
+ * @defgroup net_buf 网络缓冲区库
  * @ingroup networking
  * @{
  */
 
-/* Alignment needed for various parts of the buffer definition */
+/* 缓冲区定义的各个部分所需的对齐 */
 #if CONFIG_NET_BUF_ALIGNMENT == 0
 #define __net_buf_align __aligned(sizeof(void *))
 #else
@@ -35,13 +29,12 @@ extern "C" {
 #endif
 
 /**
- *  @brief Define a net_buf_simple stack variable.
+ *  @brief 定义一个net_buf_simple栈变量。
  *
- *  This is a helper macro which is used to define a net_buf_simple object
- *  on the stack.
+ *  这是一个用于在栈上定义net_buf_simple对象的辅助宏。
  *
- *  @param _name Name of the net_buf_simple object.
- *  @param _size Maximum data storage for the buffer.
+ *  @param _name net_buf_simple对象的名称。
+ *  @param _size 缓冲区的最大数据存储。
  */
 #define NET_BUF_SIMPLE_DEFINE(_name, _size)     \
 	uint8_t net_buf_data_##_name[_size];       \
@@ -54,13 +47,12 @@ extern "C" {
 
 /**
  *
- * @brief Define a static net_buf_simple variable.
+ * @brief 定义一个静态net_buf_simple变量。
  *
- * This is a helper macro which is used to define a static net_buf_simple
- * object.
+ * 这是一个用于定义静态net_buf_simple对象的辅助宏。
  *
- * @param _name Name of the net_buf_simple object.
- * @param _size Maximum data storage for the buffer.
+ * @param _name net_buf_simple对象的名称。
+ * @param _size 缓冲区的最大数据存储。
  */
 #define NET_BUF_SIMPLE_DEFINE_STATIC(_name, _size)        \
 	static __noinit uint8_t net_buf_data_##_name[_size]; \
@@ -72,53 +64,43 @@ extern "C" {
 	}
 
 /**
- * @brief Simple network buffer representation.
+ * @brief 简单的网络缓冲区表示。
  *
- * This is a simpler variant of the net_buf object (in fact net_buf uses
- * net_buf_simple internally). It doesn't provide any kind of reference
- * counting, user data, dynamic allocation, or in general the ability to
- * pass through kernel objects such as FIFOs.
+ * 这是net_buf对象的简化版本（实际上net_buf在内部使用net_buf_simple）。它不提供任何类型的引用计数、用户数据、动态分配，或一般情况下无法通过内核对象（如FIFO）传递。
  *
- * The main use of this is for scenarios where the meta-data of the normal
- * net_buf isn't needed and causes too much overhead. This could be e.g.
- * when the buffer only needs to be allocated on the stack or when the
- * access to and lifetime of the buffer is well controlled and constrained.
+ * 主要用途是当普通net_buf的元数据不需要且会导致过多开销的情况下。例如，当缓冲区只需要在栈上分配或缓冲区的访问和生命周期得到良好控制和约束时。
  */
 struct net_buf_simple {
-	/** Pointer to the start of data in the buffer. */
+	/** 缓冲区中数据起始位置的指针。 */
 	uint8_t *data;
 
 	/**
-	 * Length of the data behind the data pointer.
+	 * 数据指针后面的数据长度。
 	 *
-	 * To determine the max length, use net_buf_simple_max_len(), not #size!
+	 * 要确定最大长度，请使用net_buf_simple_max_len()，而不是#size！
 	 */
 	uint16_t len;
 
-	/** Amount of data that net_buf_simple#__buf can store. */
+	/** net_buf_simple#__buf可以存储的数据量。 */
 	uint16_t size;
 
-	/** Start of the data storage. Not to be accessed directly
-	 *  (the data pointer should be used instead).
-	 */
+	/** 数据存储的起始位置。不应直接访问（应使用数据指针）。 */
 	uint8_t *__buf;
 };
 
 /**
  *
- * @brief Define a net_buf_simple stack variable and get a pointer to it.
+ * @brief 定义一个net_buf_simple栈变量并获取指向它的指针。
  *
- * This is a helper macro which is used to define a net_buf_simple object on
- * the stack and the get a pointer to it as follows:
+ * 这是一个用于在栈上定义net_buf_simple对象并获取指向它的指针的辅助宏，如下所示：
  *
  * struct net_buf_simple *my_buf = NET_BUF_SIMPLE(10);
  *
- * After creating the object it needs to be initialized by calling
- * net_buf_simple_init().
+ * 创建对象后，需要通过调用net_buf_simple_init()进行初始化。
  *
- * @param _size Maximum data storage for the buffer.
+ * @param _size 缓冲区的最大数据存储。
  *
- * @return Pointer to stack-allocated net_buf_simple object.
+ * @return 指向栈分配的net_buf_simple对象的指针。
  */
 #define NET_BUF_SIMPLE(_size)                        \
 	((struct net_buf_simple *)(&(struct {        \
@@ -129,13 +111,12 @@ struct net_buf_simple {
 	}))
 
 /**
- * @brief Initialize a net_buf_simple object.
+ * @brief 初始化net_buf_simple对象。
  *
- * This needs to be called after creating a net_buf_simple object using
- * the NET_BUF_SIMPLE macro.
+ * 在使用NET_BUF_SIMPLE宏创建net_buf_simple对象后需要调用此函数。
  *
- * @param buf Buffer to initialize.
- * @param reserve_head Headroom to reserve.
+ * @param buf 要初始化的缓冲区。
+ * @param reserve_head 要保留的头部空间。
  */
 static inline void net_buf_simple_init(struct net_buf_simple *buf,
 				       size_t reserve_head)
@@ -149,23 +130,23 @@ static inline void net_buf_simple_init(struct net_buf_simple *buf,
 }
 
 /**
- * @brief Initialize a net_buf_simple object with data.
+ * @brief 使用数据初始化net_buf_simple对象。
  *
- * Initialized buffer object with external data.
+ * 使用外部数据初始化缓冲区对象。
  *
- * @param buf Buffer to initialize.
- * @param data External data pointer
- * @param size Amount of data the pointed data buffer if able to fit.
+ * @param buf 要初始化的缓冲区。
+ * @param data 外部数据指针
+ * @param size 指向的数据缓冲区能够容纳的数据量。
  */
 void net_buf_simple_init_with_data(struct net_buf_simple *buf,
 				   void *data, size_t size);
 
 /**
- * @brief Reset buffer
+ * @brief 重置缓冲区
  *
- * Reset buffer data so it can be reused for other purposes.
+ * 重置缓冲区数据，以便可以将其重新用于其他目的。
  *
- * @param buf Buffer to reset.
+ * @param buf 要重置的缓冲区。
  */
 static inline void net_buf_simple_reset(struct net_buf_simple *buf)
 {
@@ -174,731 +155,659 @@ static inline void net_buf_simple_reset(struct net_buf_simple *buf)
 }
 
 /**
- * Clone buffer state, using the same data buffer.
+ * 克隆缓冲区状态，使用相同的数据缓冲区。
  *
- * Initializes a buffer to point to the same data as an existing buffer.
- * Allows operations on the same data without altering the length and
- * offset of the original.
+ * 初始化缓冲区以指向与现有缓冲区相同的数据。允许对相同数据进行操作而不改变原始数据的长度和偏移量。
  *
- * @param original Buffer to clone.
- * @param clone The new clone.
+ * @param original 要克隆的缓冲区。
+ * @param clone 新的克隆。
  */
 void net_buf_simple_clone(const struct net_buf_simple *original,
 			  struct net_buf_simple *clone);
 
 /**
- * @brief Prepare data to be added at the end of the buffer
+ * @brief 准备在缓冲区末尾添加数据
  *
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to increment the length with.
+ * @param buf 要更新的缓冲区。
+ * @param len 要增加的长度。
  *
- * @return The original tail of the buffer.
+ * @return 缓冲区的原始尾部。
  */
 void *net_buf_simple_add(struct net_buf_simple *buf, size_t len);
 
 /**
- * @brief Copy given number of bytes from memory to the end of the buffer
+ * @brief 从内存中复制给定数量的字节到缓冲区末尾
  *
- * Increments the data length of the  buffer to account for more data at the
- * end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param mem Location of data to be added.
- * @param len Length of data to be added
+ * @param buf 要更新的缓冲区。
+ * @param mem 要添加的数据的位置。
+ * @param len 要添加的数据长度
  *
- * @return The original tail of the buffer.
+ * @return 缓冲区的原始尾部。
  */
 void *net_buf_simple_add_mem(struct net_buf_simple *buf, const void *mem,
 			     size_t len);
 
 /**
- * @brief Add (8-bit) byte at the end of the buffer
+ * @brief 在缓冲区末尾添加（8位）字节
  *
- * Increments the data length of the  buffer to account for more data at the
- * end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val byte value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的字节值。
  *
- * @return Pointer to the value added
+ * @return 指向添加的值的指针
  */
 uint8_t *net_buf_simple_add_u8(struct net_buf_simple *buf, uint8_t val);
 
 /**
- * @brief Add 16-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加16位值
  *
- * Adds 16-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加16位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的16位值。
  */
 void net_buf_simple_add_le16(struct net_buf_simple *buf, uint16_t val);
 
 /**
- * @brief Add 16-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加16位值
  *
- * Adds 16-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加16位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的16位值。
  */
 void net_buf_simple_add_be16(struct net_buf_simple *buf, uint16_t val);
 
 /**
- * @brief Add 24-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加24位值
  *
- * Adds 24-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加24位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的24位值。
  */
 void net_buf_simple_add_le24(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Add 24-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加24位值
  *
- * Adds 24-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加24位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的24位值。
  */
 void net_buf_simple_add_be24(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Add 32-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加32位值
  *
- * Adds 32-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加32位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的32位值。
  */
 void net_buf_simple_add_le32(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Add 32-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加32位值
  *
- * Adds 32-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加32位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的32位值。
  */
 void net_buf_simple_add_be32(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Add 40-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加40位值
  *
- * Adds 40-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加40位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的40位值。
  */
 void net_buf_simple_add_le40(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Add 40-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加40位值
  *
- * Adds 40-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加40位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的40位值。
  */
 void net_buf_simple_add_be40(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Add 48-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加48位值
  *
- * Adds 48-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加48位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的48位值。
  */
 void net_buf_simple_add_le48(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Add 48-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加48位值
  *
- * Adds 48-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加48位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的48位值。
  */
 void net_buf_simple_add_be48(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Add 64-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加64位值
  *
- * Adds 64-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加64位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的64位值。
  */
 void net_buf_simple_add_le64(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Add 64-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加64位值
  *
- * Adds 64-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加64位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的64位值。
  */
 void net_buf_simple_add_be64(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Remove data from the end of the buffer.
+ * @brief 从缓冲区末尾移除数据。
  *
- * Removes data from the end of the buffer by modifying the buffer length.
+ * 通过修改缓冲区长度从缓冲区末尾移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return New end of the buffer data.
+ * @return 缓冲区数据的新末尾。
  */
 void *net_buf_simple_remove_mem(struct net_buf_simple *buf, size_t len);
 
 /**
- * @brief Remove a 8-bit value from the end of the buffer
+ * @brief 从缓冲区末尾移除8位值
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 8-bit values.
+ * 与net_buf_simple_remove_mem()相同，但用于操作8位值的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return The 8-bit removed value
+ * @return 移除的8位值
  */
 uint8_t net_buf_simple_remove_u8(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 16 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换16位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 16-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作16位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的16位值。
  */
 uint16_t net_buf_simple_remove_le16(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 16 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换16位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 16-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作16位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的16位值。
  */
 uint16_t net_buf_simple_remove_be16(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 24 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换24位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 24-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作24位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的24位值。
  */
 uint32_t net_buf_simple_remove_le24(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 24 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换24位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 24-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作24位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的24位值。
  */
 uint32_t net_buf_simple_remove_be24(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 32 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换32位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 32-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作32位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的32位值。
  */
 uint32_t net_buf_simple_remove_le32(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 32 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换32位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 32-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作32位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的32位值。
  */
 uint32_t net_buf_simple_remove_be32(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 40 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换40位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 40-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作40位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的40位值。
  */
 uint64_t net_buf_simple_remove_le40(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 40 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换40位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 40-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作40位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的40位值。
  */
 uint64_t net_buf_simple_remove_be40(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 48 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换48位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 48-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作48位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的48位值。
  */
 uint64_t net_buf_simple_remove_le48(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 48 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换48位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 48-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作48位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的48位值。
  */
-uint64_t net_buf_simple_remove_be48(struct net_buf_simple *buf);
+uint6464_t net_buf_simple_remove_be48(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 64 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换64位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 64-bit little endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作64位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的64位值。
  */
 uint64_t net_buf_simple_remove_le64(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 64 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换64位值。
  *
- * Same idea as with net_buf_simple_remove_mem(), but a helper for operating
- * on 64-bit big endian data.
+ * 与net_buf_simple_remove_mem()相同，但用于操作64位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的64位值。
  */
 uint64_t net_buf_simple_remove_be64(struct net_buf_simple *buf);
 
 /**
- * @brief Prepare data to be added to the start of the buffer
+ * @brief 准备在缓冲区开头添加数据
  *
- * Modifies the data pointer and buffer length to account for more data
- * in the beginning of the buffer.
+ * 修改数据指针和缓冲区长度以考虑在缓冲区开头添加更多数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to add to the beginning.
+ * @param buf 要更新的缓冲区。
+ * @param len 要添加到开头的字节数。
  *
- * @return The new beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
 void *net_buf_simple_push(struct net_buf_simple *buf, size_t len);
 
 /**
- * @brief Copy given number of bytes from memory to the start of the buffer.
+ * @brief 从内存中复制给定数量的字节到缓冲区开头。
  *
- * Modifies the data pointer and buffer length to account for more data
- * in the beginning of the buffer.
+ * 修改数据指针和缓冲区长度以考虑在缓冲区开头添加更多数据。
  *
- * @param buf Buffer to update.
- * @param mem Location of data to be added.
- * @param len Length of data to be added.
+ * @param buf 要更新的缓冲区。
+ * @param mem 要添加的数据的位置。
+ * @param len 要添加的数据长度。
  *
- * @return The new beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
-void *net_buf_simple_push_mem(struct net_buf_simple *buf, const void *mem,
-			      size_t len);
+void *net_buf_simple_push_mem(struct net_buf_simple *buf, const
+ * void *mem, size_t len);
 
 /**
- * @brief Push 16-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加8位值
  *
- * Adds 16-bit value in little endian format to the beginning of the
- * buffer.
+ * 在缓冲区开头添加8位值。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的8位值。
+ */
+void net_buf_simple_push_u8(struct net_buf_simple *buf, uint8_t val);
+
+/** * @brief 在缓冲区开头添加16位值
+ *
+ * 以小端格式在缓冲区开头添加16位值。
+ *
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的16位值。
  */
 void net_buf_simple_push_le16(struct net_buf_simple *buf, uint16_t val);
 
 /**
- * @brief Push 16-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加16位值
  *
- * Adds 16-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加16位值。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的16位值。
  */
 void net_buf_simple_push_be16(struct net_buf_simple *buf, uint16_t val);
 
 /**
- * @brief Push 8-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加24位值
  *
- * Adds 8-bit value the beginning of the buffer.
+ * 以小端格式在缓冲区开头添加24位值。
  *
- * @param buf Buffer to update.
- * @param val 8-bit value to be pushed to the buffer.
- */
-void net_buf_simple_push_u8(struct net_buf_simple *buf, uint8_t val);
-
-/**
- * @brief Push 24-bit value to the beginning of the buffer
- *
- * Adds 24-bit value in little endian format to the beginning of the
- * buffer.
- *
- * @param buf Buffer to update.
- * @param val 24-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的24位值。
  */
 void net_buf_simple_push_le24(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Push 24-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加24位值
  *
- * Adds 24-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加24位值。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的24位值。
  */
 void net_buf_simple_push_be24(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Push 32-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加32位值
  *
- * Adds 32-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加32位值。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的32位值。
  */
 void net_buf_simple_push_le32(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Push 32-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加32位值
  *
- * Adds 32-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加32位值。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的32位值。
  */
 void net_buf_simple_push_be32(struct net_buf_simple *buf, uint32_t val);
 
 /**
- * @brief Push 40-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加40位值
  *
- * Adds 40-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加40位值。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的40位值。
  */
 void net_buf_simple_push_le40(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Push 40-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加40位值
  *
- * Adds 40-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加40位值。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的40位值。
  */
 void net_buf_simple_push_be40(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Push 48-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加48位值
  *
- * Adds 48-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加48位值。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的48位值。
  */
 void net_buf_simple_push_le48(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Push 48-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加48位值
  *
- * Adds 48-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加48位值。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的48位值。
  */
 void net_buf_simple_push_be48(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Push 64-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加64位值
  *
- * Adds 64-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加64位值。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的64位值。
  */
 void net_buf_simple_push_le64(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Push 64-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加64位值
  *
- * Adds 64-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加64位值。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的64位值。
  */
 void net_buf_simple_push_be64(struct net_buf_simple *buf, uint64_t val);
 
 /**
- * @brief Remove data from the beginning of the buffer.
+ * @brief 从缓冲区开头移除数据。
  *
- * Removes data from the beginning of the buffer by modifying the data
- * pointer and buffer length.
+ * 通过修改数据指针和缓冲区长度从缓冲区开头移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return New beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
 void *net_buf_simple_pull(struct net_buf_simple *buf, size_t len);
 
 /**
- * @brief Remove data from the beginning of the buffer.
+ * @brief 从缓冲区开头移除数据。
  *
- * Removes data from the beginning of the buffer by modifying the data
- * pointer and buffer length.
+ * 通过修改数据指针和缓冲区长度从缓冲区开头移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return Pointer to the old location of the buffer data.
+ * @return 指向缓冲区数据旧位置的指针。
  */
 void *net_buf_simple_pull_mem(struct net_buf_simple *buf, size_t len);
 
 /**
- * @brief Remove a 8-bit value from the beginning of the buffer
+ * @brief 从缓冲区开头移除8位值
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 8-bit values.
+ * 与net_buf_simple_pull()相同，但用于操作8位值的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return The 8-bit removed value
+ * @return 移除的8位值
  */
 uint8_t net_buf_simple_pull_u8(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 16 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换16位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 16-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作16位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的16位值。
  */
 uint16_t net_buf_simple_pull_le16(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 16 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换16位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 16-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作16位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的16位值。
  */
 uint16_t net_buf_simple_pull_be16(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 24 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换24位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 24-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作24位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的24位值。
  */
 uint32_t net_buf_simple_pull_le24(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 24 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换24位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 24-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作24位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的24位值。
  */
 uint32_t net_buf_simple_pull_be24(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 32 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换32位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 32-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作32位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的32位值。
  */
 uint32_t net_buf_simple_pull_le32(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 32 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换32位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 32-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作32位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的32位值。
  */
 uint32_t net_buf_simple_pull_be32(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 40 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换40位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 40-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作40位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的40位值。
  */
 uint64_t net_buf_simple_pull_le40(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 40 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换40位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 40-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作40位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的40位值。
  */
 uint64_t net_buf_simple_pull_be40(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 48 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换48位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 48-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作48位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的48位值。
  */
 uint64_t net_buf_simple_pull_le48(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 48 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换48位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 48-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作48位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的48位值。
  */
 uint64_t net_buf_simple_pull_be48(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 64 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换64位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 64-bit little endian data.
+ * 与net_buf_simple_pull()相同，但用于操作64位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的64位值。
  */
 uint64_t net_buf_simple_pull_le64(struct net_buf_simple *buf);
 
 /**
- * @brief Remove and convert 64 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换64位值。
  *
- * Same idea as with net_buf_simple_pull(), but a helper for operating
- * on 64-bit big endian data.
+ * 与net_buf_simple_pull()相同，但用于操作64位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的64位值。
  */
-uint64_t net_buf_simple_pull_be64(struct net_buf_simple *buf);
+uint6464_t net_buf_simple_pull_be64(struct net_buf_simple *buf);
 
 /**
- * @brief Get the tail pointer for a buffer.
+ * @brief 获取缓冲区的尾指针。
  *
- * Get a pointer to the end of the data in a buffer.
+ * 获取指向缓冲区中数据末尾的指针。
  *
- * @param buf Buffer.
+ * @param buf 缓冲区。
  *
- * @return Tail pointer for the buffer.
+ * @return 缓冲区的尾指针。
  */
 static inline uint8_t *net_buf_simple_tail(const struct net_buf_simple *buf)
 {
@@ -906,59 +815,57 @@ static inline uint8_t *net_buf_simple_tail(const struct net_buf_simple *buf)
 }
 
 /**
- * @brief Check buffer headroom.
+ * @brief 检查缓冲区的头部空间。
  *
- * Check how much free space there is in the beginning of the buffer.
+ * 检查缓冲区开头有多少空闲空间。
  *
- * buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes available in the beginning of the buffer.
+ * @return 缓冲区开头可用的字节数。
  */
 size_t net_buf_simple_headroom(const struct net_buf_simple *buf);
 
 /**
- * @brief Check buffer tailroom.
+ * @brief 检查缓冲区的尾部空间。
  *
- * Check how much free space there is at the end of the buffer.
+ * 检查缓冲区末尾有多少空闲空间。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes available at the end of the buffer.
+ * @return 缓冲区末尾可用的字节数。
  */
 size_t net_buf_simple_tailroom(const struct net_buf_simple *buf);
 
 /**
- * @brief Check maximum net_buf_simple::len value.
+ * @brief 检查net_buf_simple::len的最大值。
  *
- * This value is depending on the number of bytes being reserved as headroom.
+ * 该值取决于保留为头部空间的字节数。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes usable behind the net_buf_simple::data pointer.
+ * @return net_buf_simple::data指针后面可用的字节数。
  */
 uint16_t net_buf_simple_max_len(const struct net_buf_simple *buf);
 
 /**
- * @brief Parsing state of a buffer.
+ * @brief 缓冲区的解析状态。
  *
- * This is used for temporarily storing the parsing state of a buffer
- * while giving control of the parsing to a routine which we don't
- * control.
+ * 这用于在将解析控制权交给我们无法控制的例程时临时存储缓冲区的解析状态。
  */
 struct net_buf_simple_state {
-	/** Offset of the data pointer from the beginning of the storage */
+	/** 数据指针相对于存储起始位置的偏移量 */
 	uint16_t offset;
-	/** Length of data */
+	/** 数据长度 */
 	uint16_t len;
 };
 
 /**
- * @brief Save the parsing state of a buffer.
+ * @brief 保存缓冲区的解析状态。
  *
- * Saves the parsing state of a buffer so it can be restored later.
+ * 保存缓冲区的解析状态，以便以后恢复。
  *
- * @param buf Buffer from which the state should be saved.
- * @param state Storage for the state.
+ * @param buf 要保存状态的缓冲区。
+ * @param state 状态的存储位置。
  */
 static inline void net_buf_simple_save(const struct net_buf_simple *buf,
 				       struct net_buf_simple_state *state)
@@ -968,13 +875,12 @@ static inline void net_buf_simple_save(const struct net_buf_simple *buf,
 }
 
 /**
- * @brief Restore the parsing state of a buffer.
+ * @brief 恢复缓冲区的解析状态。
  *
- * Restores the parsing state of a buffer from a state previously stored
- * by net_buf_simple_save().
+ * 从之前由net_buf_simple_save()存储的状态恢复缓冲区的解析状态。
  *
- * @param buf Buffer to which the state should be restored.
- * @param state Stored state.
+ * @param buf 要恢复状态的缓冲区。
+ * @param state 存储的状态。
  */
 static inline void net_buf_simple_restore(struct net_buf_simple *buf,
 					  struct net_buf_simple_state *state)
@@ -984,61 +890,48 @@ static inline void net_buf_simple_restore(struct net_buf_simple *buf,
 }
 
 /**
- * Flag indicating that the buffer's associated data pointer, points to
- * externally allocated memory. Therefore once ref goes down to zero, the
- * pointed data will not need to be deallocated. This never needs to be
- * explicitly set or unset by the net_buf API user. Such net_buf is
- * exclusively instantiated via net_buf_alloc_with_data() function.
- * Reference count mechanism however will behave the same way, and ref
- * count going to 0 will free the net_buf but no the data pointer in it.
+ * 标志，指示缓冲区的关联数据指针指向外部分配的内存。因此，一旦引用计数降为零，指向的数据将不需要释放。net_buf API用户不需要显式设置或取消设置此标志。这样的net_buf只能通过net_buf_alloc_with_data()函数实例化。然而，引用计数机制将以相同的方式工作，引用计数降为0将释放net_buf，但不会释放其中的数据指针。
  */
 #define NET_BUF_EXTERNAL_DATA  BIT(0)
 
 /**
- * @brief Network buffer representation.
+ * @brief 网络缓冲区表示。
  *
- * This struct is used to represent network buffers. Such buffers are
- * normally defined through the NET_BUF_POOL_*_DEFINE() APIs and allocated
- * using the net_buf_alloc() API.
+ * 此结构用于表示网络缓冲区。这样的缓冲区通常通过NET_BUF_POOL_*_DEFINE() API定义，并使用net_buf_alloc() API分配。
  */
 struct net_buf {
-	/** Allow placing the buffer into sys_slist_t */
+	/** 允许将缓冲区放入sys_slist_t */
 	sys_snode_t node;
 
-	/** Fragments associated with this buffer. */
+	/** 与此缓冲区关联的片段。 */
 	struct net_buf *frags;
 
-	/** Reference count. */
+	/** 引用计数。 */
 	uint8_t ref;
 
-	/** Bit-field of buffer flags. */
+	/** 缓冲区标志的位字段。 */
 	uint8_t flags;
 
-	/** Where the buffer should go when freed up. */
+	/** 缓冲区释放时应去往的位置。 */
 	uint8_t pool_id;
 
-	/** Size of user data on this buffer */
+	/** 此缓冲区上分配的用户数据大小 */
 	uint8_t user_data_size;
 
-	/** Union for convenience access to the net_buf_simple members, also
-	 * preserving the old API.
-	 */
+	/** 方便访问net_buf_simple成员的联合，同时保留旧API。 */
 	union {
-		/* The ABI of this struct must match net_buf_simple */
+		/* 此结构的ABI必须与net_buf_simple匹配 */
 		struct {
-			/** Pointer to the start of data in the buffer. */
+			/** 指向缓冲区中数据起始位置的指针。 */
 			uint8_t *data;
 
-			/** Length of the data behind the data pointer. */
+			/** 数据指针后面的数据长度。 */
 			uint16_t len;
 
-			/** Amount of data that this buffer can store. */
+			/** 此缓冲区可以存储的数据量。 */
 			uint16_t size;
 
-			/** Start of the data storage. Not to be accessed
-			 *  directly (the data pointer should be used
-			 *  instead).
-			 */
+			/** 数据存储的起始位置。不应直接访问（应使用数据指针）。 */
 			uint8_t *__buf;
 		};
 
@@ -1047,7 +940,7 @@ struct net_buf {
 		/** @endcond */
 	};
 
-	/** System metadata for this buffer. */
+	/** 此缓冲区的系统元数据。 */
 	uint8_t user_data[] __net_buf_align;
 };
 
@@ -1069,44 +962,44 @@ struct net_buf_data_alloc {
 /** @endcond */
 
 /**
- * @brief Network buffer pool representation.
+ * @brief 网络缓冲区池表示。
  *
- * This struct is used to represent a pool of network buffers.
+ * 此结构用于表示网络缓冲区池。
  */
 struct net_buf_pool {
-	/** LIFO to place the buffer into when free */
+	/** 释放时将缓冲区放入的LIFO */
 	struct k_lifo free;
 
-	/** To prevent concurrent access/modifications */
+	/** 防止并发访问/修改 */
 	struct k_spinlock lock;
 
-	/** Number of buffers in pool */
+	/** 池中的缓冲区数量 */
 	const uint16_t buf_count;
 
-	/** Number of uninitialized buffers */
+	/** 未初始化的缓冲区数量 */
 	uint16_t uninit_count;
 
-	/** Size of user data allocated to this pool */
+	/** 分配给此池的用户数据大小 */
 	uint8_t user_data_size;
 
 #if defined(CONFIG_NET_BUF_POOL_USAGE)
-	/** Amount of available buffers in the pool. */
+	/** 池中可用缓冲区的数量。 */
 	atomic_t avail_count;
 
-	/** Total size of the pool. */
+	/** 池的总大小。 */
 	const uint16_t pool_size;
 
-	/** Name of the pool. Used when printing pool information. */
+	/** 池的名称。用于打印池信息时。 */
 	const char *name;
 #endif /* CONFIG_NET_BUF_POOL_USAGE */
 
-	/** Optional destroy callback when buffer is freed. */
+	/** 缓冲区释放时的可选销毁回调。 */
 	void (*const destroy)(struct net_buf *buf);
 
-	/** Data allocation handlers. */
+	/** 数据分配处理程序。 */
 	const struct net_buf_data_alloc *alloc;
 
-	/** Start of buffer storage array */
+	/** 缓冲区存储数组的起始位置 */
 	struct net_buf * const __bufs;
 };
 
@@ -1140,36 +1033,22 @@ struct net_buf_pool {
 		     ROUND_UP(sizeof(struct net_buf) + _ud_size, __alignof__(struct net_buf)), \
 		     "Size cannot be determined");					       \
 	static struct _net_buf_##_name _net_buf_##_name[_count] __noinit
-
 extern const struct net_buf_data_alloc net_buf_heap_alloc;
 /** @endcond */
-
 /**
  *
- * @brief Define a new pool for buffers using the heap for the data.
+ * @brief 定义一个使用堆作为数据的缓冲区池。
  *
- * Defines a net_buf_pool struct and the necessary memory storage (array of
- * structs) for the needed amount of buffers. After this, the buffers can be
- * accessed from the pool through net_buf_alloc. The pool is defined as a
- * static variable, so if it needs to be exported outside the current module
- * this needs to happen with the help of a separate pointer rather than an
- * extern declaration.
+ * 定义一个net_buf_pool结构和所需数量的缓冲区的必要内存存储（结构数组）。之后，可以通过net_buf_alloc从池中访问缓冲区。池定义为静态变量，因此如果需要在当前模块之外导出它，则需要使用单独的指针而不是extern声明来实现。
  *
- * The data payload of the buffers will be allocated from the heap using
- * k_malloc, so CONFIG_HEAP_MEM_POOL_SIZE must be set to a positive value.
- * This kind of pool does not support blocking on the data allocation, so
- * the timeout passed to net_buf_alloc will be always treated as K_NO_WAIT
- * when trying to allocate the data. This means that allocation failures,
- * i.e. NULL returns, must always be handled cleanly.
+ * 缓冲区的数据有效载荷将从堆中分配，使用k_malloc，因此必须将CONFIG_HEAP_MEM_POOL_SIZE设置为正值。这种类型的池不支持数据分配时的阻塞，因此在尝试分配数据时传递给net_buf_alloc的超时将始终视为K_NO_WAIT。这意味着分配失败，即返回NULL，必须始终干净地处理。
  *
- * If provided with a custom destroy callback, this callback is
- * responsible for eventually calling net_buf_destroy() to complete the
- * process of returning the buffer to the pool.
+ * 如果提供了自定义销毁回调，则此回调负责最终调用net_buf_destroy()以完成将缓冲区返回池的过程。
  *
- * @param _name      Name of the pool variable.
- * @param _count     Number of buffers in the pool.
- * @param _ud_size   User data space to reserve per buffer.
- * @param _destroy   Optional destroy callback when buffer is freed.
+ * @param _name      池变量的名称。
+ * @param _count     池中的缓冲区数量。
+ * @param _ud_size   每个缓冲区保留的用户数据空间。
+ * @param _destroy   缓冲区释放时的可选销毁回调。
  */
 #define NET_BUF_POOL_HEAP_DEFINE(_name, _count, _ud_size, _destroy)          \
 	_NET_BUF_ARRAY_DEFINE(_name, _count, _ud_size);                      \
@@ -1177,44 +1056,27 @@ extern const struct net_buf_data_alloc net_buf_heap_alloc;
 		NET_BUF_POOL_INITIALIZER(_name, &net_buf_heap_alloc,         \
 					 _net_buf_##_name, _count, _ud_size, \
 					 _destroy)
-
 /** @cond INTERNAL_HIDDEN */
-
 struct net_buf_pool_fixed {
 	uint8_t *data_pool;
 };
-
 extern const struct net_buf_data_cb net_buf_fixed_cb;
-
 /** @endcond */
-
 /**
  *
- * @brief Define a new pool for buffers based on fixed-size data
+ * @brief 定义一个基于固定大小数据的缓冲区池
  *
- * Defines a net_buf_pool struct and the necessary memory storage (array of
- * structs) for the needed amount of buffers. After this, the buffers can be
- * accessed from the pool through net_buf_alloc. The pool is defined as a
- * static variable, so if it needs to be exported outside the current module
- * this needs to happen with the help of a separate pointer rather than an
- * extern declaration.
+ * 定义一个net_buf_pool结构和所需数量的缓冲区的必要内存存储（结构数组）。之后，可以通过net_buf_alloc从池中访问缓冲区。池定义为静态变量，因此如果需要在当前模块之外导出它，则需要使用单独的指针而不是extern声明来实现。
  *
- * The data payload of the buffers will be allocated from a byte array
- * of fixed sized chunks. This kind of pool does not support blocking on
- * the data allocation, so the timeout passed to net_buf_alloc will be
- * always treated as K_NO_WAIT when trying to allocate the data. This means
- * that allocation failures, i.e. NULL returns, must always be handled
- * cleanly.
+ * 缓冲区的数据有效载荷将从固定大小的字节数组中分配。这种类型的池不支持数据分配时的阻塞，因此在尝试分配数据时传递给net_buf_alloc的超时将始终视为K_NO_WAIT。这意味着分配失败，即返回NULL，必须始终干净地处理。
  *
- * If provided with a custom destroy callback, this callback is
- * responsible for eventually calling net_buf_destroy() to complete the
- * process of returning the buffer to the pool.
+ * 如果提供了自定义销毁回调，则此回调负责最终调用net_buf_destroy()以完成将缓冲区返回池的过程。
  *
- * @param _name      Name of the pool variable.
- * @param _count     Number of buffers in the pool.
- * @param _data_size Maximum data payload per buffer.
- * @param _ud_size   User data space to reserve per buffer.
- * @param _destroy   Optional destroy callback when buffer is freed.
+ * @param _name      池变量的名称。
+ * @param _count     池中的缓冲区数量。
+ * @param _data_size 每个缓冲区的最大数据有效载荷。
+ * @param _ud_size   每个缓冲区保留的用户数据空间。
+ * @param _destroy   缓冲区释放时的可选销毁回调。
  */
 #define NET_BUF_POOL_FIXED_DEFINE(_name, _count, _data_size, _ud_size, _destroy) \
 	_NET_BUF_ARRAY_DEFINE(_name, _count, _ud_size);                        \
@@ -1231,34 +1093,24 @@ extern const struct net_buf_data_cb net_buf_fixed_cb;
 		NET_BUF_POOL_INITIALIZER(_name, &net_buf_fixed_alloc_##_name,  \
 					 _net_buf_##_name, _count, _ud_size,   \
 					 _destroy)
-
 /** @cond INTERNAL_HIDDEN */
 extern const struct net_buf_data_cb net_buf_var_cb;
 /** @endcond */
-
 /**
  *
- * @brief Define a new pool for buffers with variable size payloads
+ * @brief 定义一个具有可变大小有效载荷的缓冲区池
  *
- * Defines a net_buf_pool struct and the necessary memory storage (array of
- * structs) for the needed amount of buffers. After this, the buffers can be
- * accessed from the pool through net_buf_alloc. The pool is defined as a
- * static variable, so if it needs to be exported outside the current module
- * this needs to happen with the help of a separate pointer rather than an
- * extern declaration.
+ * 定义一个net_buf_pool结构和所需数量的缓冲区的必要内存存储（结构数组）。之后，可以通过net_buf_alloc从池中访问缓冲区。池定义为静态变量，因此如果需要在当前模块之外导出它，则需要使用单独的指针而不是extern声明来实现。
  *
- * The data payload of the buffers will be based on a memory pool from which
- * variable size payloads may be allocated.
+ * 缓冲区的数据有效载荷将基于内存池，从中可以分配可变大小的有效载荷。
  *
- * If provided with a custom destroy callback, this callback is
- * responsible for eventually calling net_buf_destroy() to complete the
- * process of returning the buffer to the pool.
+ * 如果提供了自定义销毁回调，则此回调负责最终调用net_buf_destroy()以完成将缓冲区返回池的过程。
  *
- * @param _name      Name of the pool variable.
- * @param _count     Number of buffers in the pool.
- * @param _data_size Total amount of memory available for data payloads.
- * @param _ud_size   User data space to reserve per buffer.
- * @param _destroy   Optional destroy callback when buffer is freed.
+ * @param _name      池变量的名称。
+ * @param _count     池中的缓冲区数量。
+ * @param _data_size 数据有效载荷的总内存量。
+ * @param _ud_size   每个缓冲区保留的用户数据空间。
+ * @param _destroy   缓冲区释放时的可选销毁回调。
  */
 #define NET_BUF_POOL_VAR_DEFINE(_name, _count, _data_size, _ud_size, _destroy) \
 	_NET_BUF_ARRAY_DEFINE(_name, _count, _ud_size);                        \
@@ -1272,72 +1124,51 @@ extern const struct net_buf_data_cb net_buf_var_cb;
 		NET_BUF_POOL_INITIALIZER(_name, &net_buf_data_alloc_##_name,   \
 					 _net_buf_##_name, _count, _ud_size,   \
 					 _destroy)
-
 /**
  *
- * @brief Define a new pool for buffers
+ * @brief 定义一个新的缓冲区池
  *
- * Defines a net_buf_pool struct and the necessary memory storage (array of
- * structs) for the needed amount of buffers. After this,the buffers can be
- * accessed from the pool through net_buf_alloc. The pool is defined as a
- * static variable, so if it needs to be exported outside the current module
- * this needs to happen with the help of a separate pointer rather than an
- * extern declaration.
+ * 定义一个net_buf_pool结构和所需数量的缓冲区的必要内存存储（结构数组）。之后，可以通过net_buf_alloc从池中访问缓冲区。池定义为静态变量，因此如果需要在当前模块之外导出它，则需要使用单独的指针而不是extern声明来实现。
  *
- * If provided with a custom destroy callback this callback is
- * responsible for eventually calling net_buf_destroy() to complete the
- * process of returning the buffer to the pool.
+ * 如果提供了自定义销毁回调，则此回调负责最终调用net_buf_destroy()以完成将缓冲区返回池的过程。
  *
- * @param _name     Name of the pool variable.
- * @param _count    Number of buffers in the pool.
- * @param _size     Maximum data size for each buffer.
- * @param _ud_size  Amount of user data space to reserve.
- * @param _destroy  Optional destroy callback when buffer is freed.
+ * @param _name     池变量的名称。
+ * @param _count    池中的缓冲区数量。
+ * @param _size     每个缓冲区的最大数据大小。
+ * @param _ud_size  保留的用户数据空间量。
+ * @param _destroy  缓冲区释放时的可选销毁回调。
  */
 #define NET_BUF_POOL_DEFINE(_name, _count, _size, _ud_size, _destroy)        \
 	NET_BUF_POOL_FIXED_DEFINE(_name, _count, _size, _ud_size, _destroy)
-
 /**
- * @brief Looks up a pool based on its ID.
+ * @brief 根据其ID查找池。
  *
- * @param id Pool ID (e.g. from buf->pool_id).
+ * @param id 池ID（例如来自buf->pool_id）。
  *
- * @return Pointer to pool.
+ * @return 指向池的指针。
  */
 struct net_buf_pool *net_buf_pool_get(int id);
-
 /**
- * @brief Get a zero-based index for a buffer.
+ * @brief 获取缓冲区的零基索引。
  *
- * This function will translate a buffer into a zero-based index,
- * based on its placement in its buffer pool. This can be useful if you
- * want to associate an external array of meta-data contexts with the
- * buffers of a pool.
+ * 此函数将缓冲区转换为零基索引，基于其在缓冲区池中的位置。如果您希望将外部元数据上下文数组与池的缓冲区关联，这可能很有用。
  *
- * @param buf  Network buffer.
+ * @param buf  网络缓冲区。
  *
- * @return Zero-based index for the buffer.
+ * @return 缓冲区的零基索引。
  */
 int net_buf_id(const struct net_buf *buf);
-
 /**
- * @brief Allocate a new fixed buffer from a pool.
+ * @brief 从池中分配一个新的固定缓冲区。
  *
- * @note Some types of data allocators do not support
- *       blocking (such as the HEAP type). In this case it's still possible
- *       for net_buf_alloc() to fail (return NULL) even if it was given
- *       K_FOREVER.
+ * @note 某些类型的数据分配器不支持阻塞（例如HEAP类型）。在这种情况下，即使给定了K_FOREVER，net_buf_alloc()仍可能失败（返回NULL）。
  *
- * @note The timeout value will be overridden to K_NO_WAIT if called from the
- *       system workqueue.
+ * @note 如果从系统工作队列调用，则超时值将被覆盖为K_NO_WAIT。
  *
- * @param pool Which pool to allocate the buffer from.
- * @param timeout Affects the action taken should the pool be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then
- *        wait as long as necessary. Otherwise, wait until the specified
- *        timeout.
+ * @param pool 从哪个池分配缓冲区。
+ * @param timeout 如果池为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
  *
- * @return New buffer or NULL if out of buffers.
+ * @return 新缓冲区或如果缓冲区不足则返回NULL。
  */
 #if defined(CONFIG_NET_BUF_LOG)
 struct net_buf * __must_check net_buf_alloc_fixed_debug(struct net_buf_pool *pool,
@@ -1350,7 +1181,6 @@ struct net_buf * __must_check net_buf_alloc_fixed_debug(struct net_buf_pool *poo
 struct net_buf * __must_check net_buf_alloc_fixed(struct net_buf_pool *pool,
 						  k_timeout_t timeout);
 #endif
-
 /**
  * @copydetails net_buf_alloc_fixed
  */
@@ -1359,26 +1189,18 @@ static inline struct net_buf * __must_check net_buf_alloc(struct net_buf_pool *p
 {
 	return net_buf_alloc_fixed(pool, timeout);
 }
-
 /**
- * @brief Allocate a new variable length buffer from a pool.
+ * @brief 从池中分配一个新的可变长度缓冲区。
  *
- * @note Some types of data allocators do not support
- *       blocking (such as the HEAP type). In this case it's still possible
- *       for net_buf_alloc() to fail (return NULL) even if it was given
- *       K_FOREVER.
+ * @note 某些类型的数据分配器不支持阻塞（例如HEAP类型）。在这种情况下，即使给定了K_FOREVER，net_buf_alloc()仍可能失败（返回NULL）。
  *
- * @note The timeout value will be overridden to K_NO_WAIT if called from the
- *       system workqueue.
+ * @note 如果从系统工作队列调用，则超时值将被覆盖为K_NO_WAIT。
  *
- * @param pool Which pool to allocate the buffer from.
- * @param size Amount of data the buffer must be able to fit.
- * @param timeout Affects the action taken should the pool be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then
- *        wait as long as necessary. Otherwise, wait until the specified
- *        timeout.
+ * @param pool 从哪个池分配缓冲区。
+ * @param size 缓冲区必须能够容纳的数据量。
+ * @param timeout 如果池为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
  *
- * @return New buffer or NULL if out of buffers.
+ * @return 新缓冲区或如果缓冲区不足则返回NULL。
  */
 #if defined(CONFIG_NET_BUF_LOG)
 struct net_buf * __must_check net_buf_alloc_len_debug(struct net_buf_pool *pool,
@@ -1393,30 +1215,21 @@ struct net_buf * __must_check net_buf_alloc_len(struct net_buf_pool *pool,
 						size_t size,
 						k_timeout_t timeout);
 #endif
-
 /**
- * @brief Allocate a new buffer from a pool but with external data pointer.
+ * @brief 从池中分配一个新的缓冲区，但具有外部数据指针。
  *
- * Allocate a new buffer from a pool, where the data pointer comes from the
- * user and not from the pool.
+ * 从池中分配一个新的缓冲区，其中数据指针来自用户而不是池。
  *
- * @note Some types of data allocators do not support
- *       blocking (such as the HEAP type). In this case it's still possible
- *       for net_buf_alloc() to fail (return NULL) even if it was given
- *       K_FOREVER.
+ * @note 某些类型的数据分配器不支持阻塞（例如HEAP类型）。在这种情况下，即使给定了K_FOREVER，net_buf_alloc()仍可能失败（返回NULL）。
  *
- * @note The timeout value will be overridden to K_NO_WAIT if called from the
- *       system workqueue.
+ * @note 如果从系统工作队列调用，则超时值将被覆盖为K_NO_WAIT。
  *
- * @param pool Which pool to allocate the buffer from.
- * @param data External data pointer
- * @param size Amount of data the pointed data buffer if able to fit.
- * @param timeout Affects the action taken should the pool be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then
- *        wait as long as necessary. Otherwise, wait until the specified
- *        timeout.
+ * @param pool 从哪个池分配缓冲区。
+ * @param data 外部数据指针
+ * @param size 指向的数据缓冲区能够容纳的数据量。
+ * @param timeout 如果池为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
  *
- * @return New buffer or NULL if out of buffers.
+ * @return 新缓冲区或如果缓冲区不足则返回NULL。
  */
 #if defined(CONFIG_NET_BUF_LOG)
 struct net_buf * __must_check net_buf_alloc_with_data_debug(struct net_buf_pool *pool,
@@ -1431,19 +1244,15 @@ struct net_buf * __must_check net_buf_alloc_with_data(struct net_buf_pool *pool,
 						      void *data, size_t size,
 						      k_timeout_t timeout);
 #endif
-
 /**
- * @brief Get a buffer from a FIFO.
+ * @brief 从FIFO中获取缓冲区。
  *
- * This function is NOT thread-safe if the buffers in the FIFO contain
- * fragments.
+ * 如果FIFO中的缓冲区包含片段，则此函数不是线程安全的。
  *
- * @param fifo Which FIFO to take the buffer from.
- * @param timeout Affects the action taken should the FIFO be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then wait as
- *        long as necessary. Otherwise, wait until the specified timeout.
+ * @param fifo 从哪个FIFO获取缓冲区。
+ * @param timeout 如果FIFO为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
  *
- * @return New buffer or NULL if the FIFO is empty.
+ * @return 新缓冲区或如果FIFO为空则返回NULL。
  */
 #if defined(CONFIG_NET_BUF_LOG)
 struct net_buf * __must_check net_buf_get_debug(struct k_fifo *fifo,
@@ -1455,89 +1264,75 @@ struct net_buf * __must_check net_buf_get_debug(struct k_fifo *fifo,
 struct net_buf * __must_check net_buf_get(struct k_fifo *fifo,
 					  k_timeout_t timeout);
 #endif
-
 /**
- * @brief Destroy buffer from custom destroy callback
+ * @brief 从自定义销毁回调中销毁缓冲区
  *
- * This helper is only intended to be used from custom destroy callbacks.
- * If no custom destroy callback is given to NET_BUF_POOL_*_DEFINE() then
- * there is no need to use this API.
+ * 此助手仅用于自定义销毁回调。如果没有为NET_BUF_POOL_*_DEFINE()提供自定义销毁回调，则无需使用此API。
  *
- * @param buf Buffer to destroy.
+ * @param buf 要销毁的缓冲区。
  */
 static inline void net_buf_destroy(struct net_buf *buf)
 {
 	struct net_buf_pool *pool = net_buf_pool_get(buf->pool_id);
-
 	if (buf->__buf) {
 		if (!(buf->flags & NET_BUF_EXTERNAL_DATA)) {
 			pool->alloc->cb->unref(buf, buf->__buf);
 		}
 		buf->__buf = NULL;
 	}
-
 	k_lifo_put(&pool->free, buf);
 }
-
 /**
- * @brief Reset buffer
+ * @brief 重置缓冲区
  *
- * Reset buffer data and flags so it can be reused for other purposes.
+ * 重置缓冲区数据和标志，以便可以将其重新用于其他目的。
  *
- * @param buf Buffer to reset.
+ * @param buf 要重置的缓冲区。
  */
 void net_buf_reset(struct net_buf *buf);
-
 /**
- * @brief Initialize buffer with the given headroom.
+ * @brief 使用给定的头部空间初始化缓冲区。
  *
- * The buffer is not expected to contain any data when this API is called.
+ * 调用此API时，缓冲区不应包含任何数据。
  *
- * @param buf Buffer to initialize.
- * @param reserve How much headroom to reserve.
+ * @param buf 要初始化的缓冲区。
+ * @param reserve 要保留的头部空间。
  */
 void net_buf_simple_reserve(struct net_buf_simple *buf, size_t reserve);
-
 /**
- * @brief Put a buffer into a list
+ * @brief 将缓冲区放入列表中
  *
- * If the buffer contains follow-up fragments this function will take care of
- * inserting them as well into the list.
+ * 如果缓冲区包含后续片段，此函数将负责将它们也插入列表中。
  *
- * @param list Which list to append the buffer to.
- * @param buf Buffer.
+ * @param list 要将缓冲区附加到的列表。
+ * @param buf 缓冲区。
  */
 void net_buf_slist_put(sys_slist_t *list, struct net_buf *buf);
-
 /**
- * @brief Get a buffer from a list.
+ * @brief 从列表中获取缓冲区。
  *
- * If the buffer had any fragments, these will automatically be recovered from
- * the list as well and be placed to the buffer's fragment list.
+ * 如果缓冲区有任何片段，这些片段将自动从列表中恢复，并放置到缓冲区的片段列表中。
  *
- * @param list Which list to take the buffer from.
+ * @param list 要从中获取缓冲区的列表。
  *
- * @return New buffer or NULL if the FIFO is empty.
+ * @return 新缓冲区或如果FIFO为空则返回NULL。
  */
 struct net_buf * __must_check net_buf_slist_get(sys_slist_t *list);
-
 /**
- * @brief Put a buffer to the end of a FIFO.
+ * @brief 将缓冲区放入FIFO的末尾。
  *
- * If the buffer contains follow-up fragments this function will take care of
- * inserting them as well into the FIFO.
+ * 如果缓冲区包含后续片段，此函数将负责将它们也插入FIFO中。
  *
- * @param fifo Which FIFO to put the buffer to.
- * @param buf Buffer.
+ * @param fifo 要将缓冲区放入的FIFO。
+ * @param buf 缓冲区。
  */
 void net_buf_put(struct k_fifo *fifo, struct net_buf *buf);
-
 /**
- * @brief Decrements the reference count of a buffer.
+ * @brief 减少缓冲区的引用计数。
  *
- * The buffer is put back into the pool if the reference count reaches zero.
+ * 如果引用计数达到零，则将缓冲区放回池中。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  */
 #if defined(CONFIG_NET_BUF_LOG)
 void net_buf_unref_debug(struct net_buf *buf, const char *func, int line);
@@ -1546,1050 +1341,903 @@ void net_buf_unref_debug(struct net_buf *buf, const char *func, int line);
 #else
 void net_buf_unref(struct net_buf *buf);
 #endif
-
 /**
- * @brief Increment the reference count of a buffer.
+ * @brief 增加缓冲区的引用计数。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return the buffer newly referenced
+ * @return 新引用的缓冲区
  */
 struct net_buf * __must_check net_buf_ref(struct net_buf *buf);
-
 /**
- * @brief Clone buffer
+ * @brief 克隆缓冲区
  *
- * Duplicate given buffer including any (user) data and headers currently stored.
+ * 复制给定缓冲区，包括当前存储的任何（用户）数据和头部。
  *
- * @param buf A valid pointer on a buffer
- * @param timeout Affects the action taken should the pool be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then
- *        wait as long as necessary. Otherwise, wait until the specified
- *        timeout.
+ * @param buf 缓冲区的有效指针
+ * @param timeout 如果池为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
  *
- * @return Cloned buffer or NULL if out of buffers.
+ * @return 克隆的缓冲区或如果缓冲区不足则返回NULL。
  */
 struct net_buf * __must_check net_buf_clone(struct net_buf *buf,
 					    k_timeout_t timeout);
-
 /**
- * @brief Get a pointer to the user data of a buffer.
+ * @brief 获取缓冲区的用户数据指针。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Pointer to the user data of the buffer.
+ * @return 指向缓冲区用户数据的指针。
  */
 static inline void * __must_check net_buf_user_data(const struct net_buf *buf)
 {
 	return (void *)buf->user_data;
 }
-
 /**
- * @brief Copy user data from one to another buffer.
+ * @brief 将用户数据从一个缓冲区复制到另一个缓冲区。
  *
- * @param dst A valid pointer to a buffer gettings its user data overwritten.
- * @param src A valid pointer to a buffer gettings its user data copied. User data size must be
- *            equal to or exceed @a dst.
+ * @param dst 有效指向缓冲区的指针，其用户数据将被覆盖。
+ * @param src 有效指向缓冲区的指针，其用户数据将被复制。用户数据大小必须等于或大于@a dst。
  *
- * @return 0 on success or negative error number on failure.
+ * @return 成功返回0，失败返回负错误号。
  */
 int net_buf_user_data_copy(struct net_buf *dst, const struct net_buf *src);
-
 /**
- * @brief Initialize buffer with the given headroom.
+ * @brief 使用给定的头部空间初始化缓冲区。
  *
- * The buffer is not expected to contain any data when this API is called.
+ * 调用此API时，缓冲区不应包含任何数据。
  *
- * @param buf Buffer to initialize.
- * @param reserve How much headroom to reserve.
+ * @param buf 要初始化的缓冲区。
+ * @param reserve
+ * 要保留的头部空间。
  */
 static inline void net_buf_reserve(struct net_buf *buf, size_t reserve)
 {
 	net_buf_simple_reserve(&buf->b, reserve);
 }
-
 /**
- * @brief Prepare data to be added at the end of the buffer
+ * @brief 准备在缓冲区末尾添加数据
  *
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to increment the length with.
+ * @param buf 要更新的缓冲区。
+ * @param len 要增加的长度。
  *
- * @return The original tail of the buffer.
+ * @return 缓冲区的原始尾部。
  */
 static inline void *net_buf_add(struct net_buf *buf, size_t len)
 {
 	return net_buf_simple_add(&buf->b, len);
 }
-
 /**
- * @brief Copies the given number of bytes to the end of the buffer
+ * @brief 将给定数量的字节复制到缓冲区末尾
  *
- * Increments the data length of the  buffer to account for more data at
- * the end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param mem Location of data to be added.
- * @param len Length of data to be added
+ * @param buf 要更新的缓冲区。
+ * @param mem 要添加的数据的位置。
+ * @param len 要添加的数据长度
  *
- * @return The original tail of the buffer.
+ * @return 缓冲区的原始尾部。
  */
 static inline void *net_buf_add_mem(struct net_buf *buf, const void *mem,
 				    size_t len)
 {
 	return net_buf_simple_add_mem(&buf->b, mem, len);
 }
-
 /**
- * @brief Add (8-bit) byte at the end of the buffer
+ * @brief 在缓冲区末尾添加（8位）字节
  *
- * Increments the data length of the  buffer to account for more data at
- * the end.
+ * 增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val byte value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的字节值。
  *
- * @return Pointer to the value added
+ * @return 指向添加的值的指针
  */
 static inline uint8_t *net_buf_add_u8(struct net_buf *buf, uint8_t val)
 {
 	return net_buf_simple_add_u8(&buf->b, val);
 }
-
 /**
- * @brief Add 16-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加16位值
  *
- * Adds 16-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加16位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的16位值。
  */
 static inline void net_buf_add_le16(struct net_buf *buf, uint16_t val)
 {
 	net_buf_simple_add_le16(&buf->b, val);
 }
-
 /**
- * @brief Add 16-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加16位值
  *
- * Adds 16-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加16位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的16位值。
  */
 static inline void net_buf_add_be16(struct net_buf *buf, uint16_t val)
 {
 	net_buf_simple_add_be16(&buf->b, val);
 }
-
 /**
- * @brief Add 24-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加24位值
  *
- * Adds 24-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加24位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的24位值。
  */
 static inline void net_buf_add_le24(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_add_le24(&buf->b, val);
 }
-
 /**
- * @brief Add 24-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加24位值
  *
- * Adds 24-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加24位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的24位值。
  */
 static inline void net_buf_add_be24(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_add_be24(&buf->b, val);
 }
-
 /**
- * @brief Add 32-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加32位值
  *
- * Adds 32-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加32位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的32位值。
  */
 static inline void net_buf_add_le32(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_add_le32(&buf->b, val);
 }
-
 /**
- * @brief Add 32-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加32位值
  *
- * Adds 32-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加32位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的32位值。
  */
 static inline void net_buf_add_be32(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_add_be32(&buf->b, val);
 }
-
 /**
- * @brief Add 40-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加40位值
  *
- * Adds 40-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加40位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的40位值。
  */
 static inline void net_buf_add_le40(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_le40(&buf->b, val);
 }
-
 /**
- * @brief Add 40-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加40位值
  *
- * Adds 40-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加40位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的40位值。
  */
 static inline void net_buf_add_be40(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_be40(&buf->b, val);
 }
-
 /**
- * @brief Add 48-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加48位值
  *
- * Adds 48-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加48位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的48位值。
  */
 static inline void net_buf_add_le48(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_le48(&buf->b, val);
 }
-
 /**
- * @brief Add 48-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加48位值
  *
- * Adds 48-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加48位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的48位值。
  */
 static inline void net_buf_add_be48(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_be48(&buf->b, val);
 }
-
 /**
- * @brief Add 64-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加64位值
  *
- * Adds 64-bit value in little endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以小端格式在缓冲区末尾添加64位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的64位值。
  */
 static inline void net_buf_add_le64(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_le64(&buf->b, val);
 }
-
 /**
- * @brief Add 64-bit value at the end of the buffer
+ * @brief 在缓冲区末尾添加64位值
  *
- * Adds 64-bit value in big endian format at the end of buffer.
- * Increments the data length of a buffer to account for more data
- * at the end.
+ * 以大端格式在缓冲区末尾添加64位值。增加缓冲区的数据长度以考虑在末尾添加更多数据。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be added.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加的64位值。
  */
 static inline void net_buf_add_be64(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_add_be64(&buf->b, val);
 }
-
 /**
- * @brief Remove data from the end of the buffer.
+ * @brief 从缓冲区末尾移除数据。
  *
- * Removes data from the end of the buffer by modifying the buffer length.
+ * 通过修改缓冲区长度从缓冲区末尾移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return New end of the buffer data.
+ * @return 缓冲区数据的新末尾。
  */
 static inline void *net_buf_remove_mem(struct net_buf *buf, size_t len)
 {
 	return net_buf_simple_remove_mem(&buf->b, len);
 }
-
 /**
- * @brief Remove a 8-bit value from the end of the buffer
+ * @brief 从缓冲区末尾移除8位值
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 8-bit values.
+ * 与net_buf_remove_mem()相同，但用于操作8位值的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return The 8-bit removed value
+ * @return 移除的8位值
  */
 static inline uint8_t net_buf_remove_u8(struct net_buf *buf)
 {
 	return net_buf_simple_remove_u8(&buf->b);
 }
-
 /**
- * @brief Remove and convert 16 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换16位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 16-bit little endian data.
+ * 与net_buf_remove_mem()相同，但用于操作16位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的16位值。
  */
 static inline uint16_t net_buf_remove_le16(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le16(&buf->b);
 }
-
 /**
- * @brief Remove and convert 16 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换16位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 16-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作16位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的16位值。
  */
 static inline uint16_t net_buf_remove_be16(struct net_buf *buf)
 {
 	return net_buf_simple_remove_be16(&buf->b);
 }
-
 /**
- * @brief Remove and convert 24 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换24位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 24-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作24位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from big endian to host endian.
- */
-static inline uint32_t net_buf_remove_be24(struct net_buf *buf)
-{
-	return net_buf_simple_remove_be24(&buf->b);
-}
-
-/**
- * @brief Remove and convert 24 bits from the end of the buffer.
- *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 24-bit little endian data.
- *
- * @param buf A valid pointer on a buffer.
- *
- * @return 24-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的24位值。
  */
 static inline uint32_t net_buf_remove_le24(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le24(&buf->b);
 }
-
 /**
- * @brief Remove and convert 32 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换24位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 32-bit little endian data.
+ * 与net_buf_remove_mem()相同，但用于操作24位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from little endian to host endian.
+ * @return 从大端转换为主机端的24位值。
+ */
+static inline uint32_t net_buf_remove_be24(struct net_buf *buf)
+{
+	return net_buf_simple_remove_be24(&buf->b);
+}
+/**
+ * @brief 从缓冲区末尾移除并转换32位值。
+ *
+ * 与net_buf_remove_mem()相同，但用于操作32位小端数据的助手。
+ *
+ * @param buf 缓冲区的有效指针。
+ *
+ * @return 从小端转换为主机端的32位值。
  */
 static inline uint32_t net_buf_remove_le32(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le32(&buf->b);
 }
-
 /**
- * @brief Remove and convert 32 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换32位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 32-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作32位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的32位值。
  */
 static inline uint32_t net_buf_remove_be32(struct net_buf *buf)
 {
 	return net_buf_simple_remove_be32(&buf->b);
 }
-
 /**
- * @brief Remove and convert 40 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换40位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 40-bit little endian data.
+ * 与net_buf_remove_mem()相同，但用于操作40位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的40位值。
  */
 static inline uint64_t net_buf_remove_le40(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le40(&buf->b);
 }
-
 /**
- * @brief Remove and convert 40 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换40位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 40-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作40位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的40位值。
  */
 static inline uint64_t net_buf_remove_be40(struct net_buf *buf)
 {
 	return net_buf_simple_remove_be40(&buf->b);
 }
-
 /**
- * @brief Remove and convert 48 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换48位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 48-bit little endian data.
+ * 与net_buf_remove_mem()相同，但用于操作48位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的48位值。
  */
 static inline uint64_t net_buf_remove_le48(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le48(&buf->b);
 }
-
 /**
- * @brief Remove and convert 48 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换48位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 48-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作48位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的48位值。
  */
 static inline uint64_t net_buf_remove_be48(struct net_buf *buf)
 {
 	return net_buf_simple_remove_be48(&buf->b);
 }
-
 /**
- * @brief Remove and convert 64 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换64位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 64-bit little endian data.
+ * 与net_buf_remove_mem()相同，但用于操作64位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的64位值。
  */
 static inline uint64_t net_buf_remove_le64(struct net_buf *buf)
 {
 	return net_buf_simple_remove_le64(&buf->b);
 }
-
 /**
- * @brief Remove and convert 64 bits from the end of the buffer.
+ * @brief 从缓冲区末尾移除并转换64位值。
  *
- * Same idea as with net_buf_remove_mem(), but a helper for operating on
- * 64-bit big endian data.
+ * 与net_buf_remove_mem()相同，但用于操作64位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的64位值。
  */
 static inline uint64_t net_buf_remove_be64(struct net_buf *buf)
 {
 	return net_buf_simple_remove_be64(&buf->b);
 }
-
 /**
- * @brief Prepare data to be added at the start of the buffer
+ * @brief 准备在缓冲区开头添加数据
  *
- * Modifies the data pointer and buffer length to account for more data
- * in the beginning of the buffer.
+ * 修改数据指针和缓冲区长度以考虑在缓冲区开头添加更多数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to add to the beginning.
+ * @param buf 要更新的缓冲区。
+ * @param len 要添加到开头的字节数。
  *
- * @return The new beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
 static inline void *net_buf_push(struct net_buf *buf, size_t len)
 {
 	return net_buf_simple_push(&buf->b, len);
 }
-
 /**
- * @brief Copies the given number of bytes to the start of the buffer
+ * @brief 将给定数量的字节复制到缓冲区开头
  *
- * Modifies the data pointer and buffer length to account for more data
- * in the beginning of the buffer.
+ * 修改数据指针和缓冲区长度以考虑在缓冲区开头添加更多数据。
  *
- * @param buf Buffer to update.
- * @param mem Location of data to be added.
- * @param len Length of data to be added.
+ * @param buf 要更新的缓冲区。
+ * @param mem 要添加的数据的位置。
+ * @param len 要添加的数据长度。
  *
- * @return The new beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
 static inline void *net_buf_push_mem(struct net_buf *buf, const void *mem,
 				     size_t len)
 {
 	return net_buf_simple_push_mem(&buf->b, mem, len);
 }
-
 /**
- * @brief Push 8-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加8位值
  *
- * Adds 8-bit value the beginning of the buffer.
+ * 在缓冲区开头添加8位值。
  *
- * @param buf Buffer to update.
- * @param val 8-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的8位值。
  */
 static inline void net_buf_push_u8(struct net_buf *buf, uint8_t val)
 {
 	net_buf_simple_push_u8(&buf->b, val);
 }
-
 /**
- * @brief Push 16-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加16位值
  *
- * Adds 16-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加16位值。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的16位值。
  */
 static inline void net_buf_push_le16(struct net_buf *buf, uint16_t val)
 {
 	net_buf_simple_push_le16(&buf->b, val);
 }
-
 /**
- * @brief Push 16-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加16位值
  *
- * Adds 16-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加16位值。
  *
- * @param buf Buffer to update.
- * @param val 16-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的16位值。
  */
 static inline void net_buf_push_be16(struct net_buf *buf, uint16_t val)
 {
 	net_buf_simple_push_be16(&buf->b, val);
 }
-
 /**
- * @brief Push 24-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加24位值
  *
- * Adds 24-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加24位值。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的24位值。
  */
 static inline void net_buf_push_le24(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_push_le24(&buf->b, val);
 }
-
 /**
- * @brief Push 24-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加24位值
  *
- * Adds 24-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加24位值。
  *
- * @param buf Buffer to update.
- * @param val 24-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的24位值。
  */
 static inline void net_buf_push_be24(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_push_be24(&buf->b, val);
 }
-
 /**
- * @brief Push 32-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加32位值
  *
- * Adds 32-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加32位值。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的32位值。
  */
 static inline void net_buf_push_le32(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_push_le32(&buf->b, val);
 }
-
 /**
- * @brief Push 32-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加32位值
  *
- * Adds 32-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加32位值。
  *
- * @param buf Buffer to update.
- * @param val 32-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的32位值。
  */
 static inline void net_buf_push_be32(struct net_buf *buf, uint32_t val)
 {
 	net_buf_simple_push_be32(&buf->b, val);
 }
-
 /**
- * @brief Push 40-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加40位值
  *
- * Adds 40-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加40位值。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的40位值。
  */
 static inline void net_buf_push_le40(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_le40(&buf->b, val);
 }
-
 /**
- * @brief Push 40-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加40位值
  *
- * Adds 40-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加40位值。
  *
- * @param buf Buffer to update.
- * @param val 40-bit value to be pushed to the buffer.
+ * @param buf 要更新的
+ * 缓冲区。
+ * @param val 要添加到缓冲区的40位值。
  */
 static inline void net_buf_push_be40(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_be40(&buf->b, val);
 }
-
 /**
- * @brief Push 48-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加48位值
  *
- * Adds 48-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加48位值。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的48位值。
  */
 static inline void net_buf_push_le48(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_le48(&buf->b, val);
 }
-
 /**
- * @brief Push 48-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加48位值
  *
- * Adds 48-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加48位值。
  *
- * @param buf Buffer to update.
- * @param val 48-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的48位值。
  */
 static inline void net_buf_push_be48(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_be48(&buf->b, val);
 }
-
 /**
- * @brief Push 64-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加64位值
  *
- * Adds 64-bit value in little endian format to the beginning of the
- * buffer.
+ * 以小端格式在缓冲区开头添加64位值。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的64位值。
  */
 static inline void net_buf_push_le64(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_le64(&buf->b, val);
 }
-
 /**
- * @brief Push 64-bit value to the beginning of the buffer
+ * @brief 在缓冲区开头添加64位值
  *
- * Adds 64-bit value in big endian format to the beginning of the
- * buffer.
+ * 以大端格式在缓冲区开头添加64位值。
  *
- * @param buf Buffer to update.
- * @param val 64-bit value to be pushed to the buffer.
+ * @param buf 要更新的缓冲区。
+ * @param val 要添加到缓冲区的64位值。
  */
 static inline void net_buf_push_be64(struct net_buf *buf, uint64_t val)
 {
 	net_buf_simple_push_be64(&buf->b, val);
 }
-
 /**
- * @brief Remove data from the beginning of the buffer.
+ * @brief 从缓冲区开头移除数据。
  *
- * Removes data from the beginning of the buffer by modifying the data
- * pointer and buffer length.
+ * 通过修改数据指针和缓冲区长度从缓冲区开头移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return New beginning of the buffer data.
+ * @return 缓冲区数据的新开头。
  */
 static inline void *net_buf_pull(struct net_buf *buf, size_t len)
 {
 	return net_buf_simple_pull(&buf->b, len);
 }
-
 /**
- * @brief Remove data from the beginning of the buffer.
+ * @brief 从缓冲区开头移除数据。
  *
- * Removes data from the beginning of the buffer by modifying the data
- * pointer and buffer length.
+ * 通过修改数据指针和缓冲区长度从缓冲区开头移除数据。
  *
- * @param buf Buffer to update.
- * @param len Number of bytes to remove.
+ * @param buf 要更新的缓冲区。
+ * @param len 要移除的字节数。
  *
- * @return Pointer to the old beginning of the buffer data.
+ * @return 指向缓冲区数据旧位置的指针。
  */
 static inline void *net_buf_pull_mem(struct net_buf *buf, size_t len)
 {
 	return net_buf_simple_pull_mem(&buf->b, len);
 }
-
 /**
- * @brief Remove a 8-bit value from the beginning of the buffer
+ * @brief 从缓冲区开头移除8位值
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 8-bit values.
+ * 与net_buf_pull()相同，但用于操作8位值的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return The 8-bit removed value
+ * @return 移除的8位值
  */
 static inline uint8_t net_buf_pull_u8(struct net_buf *buf)
 {
 	return net_buf_simple_pull_u8(&buf->b);
 }
-
 /**
- * @brief Remove and convert 16 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换16位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 16-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作16位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的16位值。
  */
 static inline uint16_t net_buf_pull_le16(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le16(&buf->b);
 }
-
 /**
- * @brief Remove and convert 16 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换16位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 16-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作16位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 16-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的16位值。
  */
 static inline uint16_t net_buf_pull_be16(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be16(&buf->b);
 }
-
 /**
- * @brief Remove and convert 24 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换24位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 24-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作24位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的24位值。
  */
 static inline uint32_t net_buf_pull_le24(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le24(&buf->b);
 }
-
 /**
- * @brief Remove and convert 24 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换24位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 24-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作24位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 24-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的24位值。
  */
 static inline uint32_t net_buf_pull_be24(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be24(&buf->b);
 }
-
 /**
- * @brief Remove and convert 32 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换32位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 32-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作32位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的32位值。
  */
 static inline uint32_t net_buf_pull_le32(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le32(&buf->b);
 }
-
 /**
- * @brief Remove and convert 32 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换32位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 32-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作32位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 32-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的32位值。
  */
 static inline uint32_t net_buf_pull_be32(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be32(&buf->b);
 }
-
 /**
- * @brief Remove and convert 40 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换40位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 40-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作40位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的40位值。
  */
 static inline uint64_t net_buf_pull_le40(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le40(&buf->b);
 }
-
 /**
- * @brief Remove and convert 40 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换40位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 40-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作40位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 40-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的40位值。
  */
 static inline uint64_t net_buf_pull_be40(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be40(&buf->b);
 }
-
 /**
- * @brief Remove and convert 48 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换48位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 48-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作48位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的48位值。
  */
 static inline uint64_t net_buf_pull_le48(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le48(&buf->b);
 }
-
 /**
- * @brief Remove and convert 48 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换48位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 48-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作48位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 48-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的48位值。
  */
 static inline uint64_t net_buf_pull_be48(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be48(&buf->b);
 }
-
 /**
- * @brief Remove and convert 64 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换64位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 64-bit little endian data.
+ * 与net_buf_pull()相同，但用于操作64位小端数据的助手。
  *
- * @param buf A valid pointer on a buffer.
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from little endian to host endian.
+ * @return 从小端转换为主机端的64位值。
  */
 static inline uint64_t net_buf_pull_le64(struct net_buf *buf)
 {
 	return net_buf_simple_pull_le64(&buf->b);
 }
-
 /**
- * @brief Remove and convert 64 bits from the beginning of the buffer.
+ * @brief 从缓冲区开头移除并转换64位值。
  *
- * Same idea as with net_buf_pull(), but a helper for operating on
- * 64-bit big endian data.
+ * 与net_buf_pull()相同，但用于操作64位大端数据的助手。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针。
  *
- * @return 64-bit value converted from big endian to host endian.
+ * @return 从大端转换为主机端的64位值。
  */
 static inline uint64_t net_buf_pull_be64(struct net_buf *buf)
 {
 	return net_buf_simple_pull_be64(&buf->b);
 }
-
 /**
- * @brief Check buffer tailroom.
+ * @brief 检查缓冲区的尾部空间。
  *
- * Check how much free space there is at the end of the buffer.
+ * 检查缓冲区末尾有多少空闲空间。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes available at the end of the buffer.
+ * @return 缓冲区末尾可用的字节数。
  */
 static inline size_t net_buf_tailroom(const struct net_buf *buf)
 {
 	return net_buf_simple_tailroom(&buf->b);
 }
-
 /**
- * @brief Check buffer headroom.
+ * @brief 检查缓冲区的头部空间。
  *
- * Check how much free space there is in the beginning of the buffer.
+ * 检查缓冲区开头有多少空闲空间。
  *
- * buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes available in the beginning of the buffer.
+ * @return 缓冲区开头可用的字节数。
  */
 static inline size_t net_buf_headroom(const struct net_buf *buf)
 {
 	return net_buf_simple_headroom(&buf->b);
 }
-
 /**
- * @brief Check maximum net_buf::len value.
+ * @brief 检查net_buf::len的最大值。
  *
- * This value is depending on the number of bytes being reserved as headroom.
+ * 该值取决于保留为头部空间的字节数。
  *
- * @param buf A valid pointer on a buffer
+ * @param buf 缓冲区的有效指针
  *
- * @return Number of bytes usable behind the net_buf::data pointer.
+ * @return net_buf::data指针后面可用的字节数。
  */
 static inline uint16_t net_buf_max_len(const struct net_buf *buf)
 {
 	return net_buf_simple_max_len(&buf->b);
 }
-
 /**
- * @brief Get the tail pointer for a buffer.
+ * @brief 获取缓冲区的尾指针。
  *
- * Get a pointer to the end of the data in a buffer.
+ * 获取指向缓冲区中数据末尾的指针。
  *
- * @param buf Buffer.
+ * @param buf 缓冲区。
  *
- * @return Tail pointer for the buffer.
+ * @return 缓冲区的尾指针。
  */
 static inline uint8_t *net_buf_tail(const struct net_buf *buf)
 {
 	return net_buf_simple_tail(&buf->b);
 }
-
 /**
- * @brief Find the last fragment in the fragment list.
+ * @brief 查找片段列表中的最后一个片段。
  *
- * @return Pointer to last fragment in the list.
+ * @return 指向列表中最后一个片段的指针。
  */
 struct net_buf *net_buf_frag_last(struct net_buf *frags);
-
 /**
- * @brief Insert a new fragment to a chain of bufs.
+ * @brief 将新片段插入缓冲区链中。
  *
- * Insert a new fragment into the buffer fragments list after the parent.
+ * 将新片段插入缓冲区片段列表中父片段之后。
  *
- * Note: This function takes ownership of the fragment reference so the
- * caller is not required to unref.
+ * 注意：此函数接管片段引用的所有权，因此调用者不需要取消引用。
  *
- * @param parent Parent buffer/fragment.
- * @param frag Fragment to insert.
+ * @param parent 父缓冲区/片段。
+ * @param frag 要插入的片段。
  */
 void net_buf_frag_insert(struct net_buf *parent, struct net_buf *frag);
-
 /**
- * @brief Add a new fragment to the end of a chain of bufs.
+ * @brief 将新片段添加到缓冲区链的末尾。
  *
- * Append a new fragment into the buffer fragments list.
+ * 将新片段附加到缓冲区片段列表中。
  *
- * Note: This function takes ownership of the fragment reference so the
- * caller is not required to unref.
+ * 注意：此函数接管片段引用的所有权，因此调用者不需要取消引用。
  *
- * @param head Head of the fragment chain.
- * @param frag Fragment to add.
+ * @param head 片段链的头部。
+ * @param frag 要添加的片段。
  *
- * @return New head of the fragment chain. Either head (if head
- *         was non-NULL) or frag (if head was NULL).
+ * @return 片段链的新头部。如果head为非NULL，则返回head；如果head为NULL，则返回frag。
  */
 struct net_buf *net_buf_frag_add(struct net_buf *head, struct net_buf *frag);
-
 /**
- * @brief Delete existing fragment from a chain of bufs.
+ * @brief 从缓冲区链中删除现有片段。
  *
- * @param parent Parent buffer/fragment, or NULL if there is no parent.
- * @param frag Fragment to delete.
+ * @param parent 父缓冲区/片段，如果没有父片段，则为NULL。
+ * @param frag 要删除的片段。
  *
- * @return Pointer to the buffer following the fragment, or NULL if it
- *         had no further fragments.
+ * @return 指向片段之后的缓冲区的指针，如果没有更多片段，则返回NULL。
  */
 #if defined(CONFIG_NET_BUF_LOG)
 struct net_buf *net_buf_frag_del_debug(struct net_buf *parent,
@@ -2600,97 +2248,71 @@ struct net_buf *net_buf_frag_del_debug(struct net_buf *parent,
 #else
 struct net_buf *net_buf_frag_del(struct net_buf *parent, struct net_buf *frag);
 #endif
-
 /**
- * @brief Copy bytes from net_buf chain starting at offset to linear buffer
+ * @brief 从net_buf链的偏移量开始将字节复制到线性缓冲区
  *
- * Copy (extract) @a len bytes from @a src net_buf chain, starting from @a
- * offset in it, to a linear buffer @a dst. Return number of bytes actually
- * copied, which may be less than requested, if net_buf chain doesn't have
- * enough data, or destination buffer is too small.
+ * 从@a src net_buf链中复制（提取）@a len字节，从中@a offset开始，复制到线性缓冲区@a dst。返回实际复制的字节数，如果net_buf链没有足够的数据，或者目标缓冲区太小，则可能少于请求的字节数。
  *
- * @param dst Destination buffer
- * @param dst_len Destination buffer length
- * @param src Source net_buf chain
- * @param offset Starting offset to copy from
- * @param len Number of bytes to copy
- * @return number of bytes actually copied
+ * @param dst 目标缓冲区
+ * @param dst_len 目标缓冲区长度
+ * @param src 源net_buf链
+ * @param offset 开始复制的偏移量
+ * @param len 要复制的字节数
+ * @return 实际复制的字节数
  */
 size_t net_buf_linearize(void *dst, size_t dst_len,
 			 const struct net_buf *src, size_t offset, size_t len);
-
 /**
  * @typedef net_buf_allocator_cb
- * @brief Network buffer allocator callback.
+ * @brief 网络缓冲区分配器回调。
  *
- * @details The allocator callback is called when net_buf_append_bytes
- * needs to allocate a new net_buf.
+ * @details 当net_buf_append_bytes需要分配新的net_buf时调用分配器回调。
  *
- * @param timeout Affects the action taken should the net buf pool be empty.
- *        If K_NO_WAIT, then return immediately. If K_FOREVER, then
- *        wait as long as necessary. Otherwise, wait until the specified
- *        timeout.
- * @param user_data The user data given in net_buf_append_bytes call.
- * @return pointer to allocated net_buf or NULL on error.
+ * @param timeout 如果net buf池为空，影响采取的操作。如果是K_NO_WAIT，则立即返回。如果是K_FOREVER，则等待必要的时间。否则，等待指定的超时。
+ * @param user_data 在net_buf_append_bytes调用中给定的用户数据。
+ * @return 指向分配的net_buf的指针，如果出错则返回NULL。
  */
 typedef struct net_buf * __must_check (*net_buf_allocator_cb)(k_timeout_t timeout,
 							      void *user_data);
-
 /**
- * @brief Append data to a list of net_buf
+ * @brief 将数据追加到net_buf列表
  *
- * @details Append data to a net_buf. If there is not enough space in the
- * net_buf then more net_buf will be added, unless there are no free net_buf
- * and timeout occurs. If not allocator is provided it attempts to allocate from
- * the same pool as the original buffer.
+ * @details 将数据追加到net_buf。如果缓冲区中没有足够的空间，则会添加更多的net_buf，除非没有可用的net_buf并且超时发生。如果未提供分配器，则尝试从与原始缓冲区相同的池中分配。
  *
- * @param buf Network buffer.
- * @param len Total length of input data
- * @param value Data to be added
- * @param timeout Timeout is passed to the net_buf allocator callback.
- * @param allocate_cb When a new net_buf is required, use this callback.
- * @param user_data A user data pointer to be supplied to the allocate_cb.
- *        This pointer is can be anything from a mem_pool or a net_pkt, the
- *        logic is left up to the allocate_cb function.
+ * @param buf 网络缓冲区。
+ * @param len 输入数据的总长度
+ * @param value 要添加的数据
+ * @param timeout 超时传递给net_buf分配器回调。
+ * @param allocate_cb 当需要新的net_buf时，使用此回调。
+ * @param user_data 要提供给allocate_cb的用户数据指针。此指针可以是任何东西，从mem_pool到net_pkt，逻辑由allocate_cb函数决定。
  *
- * @return Length of data actually added. This may be less than input
- *         length if other timeout than K_FOREVER was used, and there
- *         were no free fragments in a pool to accommodate all data.
+ * @return 实际添加的数据长度。如果使用了除K_FOREVER以外的其他超时，并且池中没有足够的片段来容纳所有数据，则可能少于输入长度。
  */
 size_t net_buf_append_bytes(struct net_buf *buf, size_t len,
 			    const void *value, k_timeout_t timeout,
 			    net_buf_allocator_cb allocate_cb, void *user_data);
-
 /**
- * @brief Match data with a net_buf's content
+ * @brief 将数据与net_buf的内容进行匹配
  *
- * @details Compare data with a content of a net_buf. Provide information about
- * the number of bytes matching between both. If needed, traverse
- * through multiple buffer fragments.
+ * @details 将数据与net_buf的内容进行比较。提供有关两者之间匹配字节数的信息。如果需要，遍历多个缓冲区片段。
  *
- * @param buf Network buffer
- * @param offset Starting offset to compare from
- * @param data Data buffer for comparison
- * @param len Number of bytes to compare
+ * @param buf 网络缓冲区
+ * @param offset 开始比较的偏移量
+ * @param data 用于比较的数据缓冲区
+ * @param len 要比较的字节数
  *
- * @return The number of bytes compared before the first difference.
+ * @return 在第一个差异之前比较的字节数。
  */
 size_t net_buf_data_match(const struct net_buf *buf, size_t offset, const void *data, size_t len);
-
 /**
- * @brief Skip N number of bytes in a net_buf
+ * @brief 跳过net_buf中的N个字节
  *
- * @details Skip N number of bytes starting from fragment's offset. If the total
- * length of data is placed in multiple fragments, this function will skip from
- * all fragments until it reaches N number of bytes.  Any fully skipped buffers
- * are removed from the net_buf list.
+ * @details 从片段的偏移量开始跳过N个字节。如果数据的总长度放置在多个片段中，此函数将从所有片段中跳过，直到达到N个字节。任何完全跳过的缓冲区将从net_buf列表中删除。
  *
- * @param buf Network buffer.
- * @param len Total length of data to be skipped.
+ * @param buf 网络缓冲区。
+ * @param len 要跳过的数据总长度。
  *
- * @return Pointer to the fragment or
- *         NULL and pos is 0 after successful skip,
- *         NULL and pos is 0xffff otherwise.
+ * @return 指向片段的指针，或成功跳过后pos为0时返回NULL，否则返回NULL且pos为0xffff。
  */
 static inline struct net_buf *net_buf_skip(struct net_buf *buf, size_t len)
 {
@@ -2700,38 +2322,31 @@ static inline struct net_buf *net_buf_skip(struct net_buf *buf, size_t len)
 			buf = net_buf_frag_del(NULL, buf);
 		}
 	}
-
 	return buf;
 }
-
 /**
- * @brief Calculate amount of bytes stored in fragments.
+ * @brief 计算片段中存储的字节数。
  *
- * Calculates the total amount of data stored in the given buffer and the
- * fragments linked to it.
+ * 计算给定缓冲区及其链接的片段中存储的数据总量。
  *
- * @param buf Buffer to start off with.
+ * @param buf 要开始的缓冲区。
  *
- * @return Number of bytes in the buffer and its fragments.
+ * @return 缓冲区及其片段中的字节数。
  */
 static inline size_t net_buf_frags_len(const struct net_buf *buf)
 {
 	size_t bytes = 0;
-
 	while (buf) {
 		bytes += buf->len;
 		buf = buf->frags;
 	}
-
 	return bytes;
 }
-
 /**
  * @}
  */
-
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* ZEPHYR_INCLUDE_NET_BUF_H_ */
+//GST

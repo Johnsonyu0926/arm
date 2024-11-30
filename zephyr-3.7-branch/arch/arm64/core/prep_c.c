@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/core/prep_c.c
 /**
  * @file
  * @brief Full C support initialization
@@ -22,11 +17,9 @@ extern void z_arm64_mm_init(bool is_primary_core);
 __weak void z_arm64_mm_init(bool is_primary_core) { }
 
 /**
- *
  * @brief Prepare to and run C code
  *
  * This routine prepares for the execution of and runs C code.
- *
  */
 void z_prep_c(void)
 {
@@ -46,9 +39,14 @@ void z_prep_c(void)
 	CODE_UNREACHABLE;
 }
 
-
 #if CONFIG_MP_MAX_NUM_CPUS > 1
 extern FUNC_NORETURN void arch_secondary_cpu_init(void);
+
+/**
+ * @brief Prepare and initialize secondary CPU
+ *
+ * This routine prepares and initializes the secondary CPU.
+ */
 void z_arm64_secondary_prep_c(void)
 {
 	arch_secondary_cpu_init();
@@ -56,3 +54,4 @@ void z_arm64_secondary_prep_c(void)
 	CODE_UNREACHABLE;
 }
 #endif
+//GST

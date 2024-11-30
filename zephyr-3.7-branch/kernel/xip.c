@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2010-2014 Wind River Systems, Inc.
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-
+//kernel/xip.c
 #include <zephyr/kernel.h>
 #include <kernel_internal.h>
 #include <zephyr/linker/linker-defs.h>
@@ -27,30 +20,35 @@ void z_data_copy(void)
 {
 	z_early_memcpy(&__data_region_start, &__data_region_load_start,
 		       __data_region_end - __data_region_start);
+
 #ifdef CONFIG_ARCH_HAS_RAMFUNC_SUPPORT
 	z_early_memcpy(&__ramfunc_start, &__ramfunc_load_start,
 		       (uintptr_t) &__ramfunc_size);
 #endif /* CONFIG_ARCH_HAS_RAMFUNC_SUPPORT */
+
 #if DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_ccm), okay)
 	z_early_memcpy(&__ccm_data_start, &__ccm_data_rom_start,
 		       __ccm_data_end - __ccm_data_start);
 #endif
+
 #if DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_itcm), okay)
 	z_early_memcpy(&__itcm_start, &__itcm_load_start,
 		       (uintptr_t) &__itcm_size);
 #endif
+
 #if DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_dtcm), okay)
 	z_early_memcpy(&__dtcm_data_start, &__dtcm_data_load_start,
 		       __dtcm_data_end - __dtcm_data_start);
 #endif
+
 #ifdef CONFIG_CODE_DATA_RELOCATION
 	extern void data_copy_xip_relocation(void);
-
 	data_copy_xip_relocation();
 #endif	/* CONFIG_CODE_DATA_RELOCATION */
+
 #ifdef CONFIG_USERSPACE
 #ifdef CONFIG_STACK_CANARIES
-	/* stack canary checking is active for all C functions.
+	/* Stack canary checking is active for all C functions.
 	 * __stack_chk_guard is some uninitialized value living in the
 	 * app shared memory sections. Preserve it, and don't make any
 	 * function calls to perform the memory copy. The true canary
@@ -73,3 +71,4 @@ void z_data_copy(void)
 #endif /* CONFIG_STACK_CANARIES */
 #endif /* CONFIG_USERSPACE */
 }
+//GST

@@ -1,12 +1,7 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/mem_slab.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <zephyr/linker/sections.h>
 #include <zephyr/sys/dlist.h>
@@ -23,12 +18,19 @@ static struct k_obj_type obj_type_mem_slab;
 
 #ifdef CONFIG_OBJ_CORE_STATS_MEM_SLAB
 
+/**
+ * @brief Get raw statistics for a memory slab
+ *
+ * @param obj_core Pointer to the object core
+ * @param stats Pointer to the statistics buffer
+ * @return 0 on success, or an error code on failure
+ */
 static int k_mem_slab_stats_raw(struct k_obj_core *obj_core, void *stats)
 {
 	__ASSERT((obj_core != NULL) && (stats != NULL), "NULL parameter");
 
 	struct k_mem_slab *slab;
-	k_spinlock_key_t   key;
+	k_spinlock_key_t key;
 
 	slab = CONTAINER_OF(obj_core, struct k_mem_slab, obj_core);
 	key = k_spin_lock(&slab->lock);
@@ -38,12 +40,19 @@ static int k_mem_slab_stats_raw(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Query statistics for a memory slab
+ *
+ * @param obj_core Pointer to the object core
+ * @param stats Pointer to the statistics buffer
+ * @return 0 on success, or an error code on failure
+ */
 static int k_mem_slab_stats_query(struct k_obj_core *obj_core, void *stats)
 {
 	__ASSERT((obj_core != NULL) && (stats != NULL), "NULL parameter");
 
 	struct k_mem_slab *slab;
-	k_spinlock_key_t   key;
+	k_spinlock_key_t key;
 	struct sys_memory_stats *ptr = stats;
 
 	slab = CONTAINER_OF(obj_core, struct k_mem_slab, obj_core);
@@ -61,12 +70,18 @@ static int k_mem_slab_stats_query(struct k_obj_core *obj_core, void *stats)
 	return 0;
 }
 
+/**
+ * @brief Reset statistics for a memory slab
+ *
+ * @param obj_core Pointer to the object core
+ * @return 0 on success, or an error code on failure
+ */
 static int k_mem_slab_stats_reset(struct k_obj_core *obj_core)
 {
 	__ASSERT(obj_core != NULL, "NULL parameter");
 
 	struct k_mem_slab *slab;
-	k_spinlock_key_t   key;
+	k_spinlock_key_t key;
 
 	slab = CONTAINER_OF(obj_core, struct k_mem_slab, obj_core);
 	key = k_spin_lock(&slab->lock);
@@ -168,6 +183,15 @@ out:
 SYS_INIT(init_mem_slab_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 
+/**
+ * @brief Initialize a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @param buffer Pointer to the buffer
+ * @param block_size Size of each block
+ * @param num_blocks Number of blocks
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_slab_init(struct k_mem_slab *slab, void *buffer,
 		    size_t block_size, uint32_t num_blocks)
 {
@@ -205,6 +229,13 @@ out:
 }
 
 #if __ASSERT_ON
+/**
+ * @brief Check if a pointer is valid for a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @param ptr Pointer to check
+ * @return true if the pointer is valid, false otherwise
+ */
 static bool slab_ptr_is_good(struct k_mem_slab *slab, const void *ptr)
 {
 	const char *p = ptr;
@@ -216,6 +247,14 @@ static bool slab_ptr_is_good(struct k_mem_slab *slab, const void *ptr)
 }
 #endif
 
+/**
+ * @brief Allocate a block from a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @param mem Pointer to store the allocated block
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_slab_alloc(struct k_mem_slab *slab, void **mem, k_timeout_t timeout)
 {
 	k_spinlock_key_t key = k_spin_lock(&slab->lock);
@@ -265,6 +304,12 @@ int k_mem_slab_alloc(struct k_mem_slab *slab, void **mem, k_timeout_t timeout)
 	return result;
 }
 
+/**
+ * @brief Free a block to a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @param mem Pointer to the block to free
+ */
 void k_mem_slab_free(struct k_mem_slab *slab, void *mem)
 {
 	k_spinlock_key_t key = k_spin_lock(&slab->lock);
@@ -293,6 +338,13 @@ void k_mem_slab_free(struct k_mem_slab *slab, void *mem)
 	k_spin_unlock(&slab->lock, key);
 }
 
+/**
+ * @brief Get runtime statistics for a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @param stats Pointer to the statistics structure
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_slab_runtime_stats_get(struct k_mem_slab *slab, struct sys_memory_stats *stats)
 {
 	if ((slab == NULL) || (stats == NULL)) {
@@ -317,6 +369,12 @@ int k_mem_slab_runtime_stats_get(struct k_mem_slab *slab, struct sys_memory_stat
 }
 
 #ifdef CONFIG_MEM_SLAB_TRACE_MAX_UTILIZATION
+/**
+ * @brief Reset the maximum utilization statistics for a memory slab
+ *
+ * @param slab Pointer to the memory slab
+ * @return 0 on success, or an error code on failure
+ */
 int k_mem_slab_runtime_stats_reset_max(struct k_mem_slab *slab)
 {
 	if (slab == NULL) {
@@ -332,3 +390,4 @@ int k_mem_slab_runtime_stats_reset_max(struct k_mem_slab *slab)
 	return 0;
 }
 #endif /* CONFIG_MEM_SLAB_TRACE_MAX_UTILIZATION */
+//GST

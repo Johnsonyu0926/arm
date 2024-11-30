@@ -1,12 +1,4 @@
-/** @file
- * @brief HTTP response status codes
- */
-
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/status.h
 
 #ifndef ZEPHYR_INCLUDE_NET_HTTP_STATUS_H_
 #define ZEPHYR_INCLUDE_NET_HTTP_STATUS_H_
@@ -105,4 +97,5 @@ enum http_status {
  * @}
  */
 
-#endif
+#endif /* ZEPHYR_INCLUDE_NET_HTTP_STATUS_H_ */
+//GST

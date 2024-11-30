@@ -1,19 +1,30 @@
-/*
- * Copyright (c) 2018 Workaround GmbH.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/crc/crc32_sw.c
 
 #include <zephyr/sys/crc.h>
 
+/**
+ * @brief Compute the CRC32 checksum using the IEEE polynomial
+ *
+ * @param data Pointer to the data buffer
+ * @param len Length of the data buffer
+ * @return CRC32 checksum
+ */
 uint32_t crc32_ieee(const uint8_t *data, size_t len)
 {
 	return crc32_ieee_update(0x0, data, len);
 }
 
+/**
+ * @brief Update the CRC32 checksum with new data
+ *
+ * @param crc Initial CRC32 value
+ * @param data Pointer to the data buffer
+ * @param len Length of the data buffer
+ * @return Updated CRC32 checksum
+ */
 uint32_t crc32_ieee_update(uint32_t crc, const uint8_t *data, size_t len)
 {
-	/* crc table generated from polynomial 0xedb88320 */
+	/* CRC table generated from polynomial 0xedb88320 */
 	static const uint32_t table[16] = {
 		0x00000000U, 0x1db71064U, 0x3b6e20c8U, 0x26d930acU,
 		0x76dc4190U, 0x6b6b51f4U, 0x4db26158U, 0x5005713cU,
@@ -32,3 +43,4 @@ uint32_t crc32_ieee_update(uint32_t crc, const uint8_t *data, size_t len)
 
 	return (~crc);
 }
+//GST 

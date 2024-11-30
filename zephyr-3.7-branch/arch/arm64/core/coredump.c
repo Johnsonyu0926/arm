@@ -1,19 +1,14 @@
-/*
- * Copyright (c) 2022 Huawei Technologies SASU
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/core/coredump.c
 #include <string.h>
 #include <zephyr/debug/coredump.h>
 
 /* Identify the version of this block (in case of architecture changes).
  * To be interpreted by the target architecture specific block parser.
  */
-#define ARCH_HDR_VER			1
+#define ARCH_HDR_VER 1
 
-/* Structure to store the architecture registers passed arch_coredump_info_dump
- * As callee saved registers are not provided in struct arch_esf structure in Zephyr
+/* Structure to store the architecture registers passed to arch_coredump_info_dump.
+ * As callee saved registers are not provided in struct arch_esf structure in Zephyr,
  * we just need 22 registers.
  */
 struct arm64_arch_block {
@@ -43,17 +38,20 @@ struct arm64_arch_block {
 	} r;
 } __packed;
 
-
-/*
- * Register block takes up too much stack space
- * if defined within function. So define it here.
- */
+/* Register block takes up too much stack space if defined within function. So define it here. */
 static struct arm64_arch_block arch_blk;
 
+/**
+ * @brief Dump architecture-specific information for coredump.
+ *
+ * This function copies the thread registers to a memory block that will be printed out.
+ * The thread registers are already provided by the structure struct arch_esf.
+ *
+ * @param esf Pointer to the exception stack frame.
+ */
 void arch_coredump_info_dump(const struct arch_esf *esf)
 {
 	/* Target architecture information header */
-	/* Information just relevant to the python parser */
 	struct coredump_arch_hdr_t hdr = {
 		.id = COREDUMP_ARCH_HDR_ID,
 		.hdr_version = ARCH_HDR_VER,
@@ -65,12 +63,10 @@ void arch_coredump_info_dump(const struct arch_esf *esf)
 		return;
 	}
 
+	/* Clear the architecture block */
 	(void)memset(&arch_blk, 0, sizeof(arch_blk));
 
-	/*
-	 * Copies the thread registers to a memory block that will be printed out
-	 * The thread registers are already provided by structure struct arch_esf
-	 */
+	/* Copy the thread registers to the memory block */
 	arch_blk.r.x0 = esf->x0;
 	arch_blk.r.x1 = esf->x1;
 	arch_blk.r.x2 = esf->x2;
@@ -99,7 +95,13 @@ void arch_coredump_info_dump(const struct arch_esf *esf)
 	coredump_buffer_output((uint8_t *)&arch_blk, sizeof(arch_blk));
 }
 
+/**
+ * @brief Get the target code for the architecture-specific coredump.
+ *
+ * @return The target code for ARM64 architecture.
+ */
 uint16_t arch_coredump_tgt_code_get(void)
 {
 	return COREDUMP_TGT_ARM64;
 }
+//GST

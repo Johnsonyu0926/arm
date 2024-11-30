@@ -1,21 +1,23 @@
-/*
- * Copyright 2023 NXP
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/common/include/shared_irq.c
 #include "sw_isr_common.h"
-
 #include <zephyr/sw_isr_table.h>
 #include <zephyr/spinlock.h>
 
-/* an interrupt line can be considered shared only if there's
+/* An interrupt line can be considered shared only if there's
  * at least 2 clients using it. As such, enforce the fact that
  * the maximum number of allowed clients should be at least 2.
  */
 BUILD_ASSERT(CONFIG_SHARED_IRQ_MAX_NUM_CLIENTS >= 2,
 	     "maximum number of clients should be at least 2");
 
+/**
+ * @brief Shared ISR handler
+ *
+ * This function handles shared interrupts by iterating through the list of
+ * registered clients and invoking their ISR routines.
+ *
+ * @param data Pointer to the shared ISR table entry
+ */
 void z_shared_isr(const void *data)
 {
 	size_t i;
@@ -37,6 +39,16 @@ void z_shared_isr(const void *data)
 
 static struct k_spinlock lock;
 
+/**
+ * @brief Install an ISR for the specified IRQ
+ *
+ * This function installs an ISR for the specified IRQ. If the IRQ line is
+ * already in use, it registers the ISR as a shared ISR.
+ *
+ * @param irq IRQ number
+ * @param routine ISR routine to install
+ * @param param Parameter to pass to the ISR routine
+ */
 void z_isr_install(unsigned int irq, void (*routine)(const void *),
 		   const void *param)
 {
@@ -49,7 +61,7 @@ void z_isr_install(unsigned int irq, void (*routine)(const void *),
 
 	table_idx = z_get_sw_isr_table_idx(irq);
 
-	/* check for out of bounds table index */
+	/* Check for out of bounds table index */
 	if (table_idx >= IRQ_TABLE_SIZE) {
 		return;
 	}
@@ -59,12 +71,12 @@ void z_isr_install(unsigned int irq, void (*routine)(const void *),
 
 	key = k_spin_lock(&lock);
 
-	/* have we reached the client limit? */
+	/* Have we reached the client limit? */
 	__ASSERT(shared_entry->client_num < CONFIG_SHARED_IRQ_MAX_NUM_CLIENTS,
 		 "reached maximum number of clients");
 
 	if (entry->isr == z_irq_spurious) {
-		/* this is the first time a ISR/arg pair is registered
+		/* This is the first time an ISR/arg pair is registered
 		 * for INTID => no need to share it.
 		 */
 		entry->isr = routine;
@@ -88,7 +100,7 @@ void z_isr_install(unsigned int irq, void (*routine)(const void *),
 		entry->arg = shared_entry;
 	}
 
-	/* don't register the same ISR/arg pair multiple times */
+	/* Don't register the same ISR/arg pair multiple times */
 	for (i = 0; i < shared_entry->client_num; i++) {
 		client = &shared_entry->clients[i];
 
@@ -103,6 +115,14 @@ void z_isr_install(unsigned int irq, void (*routine)(const void *),
 	k_spin_unlock(&lock, key);
 }
 
+/**
+ * @brief Swap client data between two ISR table entries
+ *
+ * This function swaps the ISR and argument data between two ISR table entries.
+ *
+ * @param a Pointer to the first ISR table entry
+ * @param b Pointer to the second ISR table entry
+ */
 static void swap_client_data(struct _isr_table_entry *a,
 			     struct _isr_table_entry *b)
 {
@@ -118,6 +138,16 @@ static void swap_client_data(struct _isr_table_entry *a,
 	b->isr = tmp.isr;
 }
 
+/**
+ * @brief Remove a client from the shared ISR table
+ *
+ * This function removes a client from the shared ISR table and updates the
+ * table accordingly.
+ *
+ * @param shared_entry Pointer to the shared ISR table entry
+ * @param client_idx Index of the client to remove
+ * @param table_idx Index in the ISR table
+ */
 static void shared_irq_remove_client(struct z_shared_isr_table_entry *shared_entry,
 				     int client_idx, unsigned int table_idx)
 {
@@ -126,7 +156,7 @@ static void shared_irq_remove_client(struct z_shared_isr_table_entry *shared_ent
 	shared_entry->clients[client_idx].isr = NULL;
 	shared_entry->clients[client_idx].arg = NULL;
 
-	/* push back the removed client to the end of the client list */
+	/* Push back the removed client to the end of the client list */
 	for (i = client_idx; i <= (int)shared_entry->client_num - 2; i++) {
 		swap_client_data(&shared_entry->clients[i],
 				 &shared_entry->clients[i + 1]);
@@ -134,7 +164,7 @@ static void shared_irq_remove_client(struct z_shared_isr_table_entry *shared_ent
 
 	shared_entry->client_num--;
 
-	/* "unshare" interrupt if there will be a single client left */
+	/* "Unshare" interrupt if there will be a single client left */
 	if (shared_entry->client_num == 1) {
 		_sw_isr_table[table_idx].isr = shared_entry->clients[0].isr;
 		_sw_isr_table[table_idx].arg = shared_entry->clients[0].arg;
@@ -146,6 +176,18 @@ static void shared_irq_remove_client(struct z_shared_isr_table_entry *shared_ent
 	}
 }
 
+/**
+ * @brief Disconnect a dynamic ISR for the specified IRQ
+ *
+ * This function disconnects a dynamic ISR for the specified IRQ.
+ *
+ * @param irq IRQ number
+ * @param priority IRQ priority
+ * @param routine ISR routine to disconnect
+ * @param parameter Parameter to pass to the ISR routine
+ * @param flags IRQ flags
+ * @return 0 on success, or an error code
+ */
 int __weak arch_irq_disconnect_dynamic(unsigned int irq, unsigned int priority,
 				       void (*routine)(const void *parameter),
 				       const void *parameter, uint32_t flags)
@@ -156,6 +198,17 @@ int __weak arch_irq_disconnect_dynamic(unsigned int irq, unsigned int priority,
 	return z_isr_uninstall(irq, routine, parameter);
 }
 
+/**
+ * @brief Uninstall an ISR for the specified IRQ
+ *
+ * This function uninstalls an ISR for the specified IRQ. If the IRQ line is
+ * shared, it removes the ISR from the shared ISR table.
+ *
+ * @param irq IRQ number
+ * @param routine ISR routine to uninstall
+ * @param parameter Parameter to pass to the ISR routine
+ * @return 0 on success, or an error code
+ */
 int z_isr_uninstall(unsigned int irq,
 		    void (*routine)(const void *),
 		    const void *parameter)
@@ -169,7 +222,7 @@ int z_isr_uninstall(unsigned int irq,
 
 	table_idx = z_get_sw_isr_table_idx(irq);
 
-	/* check for out of bounds table index */
+	/* Check for out of bounds table index */
 	if (table_idx >= IRQ_TABLE_SIZE) {
 		return -EINVAL;
 	}
@@ -179,7 +232,7 @@ int z_isr_uninstall(unsigned int irq,
 
 	key = k_spin_lock(&lock);
 
-	/* note: it's important that we remove the ISR/arg pair even if
+	/* Note: it's important that we remove the ISR/arg pair even if
 	 * the IRQ line is not being shared because z_isr_install() will
 	 * not overwrite it unless the _sw_isr_table entry for the given
 	 * IRQ line contains the default pair which is z_irq_spurious/NULL.
@@ -197,7 +250,7 @@ int z_isr_uninstall(unsigned int irq,
 		client = &shared_entry->clients[i];
 
 		if (client->isr == routine && client->arg == parameter) {
-			/* note: this is the only match we're going to get */
+			/* Note: this is the only match we're going to get */
 			shared_irq_remove_client(shared_entry, i, table_idx);
 			goto out_unlock;
 		}
@@ -209,3 +262,4 @@ out_unlock:
 }
 
 #endif /* CONFIG_DYNAMIC_INTERRUPTS */
+GST

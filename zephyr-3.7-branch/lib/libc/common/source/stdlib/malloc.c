@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/libc/common/source/stdlib/malloc.c
 
 #include <stdlib.h>
 #include <zephyr/kernel.h>
@@ -119,16 +115,20 @@ Z_LIBC_DATA static struct sys_heap z_malloc_heap;
 #ifdef CONFIG_MULTITHREADING
 Z_LIBC_DATA SYS_MUTEX_DEFINE(z_malloc_heap_mutex);
 
-static inline void
-malloc_lock(void) {
+/**
+ * @brief Lock the malloc heap
+ */
+static inline void malloc_lock(void) {
 	int lock_ret;
 
 	lock_ret = sys_mutex_lock(&z_malloc_heap_mutex, K_FOREVER);
 	__ASSERT_NO_MSG(lock_ret == 0);
 }
 
-static inline void
-malloc_unlock(void)
+/**
+ * @brief Unlock the malloc heap
+ */
+static inline void malloc_unlock(void)
 {
 	(void) sys_mutex_unlock(&z_malloc_heap_mutex);
 }
@@ -137,6 +137,12 @@ malloc_unlock(void)
 #define malloc_unlock()
 #endif
 
+/**
+ * @brief Allocate memory
+ *
+ * @param size Number of bytes to allocate
+ * @return Pointer to the allocated memory, or NULL if allocation failed
+ */
 void *malloc(size_t size)
 {
 	malloc_lock();
@@ -153,6 +159,13 @@ void *malloc(size_t size)
 	return ret;
 }
 
+/**
+ * @brief Allocate aligned memory
+ *
+ * @param alignment Alignment requirement
+ * @param size Number of bytes to allocate
+ * @return Pointer to the allocated memory, or NULL if allocation failed
+ */
 void *aligned_alloc(size_t alignment, size_t size)
 {
 	malloc_lock();
@@ -171,25 +184,24 @@ void *aligned_alloc(size_t alignment, size_t size)
 
 #ifdef CONFIG_GLIBCXX_LIBCPP
 
-/*
- * GCC's libstdc++ may use this function instead of aligned_alloc due to a
- * bug in the configuration for "newlib" environments (which includes picolibc).
- * When toolchains including that bug fix can become a dependency for Zephyr,
- * this work-around can be removed.
+/**
+ * @brief Allocate aligned memory (memalign)
  *
- * Note that aligned_alloc isn't defined to work as a replacement for
- * memalign as it requires that the size be a multiple of the alignment,
- * while memalign does not. However, the aligned_alloc implementation here
- * is just a wrapper around sys_heap_aligned_alloc which doesn't have that
- * requirement and so can be used by memalign.
+ * @param alignment Alignment requirement
+ * @param size Number of bytes to allocate
+ * @return Pointer to the allocated memory, or NULL if allocation failed
  */
-
 void *memalign(size_t alignment, size_t size)
 {
 	return aligned_alloc(alignment, size);
 }
 #endif
 
+/**
+ * @brief Prepare the malloc heap
+ *
+ * @return 0 on success
+ */
 static int malloc_prepare(void)
 {
 	void *heap_base = NULL;
@@ -236,6 +248,13 @@ static int malloc_prepare(void)
 	return 0;
 }
 
+/**
+ * @brief Reallocate memory
+ *
+ * @param ptr Pointer to the previously allocated memory
+ * @param requested_size Number of bytes to allocate
+ * @return Pointer to the reallocated memory, or NULL if allocation failed
+ */
 void *realloc(void *ptr, size_t requested_size)
 {
 	malloc_lock();
@@ -253,6 +272,11 @@ void *realloc(void *ptr, size_t requested_size)
 	return ret;
 }
 
+/**
+ * @brief Free allocated memory
+ *
+ * @param ptr Pointer to the memory to free
+ */
 void free(void *ptr)
 {
 	malloc_lock();
@@ -262,6 +286,13 @@ void free(void *ptr)
 
 SYS_INIT(malloc_prepare, POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_LIBC);
 #else /* No malloc arena */
+
+/**
+ * @brief Allocate memory (no malloc arena)
+ *
+ * @param size Number of bytes to allocate
+ * @return Always returns NULL
+ */
 void *malloc(size_t size)
 {
 	ARG_UNUSED(size);
@@ -272,11 +303,23 @@ void *malloc(size_t size)
 	return NULL;
 }
 
+/**
+ * @brief Free allocated memory (no malloc arena)
+ *
+ * @param ptr Pointer to the memory to free
+ */
 void free(void *ptr)
 {
 	ARG_UNUSED(ptr);
 }
 
+/**
+ * @brief Reallocate memory (no malloc arena)
+ *
+ * @param ptr Pointer to the previously allocated memory
+ * @param size Number of bytes to allocate
+ * @return Always returns NULL
+ */
 void *realloc(void *ptr, size_t size)
 {
 	ARG_UNUSED(ptr);
@@ -287,6 +330,14 @@ void *realloc(void *ptr, size_t size)
 #endif /* CONFIG_COMMON_LIBC_MALLOC */
 
 #ifdef CONFIG_COMMON_LIBC_CALLOC
+
+/**
+ * @brief Allocate and zero-initialize an array
+ *
+ * @param nmemb Number of elements
+ * @param size Size of each element
+ * @return Pointer to the allocated memory, or NULL if allocation failed
+ */
 void *calloc(size_t nmemb, size_t size)
 {
 	void *ret;
@@ -307,6 +358,15 @@ void *calloc(size_t nmemb, size_t size)
 #endif /* CONFIG_COMMON_LIBC_CALLOC */
 
 #ifdef CONFIG_COMMON_LIBC_REALLOCARRAY
+
+/**
+ * @brief Reallocate an array
+ *
+ * @param ptr Pointer to the previously allocated memory
+ * @param nmemb Number of elements
+ * @param size Size of each element
+ * @return Pointer to the reallocated memory, or NULL if allocation failed
+ */
 void *reallocarray(void *ptr, size_t nmemb, size_t size)
 {
 	if (size_mul_overflow(nmemb, size, &size)) {
@@ -316,3 +376,4 @@ void *reallocarray(void *ptr, size_t nmemb, size_t size)
 	return realloc(ptr, size);
 }
 #endif /* CONFIG_COMMON_LIBC_REALLOCARRAY */
+//GST

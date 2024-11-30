@@ -1,13 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief API for monitoring network connections and interfaces.
- */
+// zephyr-3.7-branch/include/zephyr/net/conn_mgr_monitor.h
 
 #ifndef ZEPHYR_INCLUDE_CONN_MGR_H_
 #define ZEPHYR_INCLUDE_CONN_MGR_H_
@@ -108,3 +99,4 @@ void conn_mgr_watch_l2(const struct net_l2 *l2);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_CONN_MGR_H_ */
+//GST

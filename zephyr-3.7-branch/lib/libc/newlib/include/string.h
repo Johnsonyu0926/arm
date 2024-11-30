@@ -1,9 +1,4 @@
-/*
- * Copyright © 2024 Keith Packard <keithp@keithp.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/newlib/include/string.h
 #ifndef ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STRING_H_
 #define ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STRING_H_
 
@@ -35,3 +30,4 @@ size_t strnlen(const char *, size_t);
 #endif
 
 #endif /* ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STRING_H_ */
+//GST

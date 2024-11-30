@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/heap.h
 #ifndef ZEPHYR_INCLUDE_LIB_OS_HEAP_H_
 #define ZEPHYR_INCLUDE_LIB_OS_HEAP_H_
 
@@ -10,7 +6,7 @@
  * Internal heap APIs
  */
 
-/* Theese validation checks are non-trivially expensive, so enable
+/* These validation checks are non-trivially expensive, so enable
  * only when debugging the heap code.  They shouldn't be routine
  * assertions.
  */
@@ -280,3 +276,4 @@ static inline void get_alloc_info(struct z_heap *h, size_t *alloc_bytes,
 }
 
 #endif /* ZEPHYR_INCLUDE_LIB_OS_HEAP_H_ */
+//GST

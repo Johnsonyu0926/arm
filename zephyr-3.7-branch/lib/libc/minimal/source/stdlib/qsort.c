@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Friedt Professional Engineering Services, Inc
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/minimal/source/stdlib/qsort.c
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,20 +6,19 @@
 #include <zephyr/sys/util.h>
 
 /*
- * Normally parent is defined parent(k) = floor((k-1) / 2) but we can avoid a
+ * Normally parent is defined as parent(k) = floor((k-1) / 2) but we can avoid a
  * divide by noticing that floor((k-1) / 2) = ((k - 1) >> 1).
  */
-
 #define parent(k) (((k) - 1) >> 1)
+
 /*
- * Normally left is defined left(k) = (2 * k + 1) but we can avoid a
+ * Normally left is defined as left(k) = (2 * k + 1) but we can avoid a
  * multiply by noticing that (2 * k + 1) = ((k << 1) + 1).
  */
-
 #define left(k) (((k) << 1) + 1)
 
 /*
- * Normally right is defined right(k) = (2 * k + 2) but we can avoid a
+ * Normally right is defined as right(k) = (2 * k + 2) but we can avoid a
  * multiply by noticing that right(k) = left(k) + 1
  */
 #define right(k) (left(k) + 1)
@@ -40,6 +34,14 @@ struct qsort_comp {
 	};
 };
 
+/**
+ * @brief Compare two elements using the comparison function
+ *
+ * @param cmp Pointer to the comparison structure
+ * @param a Pointer to the first element
+ * @param b Pointer to the second element
+ * @return Result of the comparison
+ */
 static inline int compare(struct qsort_comp *cmp, void *a, void *b)
 {
 	if (cmp->has3) {
@@ -49,6 +51,15 @@ static inline int compare(struct qsort_comp *cmp, void *a, void *b)
 	return cmp->comp2(a, b);
 }
 
+/**
+ * @brief Sift down the heap
+ *
+ * @param base Pointer to the base of the array
+ * @param start Start index
+ * @param end End index
+ * @param size Size of each element
+ * @param cmp Pointer to the comparison structure
+ */
 static void sift_down(void *base, int start, int end, size_t size, struct qsort_comp *cmp)
 {
 	int root;
@@ -76,6 +87,14 @@ static void sift_down(void *base, int start, int end, size_t size, struct qsort_
 	}
 }
 
+/**
+ * @brief Heapify the array
+ *
+ * @param base Pointer to the base of the array
+ * @param nmemb Number of elements in the array
+ * @param size Size of each element
+ * @param cmp Pointer to the comparison structure
+ */
 static void heapify(void *base, int nmemb, size_t size, struct qsort_comp *cmp)
 {
 	int start;
@@ -85,6 +104,14 @@ static void heapify(void *base, int nmemb, size_t size, struct qsort_comp *cmp)
 	}
 }
 
+/**
+ * @brief Perform heap sort on the array
+ *
+ * @param base Pointer to the base of the array
+ * @param nmemb Number of elements in the array
+ * @param size Size of each element
+ * @param cmp Pointer to the comparison structure
+ */
 static void heap_sort(void *base, int nmemb, size_t size, struct qsort_comp *cmp)
 {
 	int end;
@@ -97,6 +124,15 @@ static void heap_sort(void *base, int nmemb, size_t size, struct qsort_comp *cmp
 	}
 }
 
+/**
+ * @brief Sort an array with a comparison function and an argument
+ *
+ * @param base Pointer to the array to sort
+ * @param nmemb Number of elements in the array
+ * @param size Size of each element
+ * @param comp3 Comparison function
+ * @param arg Argument to pass to the comparison function
+ */
 void qsort_r(void *base, size_t nmemb, size_t size,
 	     int (*comp3)(const void *a, const void *b, void *arg), void *arg)
 {
@@ -111,6 +147,14 @@ void qsort_r(void *base, size_t nmemb, size_t size,
 	heap_sort(base, nmemb, size, &cmp);
 }
 
+/**
+ * @brief Sort an array
+ *
+ * @param base Pointer to the array to sort
+ * @param nmemb Number of elements in the array
+ * @param size Size of each element
+ * @param comp2 Comparison function
+ */
 void qsort(void *base, size_t nmemb, size_t size,
 	   int (*comp2)(const void *a, const void *b))
 {
@@ -124,3 +168,4 @@ void qsort(void *base, size_t nmemb, size_t size,
 
 	heap_sort(base, nmemb, size, &cmp);
 }
+//GST

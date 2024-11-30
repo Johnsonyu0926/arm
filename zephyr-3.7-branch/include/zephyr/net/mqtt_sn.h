@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 René Beckmann
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+zephyr-3.7-branch/include/zephyr/net/mqtt_sn.h
 
 /** @file mqtt_sn.h
  *

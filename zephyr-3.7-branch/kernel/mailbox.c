@@ -1,16 +1,7 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @brief Mailboxes.
- */
+// kernel/mailbox.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <zephyr/linker/sections.h>
 #include <string.h>
@@ -22,7 +13,7 @@
 #include <wait_q.h>
 
 #ifdef CONFIG_OBJ_CORE_MAILBOX
-static struct k_obj_type  obj_type_mailbox;
+static struct k_obj_type obj_type_mailbox;
 #endif /* CONFIG_OBJ_CORE_MAILBOX */
 
 #if (CONFIG_NUM_MBOX_ASYNC_MSGS > 0)
@@ -36,20 +27,32 @@ struct k_mbox_async {
 /* stack of unused asynchronous message descriptors */
 K_STACK_DEFINE(async_msg_free, CONFIG_NUM_MBOX_ASYNC_MSGS);
 
-/* allocate an asynchronous message descriptor */
+/**
+ * @brief Allocate an asynchronous message descriptor
+ *
+ * @param async Pointer to the asynchronous message descriptor
+ */
 static inline void mbox_async_alloc(struct k_mbox_async **async)
 {
 	(void)k_stack_pop(&async_msg_free, (stack_data_t *)async, K_FOREVER);
 }
 
-/* free an asynchronous message descriptor */
+/**
+ * @brief Free an asynchronous message descriptor
+ *
+ * @param async Pointer to the asynchronous message descriptor
+ */
 static inline void mbox_async_free(struct k_mbox_async *async)
 {
 	k_stack_push(&async_msg_free, (stack_data_t)async);
 }
 
-/*
+/**
+ * @brief Initialize the mailbox module
+ *
  * Do run-time initialization of mailbox object subsystem.
+ *
+ * @return 0 on success, or an error code on failure
  */
 static int init_mbox_module(void)
 {
@@ -84,6 +87,11 @@ SYS_INIT(init_mbox_module, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 
 #endif /* CONFIG_NUM_MBOX_ASYNC_MSGS > 0 */
 
+/**
+ * @brief Initialize a mailbox
+ *
+ * @param mbox Pointer to the mailbox
+ */
 void k_mbox_init(struct k_mbox *mbox)
 {
 	z_waitq_init(&mbox->tx_msg_queue);
@@ -292,6 +300,14 @@ static int mbox_message_put(struct k_mbox *mbox, struct k_mbox_msg *tx_msg,
 	return ret;
 }
 
+/**
+ * @brief Put a message into a mailbox
+ *
+ * @param mbox Pointer to the mailbox
+ * @param tx_msg Pointer to the transmit message descriptor
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int k_mbox_put(struct k_mbox *mbox, struct k_mbox_msg *tx_msg,
 	       k_timeout_t timeout)
 {
@@ -308,6 +324,13 @@ int k_mbox_put(struct k_mbox *mbox, struct k_mbox_msg *tx_msg,
 }
 
 #if (CONFIG_NUM_MBOX_ASYNC_MSGS > 0)
+/**
+ * @brief Put a message into a mailbox asynchronously
+ *
+ * @param mbox Pointer to the mailbox
+ * @param tx_msg Pointer to the transmit message descriptor
+ * @param sem Pointer to the semaphore to signal when the message is sent
+ */
 void k_mbox_async_put(struct k_mbox *mbox, struct k_mbox_msg *tx_msg,
 		      struct k_sem *sem)
 {
@@ -332,6 +355,12 @@ void k_mbox_async_put(struct k_mbox *mbox, struct k_mbox_msg *tx_msg,
 }
 #endif /* CONFIG_NUM_MBOX_ASYNC_MSGS */
 
+/**
+ * @brief Get data from a mailbox message
+ *
+ * @param rx_msg Pointer to the receive message descriptor
+ * @param buffer Pointer to the buffer to store the data
+ */
 void k_mbox_data_get(struct k_mbox_msg *rx_msg, void *buffer)
 {
 	/* handle case where data is to be discarded */
@@ -379,6 +408,15 @@ static int mbox_message_data_check(struct k_mbox_msg *rx_msg, void *buffer)
 	return 0;
 }
 
+/**
+ * @brief Get a message from a mailbox
+ *
+ * @param mbox Pointer to the mailbox
+ * @param rx_msg Pointer to the receive message descriptor
+ * @param buffer Pointer to the buffer to store the data
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int k_mbox_get(struct k_mbox *mbox, struct k_mbox_msg *rx_msg, void *buffer,
 	       k_timeout_t timeout)
 {
@@ -440,6 +478,11 @@ int k_mbox_get(struct k_mbox *mbox, struct k_mbox_msg *rx_msg, void *buffer,
 
 #ifdef CONFIG_OBJ_CORE_MAILBOX
 
+/**
+ * @brief Initialize mailbox object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_mailbox_obj_core_list(void)
 {
 	/* Initialize mailbox object type */
@@ -459,3 +502,4 @@ static int init_mailbox_obj_core_list(void)
 SYS_INIT(init_mailbox_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_MAILBOX */
+//GST

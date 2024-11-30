@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/gdbstub.h
 
 #include <inttypes.h>
 
@@ -11,11 +7,11 @@
 
 #ifdef CONFIG_GDBSTUB
 
-#define XTREG_GRP_MASK			0x0F00
-#define XTREG_GRP_GENERAL		0x0000
-#define XTREG_GRP_ADDR			0x0100
-#define XTREG_GRP_SPECIAL		0x0200
-#define XTREG_GRP_USER			0x0300
+#define XTREG_GRP_MASK          0x0F00
+#define XTREG_GRP_GENERAL       0x0000
+#define XTREG_GRP_ADDR          0x0100
+#define XTREG_GRP_SPECIAL       0x0200
+#define XTREG_GRP_USER          0x0300
 
 /**
  * @brief Register description for GDB stub.
@@ -35,38 +31,38 @@
  * gpkt_offset : ofs
  */
 struct xtensa_register {
-	/** Register value */
-	uint32_t	val;
+    /** Register value */
+    uint32_t    val;
 
-	/** GDB register index (for p/P packets) */
-	uint8_t		idx;
+    /** GDB register index (for p/P packets) */
+    uint8_t     idx;
 
-	/** Size of register */
-	uint8_t		byte_size;
+    /** Size of register */
+    uint8_t     byte_size;
 
-	/** Xtensa register number */
-	uint16_t	regno;
+    /** Xtensa register number */
+    uint16_t    regno;
 
-	/**
-	 * Offset of this register in GDB G-packet.
-	 * -1 if register is not in G-packet.
-	 */
-	int16_t		gpkt_offset;
+    /**
+     * Offset of this register in GDB G-packet.
+     * -1 if register is not in G-packet.
+     */
+    int16_t     gpkt_offset;
 
-	/**
-	 * Offset of saved register in stack frame.
-	 * 0 if not saved in stack frame.
-	 */
-	int8_t		stack_offset;
+    /**
+     * Offset of saved register in stack frame.
+     * 0 if not saved in stack frame.
+     */
+    int8_t      stack_offset;
 
-	/** Sequence number */
-	uint8_t		seqno;
+    /** Sequence number */
+    uint8_t     seqno;
 
-	/**
-	 * Set to 1 if register should not be written
-	 * to during debugging.
-	 */
-	uint8_t		is_read_only:1;
+    /**
+     * Set to 1 if register should not be written
+     * to during debugging.
+     */
+    uint8_t     is_read_only:1;
 };
 
 /* Due to Xtensa SoCs being highly configurable,
@@ -85,26 +81,26 @@ struct xtensa_register {
  * @brief Architecture specific GDB context.
  */
 struct gdb_ctx {
-	/** Exception reason */
-	unsigned int		exception;
+    /** Exception reason */
+    unsigned int        exception;
 
-	/** Register descriptions */
-	struct xtensa_register	*regs;
+    /** Register descriptions */
+    struct xtensa_register  *regs;
 
-	/** Number of registers */
-	uint8_t			num_regs;
+    /** Number of registers */
+    uint8_t         num_regs;
 
-	/** Sequence number */
-	uint8_t			seqno;
+    /** Sequence number */
+    uint8_t         seqno;
 
-	/** Index in register descriptions of A0 register */
-	uint8_t			a0_idx;
+    /** Index in register descriptions of A0 register */
+    uint8_t         a0_idx;
 
-	/** Index in register descriptions of AR0 register */
-	uint8_t			ar_idx;
+    /** Index in register descriptions of AR0 register */
+    uint8_t         ar_idx;
 
-	/** Index in register descriptions of WINDOWBASE register */
-	uint8_t			wb_idx;
+    /** Index in register descriptions of WINDOWBASE register */
+    uint8_t         wb_idx;
 };
 
 /**
@@ -115,26 +111,18 @@ struct gdb_ctx {
  */
 static inline bool gdb_xtensa_is_logical_addr_reg(struct xtensa_register *reg)
 {
-	if (reg->regno < 16) {
-		return true;
-	} else {
-		return false;
-	}
+    return reg->regno < 16;
 }
 
 /**
- * Test if the register is a address register (AR0 - AR31/AR63).
+ * Test if the register is an address register (AR0 - AR31/AR63).
  *
  * @retval true  if register is AR0 - AR31/AR63
  * @retval false if not
  */
 static inline bool gdb_xtensa_is_address_reg(struct xtensa_register *reg)
 {
-	if ((reg->regno & XTREG_GRP_MASK) == XTREG_GRP_ADDR) {
-		return true;
-	} else {
-		return false;
-	}
+    return (reg->regno & XTREG_GRP_MASK) == XTREG_GRP_ADDR;
 }
 
 /**
@@ -146,11 +134,7 @@ static inline bool gdb_xtensa_is_address_reg(struct xtensa_register *reg)
  */
 static inline bool gdb_xtensa_is_special_reg(struct xtensa_register *reg)
 {
-	if ((reg->regno & XTREG_GRP_MASK) == XTREG_GRP_SPECIAL) {
-		return true;
-	} else {
-		return false;
-	}
+    return (reg->regno & XTREG_GRP_MASK) == XTREG_GRP_SPECIAL;
 }
 
 /**
@@ -162,13 +146,10 @@ static inline bool gdb_xtensa_is_special_reg(struct xtensa_register *reg)
  */
 static inline bool gdb_xtensa_is_user_reg(struct xtensa_register *reg)
 {
-	if ((reg->regno & XTREG_GRP_MASK) == XTREG_GRP_USER) {
-		return true;
-	} else {
-		return false;
-	}
+    return (reg->regno & XTREG_GRP_MASK) == XTREG_GRP_USER;
 }
 
 #endif /* CONFIG_GDBSTUB */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_GDBSTUB_SYS_H_ */
+//GST

@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/heap/heap_listener.c
 #include <zephyr/spinlock.h>
 #include <zephyr/sys/heap_listener.h>
 
@@ -75,3 +70,4 @@ void heap_listener_notify_resize(uintptr_t heap_id, void *old_heap_end, void *ne
 
 	k_spin_unlock(&heap_listener_lock, key);
 }
+//GST

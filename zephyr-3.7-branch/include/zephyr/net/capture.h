@@ -1,14 +1,4 @@
-/** @file
- * @brief Network packet capture definitions
- *
- * Definitions for capturing network packets.
- */
-
-/*
- * Copyright (c) 2021 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/capture.h
 
 #ifndef ZEPHYR_INCLUDE_NET_CAPTURE_H_
 #define ZEPHYR_INCLUDE_NET_CAPTURE_H_
@@ -379,3 +369,4 @@ static inline void net_capture_foreach(net_capture_cb_t cb, void *user_data)
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_CAPTURE_H_ */
+//GST

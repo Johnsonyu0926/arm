@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/kheap.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
@@ -12,6 +8,13 @@
 #include <ksched.h>
 #include <wait_q.h>
 
+/**
+ * @brief Initialize a heap
+ *
+ * @param heap Pointer to the heap
+ * @param mem Pointer to the memory region
+ * @param bytes Size of the memory region
+ */
 void k_heap_init(struct k_heap *heap, void *mem, size_t bytes)
 {
 	z_waitq_init(&heap->wait_q);
@@ -20,6 +23,11 @@ void k_heap_init(struct k_heap *heap, void *mem, size_t bytes)
 	SYS_PORT_TRACING_OBJ_INIT(k_heap, heap);
 }
 
+/**
+ * @brief Initialize statically defined heaps
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int statics_init(void)
 {
 	STRUCT_SECTION_FOREACH(k_heap, heap) {
@@ -62,6 +70,15 @@ SYS_INIT_NAMED(statics_init_pre, statics_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_
 SYS_INIT_NAMED(statics_init_post, statics_init, POST_KERNEL, 0);
 #endif /* CONFIG_DEMAND_PAGING && !CONFIG_LINKER_GENERIC_SECTIONS_PRESENT_AT_BOOT */
 
+/**
+ * @brief Allocate aligned memory from a heap
+ *
+ * @param heap Pointer to the heap
+ * @param align Alignment requirement
+ * @param bytes Size of the memory to allocate
+ * @param timeout Timeout value
+ * @return Pointer to the allocated memory, or NULL on failure
+ */
 void *k_heap_aligned_alloc(struct k_heap *heap, size_t align, size_t bytes,
 			k_timeout_t timeout)
 {
@@ -105,6 +122,14 @@ void *k_heap_aligned_alloc(struct k_heap *heap, size_t align, size_t bytes,
 	return ret;
 }
 
+/**
+ * @brief Allocate memory from a heap
+ *
+ * @param heap Pointer to the heap
+ * @param bytes Size of the memory to allocate
+ * @param timeout Timeout value
+ * @return Pointer to the allocated memory, or NULL on failure
+ */
 void *k_heap_alloc(struct k_heap *heap, size_t bytes, k_timeout_t timeout)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_heap, alloc, heap, timeout);
@@ -116,6 +141,15 @@ void *k_heap_alloc(struct k_heap *heap, size_t bytes, k_timeout_t timeout)
 	return ret;
 }
 
+/**
+ * @brief Reallocate memory from a heap
+ *
+ * @param heap Pointer to the heap
+ * @param ptr Pointer to the previously allocated memory
+ * @param bytes New size of the memory
+ * @param timeout Timeout value
+ * @return Pointer to the reallocated memory, or NULL on failure
+ */
 void *k_heap_realloc(struct k_heap *heap, void *ptr, size_t bytes, k_timeout_t timeout)
 {
 	k_timepoint_t end = sys_timepoint_calc(timeout);
@@ -146,6 +180,12 @@ void *k_heap_realloc(struct k_heap *heap, void *ptr, size_t bytes, k_timeout_t t
 	return ret;
 }
 
+/**
+ * @brief Free allocated memory
+ *
+ * @param heap Pointer to the heap
+ * @param mem Pointer to the memory to free
+ */
 void k_heap_free(struct k_heap *heap, void *mem)
 {
 	k_spinlock_key_t key = k_spin_lock(&heap->lock);
@@ -159,3 +199,4 @@ void k_heap_free(struct k_heap *heap, void *mem)
 		k_spin_unlock(&heap->lock, key);
 	}
 }
+//GST

@@ -1,8 +1,5 @@
-/*
- * Copyright 2022 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arm64/cache.h
+
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_CACHE_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_CACHE_H_
 
@@ -18,38 +15,45 @@
 extern "C" {
 #endif
 
-#define K_CACHE_WB		BIT(0)
-#define K_CACHE_INVD		BIT(1)
-#define K_CACHE_WB_INVD		(K_CACHE_WB | K_CACHE_INVD)
+#define K_CACHE_WB        BIT(0)
+#define K_CACHE_INVD      BIT(1)
+#define K_CACHE_WB_INVD   (K_CACHE_WB | K_CACHE_INVD)
 
 #if defined(CONFIG_DCACHE)
 
-#define	CTR_EL0_DMINLINE_SHIFT		16
-#define	CTR_EL0_DMINLINE_MASK		BIT_MASK(4)
-#define	CTR_EL0_CWG_SHIFT		24
-#define	CTR_EL0_CWG_MASK		BIT_MASK(4)
+#define CTR_EL0_DMINLINE_SHIFT       16
+#define CTR_EL0_DMINLINE_MASK        BIT_MASK(4)
+#define CTR_EL0_CWG_SHIFT            24
+#define CTR_EL0_CWG_MASK             BIT_MASK(4)
 
 /* clidr_el1 */
-#define CLIDR_EL1_LOC_SHIFT		24
-#define CLIDR_EL1_LOC_MASK		BIT_MASK(3)
-#define CLIDR_EL1_CTYPE_SHIFT(level)	((level) * 3)
-#define CLIDR_EL1_CTYPE_MASK		BIT_MASK(3)
+#define CLIDR_EL1_LOC_SHIFT          24
+#define CLIDR_EL1_LOC_MASK           BIT_MASK(3)
+#define CLIDR_EL1_CTYPE_SHIFT(level) ((level) * 3)
+#define CLIDR_EL1_CTYPE_MASK         BIT_MASK(3)
 
 /* ccsidr_el1 */
-#define CCSIDR_EL1_LN_SZ_SHIFT		0
-#define CCSIDR_EL1_LN_SZ_MASK		BIT_MASK(3)
-#define CCSIDR_EL1_WAYS_SHIFT		3
-#define CCSIDR_EL1_WAYS_MASK		BIT_MASK(10)
-#define CCSIDR_EL1_SETS_SHIFT		13
-#define CCSIDR_EL1_SETS_MASK		BIT_MASK(15)
+#define CCSIDR_EL1_LN_SZ_SHIFT       0
+#define CCSIDR_EL1_LN_SZ_MASK        BIT_MASK(3)
+#define CCSIDR_EL1_WAYS_SHIFT        3
+#define CCSIDR_EL1_WAYS_MASK         BIT_MASK(10)
+#define CCSIDR_EL1_SETS_SHIFT        13
+#define CCSIDR_EL1_SETS_MASK         BIT_MASK(15)
 
-#define dc_ops(op, val)							\
-({									\
-	__asm__ volatile ("dc " op ", %0" :: "r" (val) : "memory");	\
+#define dc_ops(op, val) \
+({ \
+	__asm__ volatile ("dc " op ", %0" :: "r" (val) : "memory"); \
 })
 
 static size_t dcache_line_size;
 
+/**
+ * @brief Get the data cache line size
+ *
+ * This function returns the size of the data cache line.
+ *
+ * @return The size of the data cache line
+ */
 static ALWAYS_INLINE size_t arch_dcache_line_size_get(void)
 {
 	uint64_t ctr_el0;
@@ -68,11 +72,16 @@ static ALWAYS_INLINE size_t arch_dcache_line_size_get(void)
 	return dcache_line_size;
 }
 
-/*
- * operation for data cache by virtual address to PoC
- * ops:  K_CACHE_INVD: invalidate
- *	 K_CACHE_WB: clean
- *	 K_CACHE_WB_INVD: clean and invalidate
+/**
+ * @brief Perform data cache operations on a range of addresses
+ *
+ * This function performs data cache operations (invalidate, clean, or clean and invalidate)
+ * on a range of addresses.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @param op The cache operation to perform (K_CACHE_INVD, K_CACHE_WB, or K_CACHE_WB_INVD)
+ * @return 0 on success, -ENOTSUP if the operation is not supported
  */
 static ALWAYS_INLINE int arm64_dcache_range(void *addr, size_t size, int op)
 {
@@ -94,9 +103,9 @@ static ALWAYS_INLINE int arm64_dcache_range(void *addr, size_t size, int op)
 	 * For example (assume cache line size is 64 bytes):
 	 * There are 2 consecutive 32-byte buffers, which can be cached in
 	 * one line like below.
-	 *			+------------------+------------------+
-	 *	 Cache line:	| buffer 0 (dirty) |     buffer 1     |
-	 *			+------------------+------------------+
+	 *         +------------------+------------------+
+	 *   Cache line:  | buffer 0 (dirty) |     buffer 1     |
+	 *         +------------------+------------------+
 	 * For the start address not aligned case, when invalidate the
 	 * buffer 1, the full cache line will be invalidated, if the buffer
 	 * 0 is dirty, its data will be lost.
@@ -139,41 +148,99 @@ done:
 	return 0;
 }
 
+/**
+ * @brief Flush the entire data cache
+ *
+ * This function flushes the entire data cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_flush_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Invalidate the entire data cache
+ *
+ * This function invalidates the entire data cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_invd_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush and invalidate the entire data cache
+ *
+ * This function flushes and invalidates the entire data cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_flush_and_invd_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush a range of addresses in the data cache
+ *
+ * This function flushes a range of addresses in the data cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return 0 on success, -ENOTSUP if the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_flush_range(void *addr, size_t size)
 {
 	return arm64_dcache_range(addr, size, K_CACHE_WB);
 }
 
+/**
+ * @brief Invalidate a range of addresses in the data cache
+ *
+ * This function invalidates a range of addresses in the data cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return 0 on success, -ENOTSUP if the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_invd_range(void *addr, size_t size)
 {
 	return arm64_dcache_range(addr, size, K_CACHE_INVD);
 }
 
+/**
+ * @brief Flush and invalidate a range of addresses in the data cache
+ *
+ * This function flushes and invalidates a range of addresses in the data cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return 0 on success, -ENOTSUP if the operation is not supported
+ */
 static ALWAYS_INLINE int arch_dcache_flush_and_invd_range(void *addr, size_t size)
 {
 	return arm64_dcache_range(addr, size, K_CACHE_WB_INVD);
 }
 
+/**
+ * @brief Enable the data cache
+ *
+ * This function enables the data cache.
+ */
 static ALWAYS_INLINE void arch_dcache_enable(void)
 {
 	/* nothing */
 }
 
+/**
+ * @brief Disable the data cache
+ *
+ * This function disables the data cache.
+ */
 static ALWAYS_INLINE void arch_dcache_disable(void)
 {
 	/* nothing */
@@ -183,26 +250,63 @@ static ALWAYS_INLINE void arch_dcache_disable(void)
 
 #if defined(CONFIG_ICACHE)
 
+/**
+ * @brief Get the instruction cache line size
+ *
+ * This function returns the size of the instruction cache line.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE size_t arch_icache_line_size_get(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush the entire instruction cache
+ *
+ * This function flushes the entire instruction cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_flush_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Invalidate the entire instruction cache
+ *
+ * This function invalidates the entire instruction cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_invd_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush and invalidate the entire instruction cache
+ *
+ * This function flushes and invalidates the entire instruction cache.
+ *
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_flush_and_invd_all(void)
 {
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush a range of addresses in the instruction cache
+ *
+ * This function flushes a range of addresses in the instruction cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_flush_range(void *addr, size_t size)
 {
 	ARG_UNUSED(addr);
@@ -210,6 +314,15 @@ static ALWAYS_INLINE int arch_icache_flush_range(void *addr, size_t size)
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Invalidate a range of addresses in the instruction cache
+ *
+ * This function invalidates a range of addresses in the instruction cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_invd_range(void *addr, size_t size)
 {
 	ARG_UNUSED(addr);
@@ -217,6 +330,15 @@ static ALWAYS_INLINE int arch_icache_invd_range(void *addr, size_t size)
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Flush and invalidate a range of addresses in the instruction cache
+ *
+ * This function flushes and invalidates a range of addresses in the instruction cache.
+ *
+ * @param addr The starting address of the range
+ * @param size The size of the range
+ * @return -ENOTSUP as the operation is not supported
+ */
 static ALWAYS_INLINE int arch_icache_flush_and_invd_range(void *addr, size_t size)
 {
 	ARG_UNUSED(addr);
@@ -224,11 +346,21 @@ static ALWAYS_INLINE int arch_icache_flush_and_invd_range(void *addr, size_t siz
 	return -ENOTSUP;
 }
 
+/**
+ * @brief Enable the instruction cache
+ *
+ * This function enables the instruction cache.
+ */
 static ALWAYS_INLINE void arch_icache_enable(void)
 {
 	/* nothing */
 }
 
+/**
+ * @brief Disable the instruction cache
+ *
+ * This function disables the instruction cache.
+ */
 static ALWAYS_INLINE void arch_icache_disable(void)
 {
 	/* nothing */
@@ -243,3 +375,4 @@ static ALWAYS_INLINE void arch_icache_disable(void)
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_CACHE_H_ */
+//GST

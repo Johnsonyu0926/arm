@@ -1,21 +1,4 @@
-/*
- * Copyright (c) 1984-1999, 2012 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
- * Copyright (c) 1982, 1986 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
- *
- *	@(#)errno.h	7.1 (Berkeley) 6/4/86
- */
-
-/**
- * @file
- * @brief System error numbers
- */
+//zephyr-3.7-branch/lib/libc/minimal/include/errno.h
 
 #ifndef ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_ERRNO_H_
 #define ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_ERRNO_H_
@@ -127,3 +110,4 @@ extern "C" {
 #endif
 
 #endif /* ZEPHYR_LIB_LIBC_MINIMAL_INCLUDE_ERRNO_H_ */
+//GST

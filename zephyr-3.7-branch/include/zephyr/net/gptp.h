@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2017 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Public functions for the Precision Time Protocol Stack.
- *
- */
+// zephyr-3.7-branch/include/zephyr/net/gptp.h
 
 #ifndef ZEPHYR_INCLUDE_NET_GPTP_H_
 #define ZEPHYR_INCLUDE_NET_GPTP_H_
@@ -348,3 +338,4 @@ struct gptp_hdr *gptp_get_hdr(struct net_pkt *pkt);
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_GPTP_H_ */
+//GST

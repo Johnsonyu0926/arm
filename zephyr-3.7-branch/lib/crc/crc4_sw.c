@@ -1,13 +1,7 @@
-/*
- * Copyright (c) 2023 Michal Morsisko
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/crc/crc4_sw.c
 #include <zephyr/sys/crc.h>
 
-uint8_t crc4(const uint8_t *src, size_t len, uint8_t polynomial, uint8_t initial_value,
-	  bool reversed)
+uint8_t crc4(const uint8_t *src, size_t len, uint8_t polynomial, uint8_t initial_value, bool reversed)
 {
 	uint8_t crc = initial_value;
 	size_t i, j, k;
@@ -44,10 +38,11 @@ uint8_t crc4_ti(uint8_t seed, const uint8_t *src, size_t len)
 
 	for (size_t i = 0; i < len; i++) {
 		for (size_t j = 0U; j < 2U; j++) {
-			index = seed ^ ((src[i] >> (4*(1-j))) & 0xf);
+			index = seed ^ ((src[i] >> (4 * (1 - j))) & 0xf);
 			seed = (lookup[index >> 1] >> (1 - (index & 1)) * 4) & 0xf;
 		}
 	}
 
 	return seed;
 }
+//GST

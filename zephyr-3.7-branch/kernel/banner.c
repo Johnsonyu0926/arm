@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/banner.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
@@ -24,6 +20,9 @@
 #endif /* BUILD_VERSION */
 #endif /* !BANNER_VERSION */
 
+/**
+ * @brief Display the boot banner
+ */
 void boot_banner(void)
 {
 #if defined(CONFIG_BOOT_DELAY) && (CONFIG_BOOT_DELAY > 0)
@@ -46,3 +45,4 @@ void boot_banner(void)
 	printk("*** " CONFIG_BOOT_BANNER_STRING " " BANNER_VERSION BANNER_POSTFIX " ***\n");
 #endif /* CONFIG_BOOT_BANNER */
 }
+//GST

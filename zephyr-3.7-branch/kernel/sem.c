@@ -1,25 +1,7 @@
-/*
- * Copyright (c) 2010-2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * @brief Kernel semaphore object.
- *
- * The semaphores are of the 'counting' type, i.e. each 'give' operation will
- * increment the internal count by 1, if no thread is pending on it. The 'init'
- * call initializes the count to 'initial_count'. Following multiple 'give'
- * operations, the same number of 'take' operations can be performed without
- * the calling thread having to pend on the semaphore, or the calling task
- * having to poll.
- */
+// kernel/sem.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <wait_q.h>
 #include <zephyr/sys/dlist.h>
@@ -42,6 +24,14 @@ static struct k_spinlock lock;
 static struct k_obj_type obj_type_sem;
 #endif /* CONFIG_OBJ_CORE_SEM */
 
+/**
+ * @brief Initialize a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param initial_count Initial count of the semaphore
+ * @param limit Maximum count of the semaphore
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_sem_init(struct k_sem *sem, unsigned int initial_count,
 		      unsigned int limit)
 {
@@ -82,6 +72,12 @@ int z_vrfy_k_sem_init(struct k_sem *sem, unsigned int initial_count,
 #include <zephyr/syscalls/k_sem_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Handle poll events for a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @return true if poll events were handled, false otherwise
+ */
 static inline bool handle_poll_events(struct k_sem *sem)
 {
 #ifdef CONFIG_POLL
@@ -93,6 +89,11 @@ static inline bool handle_poll_events(struct k_sem *sem)
 #endif /* CONFIG_POLL */
 }
 
+/**
+ * @brief Give a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ */
 void z_impl_k_sem_give(struct k_sem *sem)
 {
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -129,6 +130,13 @@ static inline void z_vrfy_k_sem_give(struct k_sem *sem)
 #include <zephyr/syscalls/k_sem_give_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Take a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_sem_take(struct k_sem *sem, k_timeout_t timeout)
 {
 	int ret;
@@ -163,6 +171,11 @@ out:
 	return ret;
 }
 
+/**
+ * @brief Reset a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ */
 void z_impl_k_sem_reset(struct k_sem *sem)
 {
 	struct k_thread *thread;
@@ -229,3 +242,4 @@ static int init_sem_obj_core_list(void)
 SYS_INIT(init_sem_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_SEM */
+//GST

@@ -1,14 +1,23 @@
-/*
- * Copyright (c) 2020 Intel Corporation
+// zephyr-3.7-branch/include/zephyr/kernel/mm/demand_paging.h
+#ifndef ZEPHYR_INCLUDE_KERNEL_INTERNAL_SMP_H_
+#define ZEPHYR_INCLUDE_KERNEL_INTERNAL_SMP_H_
+
+/**
+ * @brief Send a scheduler IPI (Inter-Processor Interrupt)
  *
- * SPDX-License-Identifier: Apache-2.0
+ * This function is used to send an IPI to other processors to trigger
+ * a scheduling event.
  */
+void z_sched_ipi(void);
+
+#endif /* ZEPHYR_INCLUDE_KERNEL_INTERNAL_SMP_H_ */
+
+// zephyr-3.7-branch/include/zephyr/kernel/mm/demand_paging.h
 
 #ifndef ZEPHYR_INCLUDE_KERNEL_MM_DEMAND_PAGING_H
 #define ZEPHYR_INCLUDE_KERNEL_MM_DEMAND_PAGING_H
 
 #include <zephyr/kernel/mm.h>
-
 #include <zephyr/sys/util.h>
 #include <zephyr/toolchain.h>
 
@@ -38,26 +47,26 @@ struct k_mem_paging_stats_t {
 #if defined(CONFIG_DEMAND_PAGING_STATS) || defined(__DOXYGEN__)
 	struct {
 		/** Number of page faults */
-		unsigned long			cnt;
+		unsigned long cnt;
 
 		/** Number of page faults with IRQ locked */
-		unsigned long			irq_locked;
+		unsigned long irq_locked;
 
 		/** Number of page faults with IRQ unlocked */
-		unsigned long			irq_unlocked;
+		unsigned long irq_unlocked;
 
 #if !defined(CONFIG_DEMAND_PAGING_ALLOW_IRQ) || defined(__DOXYGEN__)
 		/** Number of page faults while in ISR */
-		unsigned long			in_isr;
+		unsigned long in_isr;
 #endif /* !CONFIG_DEMAND_PAGING_ALLOW_IRQ */
 	} pagefaults;
 
 	struct {
 		/** Number of clean pages selected for eviction */
-		unsigned long			clean;
+		unsigned long clean;
 
 		/** Number of dirty pages selected for eviction */
-		unsigned long			dirty;
+		unsigned long dirty;
 	} eviction;
 #endif /* CONFIG_DEMAND_PAGING_STATS */
 };
@@ -68,12 +77,12 @@ struct k_mem_paging_stats_t {
 struct k_mem_paging_histogram_t {
 #if defined(CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM) || defined(__DOXYGEN__)
 	/* Counts for each bin in timing histogram */
-	unsigned long	counts[CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM_NUM_BINS];
+	unsigned long counts[CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM_NUM_BINS];
 
 	/* Bounds for the bins in timing histogram,
 	 * excluding the first and last (hence, NUM_SLOTS - 1).
 	 */
-	unsigned long	bounds[CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM_NUM_BINS];
+	unsigned long bounds[CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM_NUM_BINS];
 #endif /* CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM */
 };
 
@@ -379,7 +388,7 @@ void k_mem_paging_backing_store_page_in(uintptr_t location);
  * Update internal accounting after a page-in
  *
  * This is invoked after k_mem_paging_backing_store_page_in() and interrupts
- * have been* re-locked, making it safe to access the k_mem_page_frame data.
+ * have been re-locked, making it safe to access the k_mem_page_frame data.
  * The location value will be the same passed to
  * k_mem_paging_backing_store_page_in().
  *
@@ -421,3 +430,4 @@ void k_mem_paging_backing_store_init(void);
 
 #endif /* !_ASMLANGUAGE */
 #endif /* ZEPHYR_INCLUDE_KERNEL_MM_DEMAND_PAGING_H */
+//GST

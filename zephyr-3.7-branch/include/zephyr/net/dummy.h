@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- * @brief Dummy layer 2
- *
- * This is not to be included by the application.
- */
+// zephyr-3.7-branch/include/zephyr/net/dummy.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DUMMY_H_
 #define ZEPHYR_INCLUDE_NET_DUMMY_H_
@@ -65,3 +55,4 @@ BUILD_ASSERT(offsetof(struct dummy_api, iface_api) == 0);
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_DUMMY_H_ */
+//GST

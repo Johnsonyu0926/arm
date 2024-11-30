@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2017 Matthias Boesl
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/include/zephyr/net/ipv4_autoconf.h
 
 /** @file
  * @brief IPv4 Autoconfiguration
@@ -66,3 +62,4 @@ static inline void net_ipv4_autoconf_init(void) { }
 /** @endcond */
 
 #endif /* ZEPHYR_INCLUDE_NET_IPV4_AUTOCONF_H_ */
+//GST

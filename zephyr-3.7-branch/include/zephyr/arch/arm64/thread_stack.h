@@ -1,30 +1,26 @@
-/*
- * Copyright (c) 2020 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arm64/thread_stack.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_THREAD_STACK_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_THREAD_STACK_H_
 
 #include <zephyr/arch/arm64/mm.h>
 
-#define ARCH_STACK_PTR_ALIGN			16
+#define ARCH_STACK_PTR_ALIGN            16
 
 #if defined(CONFIG_USERSPACE) || defined(CONFIG_ARM64_STACK_PROTECTION)
-#define Z_ARM64_STACK_BASE_ALIGN		MEM_DOMAIN_ALIGN_AND_SIZE
-#define Z_ARM64_STACK_SIZE_ALIGN		MEM_DOMAIN_ALIGN_AND_SIZE
+#define Z_ARM64_STACK_BASE_ALIGN        MEM_DOMAIN_ALIGN_AND_SIZE
+#define Z_ARM64_STACK_SIZE_ALIGN        MEM_DOMAIN_ALIGN_AND_SIZE
 #else
-#define Z_ARM64_STACK_BASE_ALIGN		ARCH_STACK_PTR_ALIGN
-#define Z_ARM64_STACK_SIZE_ALIGN		ARCH_STACK_PTR_ALIGN
+#define Z_ARM64_STACK_BASE_ALIGN        ARCH_STACK_PTR_ALIGN
+#define Z_ARM64_STACK_SIZE_ALIGN        ARCH_STACK_PTR_ALIGN
 #endif
 
 #if defined(CONFIG_ARM64_STACK_PROTECTION)
-#define Z_ARM64_STACK_GUARD_SIZE		MEM_DOMAIN_ALIGN_AND_SIZE
-#define Z_ARM64_K_STACK_BASE_ALIGN		MEM_DOMAIN_ALIGN_AND_SIZE
+#define Z_ARM64_STACK_GUARD_SIZE        MEM_DOMAIN_ALIGN_AND_SIZE
+#define Z_ARM64_K_STACK_BASE_ALIGN      MEM_DOMAIN_ALIGN_AND_SIZE
 #else
-#define Z_ARM64_STACK_GUARD_SIZE		0
-#define Z_ARM64_K_STACK_BASE_ALIGN		ARCH_STACK_PTR_ALIGN
+#define Z_ARM64_STACK_GUARD_SIZE        0
+#define Z_ARM64_K_STACK_BASE_ALIGN      ARCH_STACK_PTR_ALIGN
 #endif
 
 /*
@@ -52,22 +48,28 @@
  */
 
 /* thread stack */
-#define ARCH_THREAD_STACK_OBJ_ALIGN(size)	Z_ARM64_STACK_BASE_ALIGN
-#define ARCH_THREAD_STACK_SIZE_ADJUST(size)	\
-	ROUND_UP((size), Z_ARM64_STACK_SIZE_ALIGN)
-#define ARCH_THREAD_STACK_RESERVED		CONFIG_PRIVILEGED_STACK_SIZE + \
-	Z_ARM64_STACK_GUARD_SIZE
+#define ARCH_THREAD_STACK_OBJ_ALIGN(size)   Z_ARM64_STACK_BASE_ALIGN
+#define ARCH_THREAD_STACK_SIZE_ADJUST(size) \
+    ROUND_UP((size), Z_ARM64_STACK_SIZE_ALIGN)
+#define ARCH_THREAD_STACK_RESERVED          CONFIG_PRIVILEGED_STACK_SIZE + \
+    Z_ARM64_STACK_GUARD_SIZE
 
 /* kernel stack */
-#define ARCH_KERNEL_STACK_RESERVED		Z_ARM64_STACK_GUARD_SIZE
-#define ARCH_KERNEL_STACK_OBJ_ALIGN		Z_ARM64_K_STACK_BASE_ALIGN
+#define ARCH_KERNEL_STACK_RESERVED          Z_ARM64_STACK_GUARD_SIZE
+#define ARCH_KERNEL_STACK_OBJ_ALIGN         Z_ARM64_K_STACK_BASE_ALIGN
 
 #ifndef _ASMLANGUAGE
 
+/**
+ * @brief Thread stack header structure
+ *
+ * This structure represents the header of a thread stack, including the privileged stack.
+ */
 struct z_arm64_thread_stack_header {
-	char privilege_stack[CONFIG_PRIVILEGED_STACK_SIZE];
+    char privilege_stack[CONFIG_PRIVILEGED_STACK_SIZE]; /**< Privileged stack */
 } __packed __aligned(Z_ARM64_STACK_BASE_ALIGN);
 
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_THREAD_STACK_H_ */
+//GST

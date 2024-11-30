@@ -1,16 +1,20 @@
-/*
- * Copyright (c) 2023, Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/obj_core.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel/obj_core.h>
 
-static struct k_spinlock  lock;
+static struct k_spinlock lock;
 
 sys_slist_t z_obj_type_list = SYS_SLIST_STATIC_INIT(&z_obj_type_list);
 
+/**
+ * @brief Initialize an object type
+ *
+ * @param type Pointer to the object type
+ * @param id Object type ID
+ * @param off Offset of the object core
+ * @return Pointer to the initialized object type
+ */
 struct k_obj_type *z_obj_type_init(struct k_obj_type *type,
 				   uint32_t id, size_t off)
 {
@@ -22,6 +26,12 @@ struct k_obj_type *z_obj_type_init(struct k_obj_type *type,
 	return type;
 }
 
+/**
+ * @brief Initialize an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @param type Pointer to the object type
+ */
 void k_obj_core_init(struct k_obj_core *obj_core, struct k_obj_type *type)
 {
 	obj_core->node.next = NULL;
@@ -31,15 +41,26 @@ void k_obj_core_init(struct k_obj_core *obj_core, struct k_obj_type *type)
 #endif /* CONFIG_OBJ_CORE_STATS */
 }
 
+/**
+ * @brief Link an object core to its type
+ *
+ * @param obj_core Pointer to the object core
+ */
 void k_obj_core_link(struct k_obj_core *obj_core)
 {
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	sys_slist_append(&obj_core->type->list, &obj_core->node);
 
 	k_spin_unlock(&lock, key);
 }
 
+/**
+ * @brief Initialize and link an object core to its type
+ *
+ * @param obj_core Pointer to the object core
+ * @param type Pointer to the object type
+ */
 void k_obj_core_init_and_link(struct k_obj_core *obj_core,
 			      struct k_obj_type *type)
 {
@@ -47,22 +68,33 @@ void k_obj_core_init_and_link(struct k_obj_core *obj_core,
 	k_obj_core_link(obj_core);
 }
 
+/**
+ * @brief Unlink an object core from its type
+ *
+ * @param obj_core Pointer to the object core
+ */
 void k_obj_core_unlink(struct k_obj_core *obj_core)
 {
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	sys_slist_find_and_remove(&obj_core->type->list, &obj_core->node);
 
 	k_spin_unlock(&lock, key);
 }
 
+/**
+ * @brief Find an object type by its ID
+ *
+ * @param type_id Object type ID
+ * @return Pointer to the object type, or NULL if not found
+ */
 struct k_obj_type *k_obj_type_find(uint32_t type_id)
 {
 	struct k_obj_type *type;
 	struct k_obj_type *rv = NULL;
 	sys_snode_t *node;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	SYS_SLIST_FOR_EACH_NODE(&z_obj_type_list, node) {
 		type = CONTAINER_OF(node, struct k_obj_type, node);
@@ -77,14 +109,22 @@ struct k_obj_type *k_obj_type_find(uint32_t type_id)
 	return rv;
 }
 
+/**
+ * @brief Walk through all object cores of a type with a lock
+ *
+ * @param type Pointer to the object type
+ * @param func Function to call for each object core
+ * @param data Data to pass to the function
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_type_walk_locked(struct k_obj_type *type,
 			   int (*func)(struct k_obj_core *, void *),
 			   void *data)
 {
-	k_spinlock_key_t  key;
+	k_spinlock_key_t key;
 	struct k_obj_core *obj_core;
 	sys_snode_t *node;
-	int  status = 0;
+	int status = 0;
 
 	key = k_spin_lock(&lock);
 
@@ -101,6 +141,14 @@ int k_obj_type_walk_locked(struct k_obj_type *type,
 	return status;
 }
 
+/**
+ * @brief Walk through all object cores of a type without a lock
+ *
+ * @param type Pointer to the object type
+ * @param func Function to call for each object core
+ * @param data Data to pass to the function
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_type_walk_unlocked(struct k_obj_type *type,
 			   int (*func)(struct k_obj_core *, void *),
 			   void *data)
@@ -108,7 +156,7 @@ int k_obj_type_walk_unlocked(struct k_obj_type *type,
 	struct k_obj_core *obj_core;
 	sys_snode_t *node;
 	sys_snode_t *next;
-	int  status = 0;
+	int status = 0;
 
 	SYS_SLIST_FOR_EACH_NODE_SAFE(&type->list, node, next) {
 		obj_core = CONTAINER_OF(node, struct k_obj_core, node);
@@ -122,10 +170,18 @@ int k_obj_type_walk_unlocked(struct k_obj_type *type,
 }
 
 #ifdef CONFIG_OBJ_CORE_STATS
+/**
+ * @brief Register statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @param stats Pointer to the statistics buffer
+ * @param stats_len Length of the statistics buffer
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_register(struct k_obj_core *obj_core, void *stats,
 			      size_t stats_len)
 {
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	if (obj_core->type->stats_desc == NULL) {
 
@@ -149,13 +205,19 @@ int k_obj_core_stats_register(struct k_obj_core *obj_core, void *stats,
 	return 0;
 }
 
+/**
+ * @brief Deregister statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_deregister(struct k_obj_core *obj_core)
 {
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	if (obj_core->type->stats_desc == NULL) {
 
-		/* Object type not configured  for statistics. */
+		/* Object type not configured for statistics. */
 
 		k_spin_unlock(&lock, key);
 		return -ENOTSUP;
@@ -167,13 +229,21 @@ int k_obj_core_stats_deregister(struct k_obj_core *obj_core)
 	return 0;
 }
 
+/**
+ * @brief Get raw statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @param stats Pointer to the statistics buffer
+ * @param stats_len Length of the statistics buffer
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_raw(struct k_obj_core *obj_core, void *stats,
 			 size_t stats_len)
 {
-	int  rv;
+	int rv;
 	struct k_obj_core_stats_desc *desc;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	desc = obj_core->type->stats_desc;
 	if ((desc == NULL) || (desc->raw == NULL)) {
@@ -201,13 +271,21 @@ int k_obj_core_stats_raw(struct k_obj_core *obj_core, void *stats,
 	return rv;
 }
 
+/**
+ * @brief Query statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @param stats Pointer to the statistics buffer
+ * @param stats_len Length of the statistics buffer
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_query(struct k_obj_core *obj_core, void *stats,
 			   size_t stats_len)
 {
-	int  rv;
+	int rv;
 	struct k_obj_core_stats_desc *desc;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	desc = obj_core->type->stats_desc;
 	if ((desc == NULL) || (desc->query == NULL)) {
@@ -235,12 +313,18 @@ int k_obj_core_stats_query(struct k_obj_core *obj_core, void *stats,
 	return rv;
 }
 
+/**
+ * @brief Reset statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_reset(struct k_obj_core *obj_core)
 {
-	int  rv;
+	int rv;
 	struct k_obj_core_stats_desc *desc;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	desc = obj_core->type->stats_desc;
 	if ((desc == NULL) || (desc->reset == NULL)) {
@@ -265,12 +349,18 @@ int k_obj_core_stats_reset(struct k_obj_core *obj_core)
 	return rv;
 }
 
+/**
+ * @brief Disable statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_disable(struct k_obj_core *obj_core)
 {
-	int  rv;
+	int rv;
 	struct k_obj_core_stats_desc *desc;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	desc = obj_core->type->stats_desc;
 	if ((desc == NULL) || (desc->disable == NULL)) {
@@ -295,12 +385,18 @@ int k_obj_core_stats_disable(struct k_obj_core *obj_core)
 	return rv;
 }
 
+/**
+ * @brief Enable statistics for an object core
+ *
+ * @param obj_core Pointer to the object core
+ * @return 0 on success, or an error code on failure
+ */
 int k_obj_core_stats_enable(struct k_obj_core *obj_core)
 {
-	int  rv;
+	int rv;
 	struct k_obj_core_stats_desc *desc;
 
-	k_spinlock_key_t  key = k_spin_lock(&lock);
+	k_spinlock_key_t key = k_spin_lock(&lock);
 
 	desc = obj_core->type->stats_desc;
 	if ((desc == NULL) || (desc->enable == NULL)) {
@@ -325,3 +421,4 @@ int k_obj_core_stats_enable(struct k_obj_core *obj_core)
 	return rv;
 }
 #endif /* CONFIG_OBJ_CORE_STATS */
+//GST

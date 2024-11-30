@@ -1,21 +1,11 @@
-/*
- * Copyright (c) 2016 Cadence Design Systems, Inc.
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Xtensa specific kernel interface header
- * This header contains the Xtensa specific kernel interface.  It is included
- * by the generic kernel interface header (include/zephyr/arch/cpu.h)
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/arch.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_ARCH_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_ARCH_H_
 
 #include <zephyr/irq.h>
-
 #include <zephyr/devicetree.h>
+
 #if !defined(_ASMLANGUAGE) && !defined(__ASSEMBLER__)
 #include <zephyr/types.h>
 #include <zephyr/toolchain.h>
@@ -32,7 +22,6 @@
 #include <zephyr/debug/sparse.h>
 #include <zephyr/arch/xtensa/thread_stack.h>
 #include <zephyr/sys/slist.h>
-
 #include <zephyr/drivers/timer/system_timer.h>
 
 #ifdef CONFIG_XTENSA_MMU
@@ -169,7 +158,6 @@ static inline bool arch_mem_coherent(void *ptr)
 }
 #endif
 
-
 /* Utility to generate an unrolled and optimal[1] code sequence to set
  * the RPO TLB registers (contra the HAL cacheattr macros, which
  * generate larger code and can't be called from C), based on the
@@ -191,7 +179,7 @@ static inline bool arch_mem_coherent(void *ptr)
  * computing it with a single ADD instruction from values it already
  * has in registers.  Explicitly assigning the variables to registers
  * via an attribute works, but then emits needless MOV instructions
- * instead.  I tell myself it's just 32 bytes of .text, but... Sigh.
+ * instead. I tell myself it's just 32 bytes of .text, but... Sigh.
  */
 #define _REGION_ATTR(r)						\
 	((r) == 0 ? 2 :						\
@@ -247,3 +235,4 @@ void arch_xtensa_mmu_post_init(bool is_core0);
 #endif /* !defined(_ASMLANGUAGE) && !defined(__ASSEMBLER__)  */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_ARCH_H_ */
+//GST

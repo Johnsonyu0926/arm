@@ -1,14 +1,20 @@
-/*
- * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//kernel/userspacea_handler.c
 #include <zephyr/kernel.h>
 #include <zephyr/internal/syscall_handler.h>
 #include <zephyr/kernel_structs.h>
 #include <zephyr/toolchain.h>
 
+/**
+ * @brief Validate a kernel object
+ *
+ * This function validates a kernel object based on its type and initialization
+ * state.
+ *
+ * @param obj Pointer to the object
+ * @param otype Type of the object
+ * @param init Initialization check type
+ * @return Pointer to the validated kernel object, or NULL if validation fails
+ */
 static struct k_object *validate_kernel_object(const void *obj,
 					       enum k_objects otype,
 					       enum _obj_init_check init)
@@ -32,11 +38,28 @@ static struct k_object *validate_kernel_object(const void *obj,
 	return ko;
 }
 
+/**
+ * @brief Validate any kernel object
+ *
+ * This function validates any kernel object.
+ *
+ * @param obj Pointer to the object
+ * @return Pointer to the validated kernel object, or NULL if validation fails
+ */
 static ALWAYS_INLINE struct k_object *validate_any_object(const void *obj)
 {
 	return validate_kernel_object(obj, K_OBJ_ANY, _OBJ_INIT_ANY);
 }
 
+/**
+ * @brief Check if a kernel object is valid
+ *
+ * This function checks if a kernel object is valid based on its type.
+ *
+ * @param obj Pointer to the object
+ * @param otype Type of the object
+ * @return true if the object is valid, false otherwise
+ */
 bool k_object_is_valid(const void *obj, enum k_objects otype)
 {
 	struct k_object *ko;
@@ -46,12 +69,13 @@ bool k_object_is_valid(const void *obj, enum k_objects otype)
 	return (ko != NULL);
 }
 
-/* Normally these would be included in userspace.c, but the way
- * syscall_dispatch.c declares weak handlers results in build errors if these
- * are located in userspace.c. Just put in a separate file.
+/**
+ * @brief Grant access to a kernel object
  *
- * To avoid double k_object_find() lookups, we don't call the implementation
- * function, but call a level deeper.
+ * This function grants access to a kernel object for a specified thread.
+ *
+ * @param object Pointer to the object
+ * @param thread Pointer to the thread
  */
 static inline void z_vrfy_k_object_access_grant(const void *object,
 						struct k_thread *thread)
@@ -66,6 +90,13 @@ static inline void z_vrfy_k_object_access_grant(const void *object,
 }
 #include <zephyr/syscalls/k_object_access_grant_mrsh.c>
 
+/**
+ * @brief Release a kernel object
+ *
+ * This function releases a kernel object for the current thread.
+ *
+ * @param object Pointer to the object
+ */
 static inline void z_vrfy_k_object_release(const void *object)
 {
 	struct k_object *ko;
@@ -76,14 +107,32 @@ static inline void z_vrfy_k_object_release(const void *object)
 }
 #include <zephyr/syscalls/k_object_release_mrsh.c>
 
+/**
+ * @brief Allocate a kernel object
+ *
+ * This function allocates a kernel object of the specified type.
+ *
+ * @param otype Type of the object
+ * @return Pointer to the allocated object, or NULL if allocation fails
+ */
 static inline void *z_vrfy_k_object_alloc(enum k_objects otype)
 {
 	return z_impl_k_object_alloc(otype);
 }
 #include <zephyr/syscalls/k_object_alloc_mrsh.c>
 
+/**
+ * @brief Allocate a kernel object with a specified size
+ *
+ * This function allocates a kernel object of the specified type and size.
+ *
+ * @param otype Type of the object
+ * @param size Size of the object
+ * @return Pointer to the allocated object, or NULL if allocation fails
+ */
 static inline void *z_vrfy_k_object_alloc_size(enum k_objects otype, size_t size)
 {
 	return z_impl_k_object_alloc_size(otype, size);
 }
 #include <zephyr/syscalls/k_object_alloc_size_mrsh.c>
+//GST

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/igmp.h
 
 /** @file
  * @brief IGMP API
@@ -19,7 +15,6 @@
  */
 
 #include <zephyr/types.h>
-
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/net_ip.h>
 
@@ -27,21 +22,21 @@
 extern "C" {
 #endif
 
-/** IGMP parameters */
+/** IGMP参数 */
 struct igmp_param {
-	struct in_addr *source_list; /**< List of sources to include or exclude */
-	size_t sources_len;          /**< Length of source list */
-	bool include;                /**< Source list filter type */
+	struct in_addr *source_list; /**< 要包含或排除的源列表 */
+	size_t sources_len;          /**< 源列表的长度 */
+	bool include;                /**< 源列表过滤类型 */
 };
 
 /**
- * @brief Join a given multicast group.
+ * @brief 加入给定的多播组。
  *
- * @param iface Network interface where join message is sent
- * @param addr Multicast group to join
- * @param param Optional parameters
+ * @param iface 发送加入消息的网络接口
+ * @param addr 要加入的多播组
+ * @param param 可选参数
  *
- * @return Return 0 if joining was done, <0 otherwise.
+ * @return 如果加入成功则返回0，否则返回<0。
  */
 #if defined(CONFIG_NET_IPV4_IGMP)
 int net_ipv4_igmp_join(struct net_if *iface, const struct in_addr *addr,
@@ -59,12 +54,12 @@ static inline int net_ipv4_igmp_join(struct net_if *iface, const struct in_addr 
 #endif
 
 /**
- * @brief Leave a given multicast group.
+ * @brief 离开给定的多播组。
  *
- * @param iface Network interface where leave message is sent
- * @param addr Multicast group to leave
+ * @param iface 发送离开消息的网络接口
+ * @param addr 要离开的多播组
  *
- * @return Return 0 if leaving is done, <0 otherwise.
+ * @return 如果离开成功则返回0，否则返回<0。
  */
 #if defined(CONFIG_NET_IPV4_IGMP)
 int net_ipv4_igmp_leave(struct net_if *iface, const struct in_addr *addr);
@@ -88,3 +83,5 @@ static inline int net_ipv4_igmp_leave(struct net_if *iface,
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_IGMP_H_ */
+
+// By GST @Data

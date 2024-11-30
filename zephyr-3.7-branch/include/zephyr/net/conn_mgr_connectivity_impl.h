@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief API for defining conn_mgr connectivity implementations (allowing ifaces to be used with
- * conn_mgr_connectivity).
- */
+// zephyr-3.7-branch/include/zephyr/net/conn_mgr_connectivity_impl.h
 
 #ifndef ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_IMPL_H_
 #define ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_IMPL_H_
@@ -344,3 +334,4 @@ static inline bool conn_mgr_binding_get_flag(struct conn_mgr_conn_binding *bindi
 #endif
 
 #endif /* ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_IMPL_H_ */
+//GST

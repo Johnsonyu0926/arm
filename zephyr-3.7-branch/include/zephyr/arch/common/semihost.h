@@ -1,20 +1,9 @@
-/*
- * Copyright (c) 2022, Commonwealth Scientific and Industrial Research
- * Organisation (CSIRO) ABN 41 687 119 230.
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Based on the ARM semihosting API from:
- * https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst
- *
- * RISC-V semihosting also follows these conventions:
- * https://github.com/riscv/riscv-semihosting-spec/blob/main/riscv-semihosting-spec.adoc
- */
+// zephyr-3.7-branch/include/zephyr/arch/common/semihost.h
 
 /**
  * @file
  *
- * @brief public Semihosting APIs based on ARM definitions.
+ * @brief Public Semihosting APIs based on ARM definitions.
  * @defgroup semihost Semihosting APIs
  * @ingroup os_services
  * @{
@@ -103,99 +92,108 @@ enum semihost_open_mode {
 	SEMIHOST_OPEN_AB_PLUS   = 11,
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Manually execute a semihosting instruction
  *
- * @param instr instruction code to run
- * @param args instruction specific arguments
+ * @param instr Instruction code to run
+ * @param args Instruction specific arguments
  *
- * @return integer return code of instruction
+ * @return Integer return code of instruction
  */
 long semihost_exec(enum semihost_instr instr, void *args);
 
 /**
  * @brief Read a byte from the console
  *
- * @return char byte read from the console.
+ * @return char Byte read from the console
  */
 char semihost_poll_in(void);
 
 /**
  * @brief Write a byte to the console
  *
- * @param c byte to write to console
+ * @param c Byte to write to console
  */
 void semihost_poll_out(char c);
 
 /**
  * @brief Open a file on the host system
  *
- * @param path file path to open. Can be absolute or relative to current
+ * @param path File path to open. Can be absolute or relative to current
  *             directory of the running process.
- * @param mode value from @ref semihost_open_mode.
+ * @param mode Value from @ref semihost_open_mode.
  *
- * @retval handle positive handle on success.
- * @retval -1 on failure.
+ * @retval Handle Positive handle on success.
+ * @retval -1 On failure.
  */
 long semihost_open(const char *path, long mode);
 
 /**
  * @brief Close a file
  *
- * @param fd handle returned by @ref semihost_open.
+ * @param fd Handle returned by @ref semihost_open.
  *
- * @retval 0 on success.
- * @retval -1 on failure.
+ * @retval 0 On success.
+ * @retval -1 On failure.
  */
 long semihost_close(long fd);
 
 /**
  * @brief Query the size of a file
  *
- * @param fd handle returned by @ref semihost_open.
+ * @param fd Handle returned by @ref semihost_open.
  *
- * @retval positive file size on success.
- * @retval -1 on failure.
+ * @retval Positive file size on success.
+ * @retval -1 On failure.
  */
 long semihost_flen(long fd);
 
 /**
- * @brief Seeks to an absolute position in a file.
+ * @brief Seek to an absolute position in a file
  *
- * @param fd handle returned by @ref semihost_open.
- * @param offset offset from the start of the file in bytes.
+ * @param fd Handle returned by @ref semihost_open.
+ * @param offset Offset from the start of the file in bytes.
  *
- * @retval 0 on success.
- * @retval -errno negative error code on failure.
+ * @retval 0 On success.
+ * @retval -errno Negative error code on failure.
  */
 long semihost_seek(long fd, long offset);
 
 /**
- * @brief Read the contents of a file into a buffer.
+ * @brief Read the contents of a file into a buffer
  *
- * @param fd handle returned by @ref semihost_open.
- * @param buf buffer to read data into.
- * @param len number of bytes to read.
+ * @param fd Handle returned by @ref semihost_open.
+ * @param buf Buffer to read data into.
+ * @param len Number of bytes to read.
  *
- * @retval read number of bytes read on success.
- * @retval -errno negative error code on failure.
+ * @retval Number of bytes read on success.
+ * @retval -errno Negative error code on failure.
  */
 long semihost_read(long fd, void *buf, long len);
 
 /**
- * @brief Write the contents of a buffer into a file.
+ * @brief Write the contents of a buffer into a file
  *
- * @param fd handle returned by @ref semihost_open.
- * @param buf buffer to write data from.
- * @param len number of bytes to write.
+ * @param fd Handle returned by @ref semihost_open.
+ * @param buf Buffer to write data from.
+ * @param len Number of bytes to write.
  *
- * @retval 0 on success.
- * @retval -errno negative error code on failure.
+ * @retval 0 On success.
+ * @retval -errno Negative error code on failure.
  */
 long semihost_write(long fd, const void *buf, long len);
+
+#ifdef __cplusplus
+}
+#endif
 
 /**
  * @}
  */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_COMMON_SEMIHOST_H_ */
+//GST

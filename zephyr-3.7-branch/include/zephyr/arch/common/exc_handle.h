@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2018 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/common/exc_handle.h
 
 #ifndef ZEPHYR_INCLUDE_EXC_HANDLE_H_
 #define ZEPHYR_INCLUDE_EXC_HANDLE_H_
@@ -28,18 +24,41 @@
  * to the fixup address if a match is found.
  */
 
+/**
+ * @brief Exception handling structure
+ *
+ * This structure defines a range of code that may generate a CPU exception
+ * that should not be fatal. Instead, the exception should return but set
+ * the program counter to a 'fixup' memory address which will gracefully
+ * error out.
+ */
 struct z_exc_handle {
-	void *start;
-	void *end;
-	void *fixup;
+	void *start; /**< Start address of the code range */
+	void *end; /**< End address of the code range */
+	void *fixup; /**< Fixup address to jump to on exception */
 };
 
+/**
+ * @brief Define an exception handle
+ *
+ * This macro defines an exception handle for a given name.
+ *
+ * @param name The name of the exception handle
+ */
 #define Z_EXC_HANDLE(name) \
 	{ name ## _fault_start, name ## _fault_end, name ## _fixup }
 
+/**
+ * @brief Declare exception handling symbols
+ *
+ * This macro declares the start, end, and fixup symbols for a given name.
+ *
+ * @param name The name of the exception handle
+ */
 #define Z_EXC_DECLARE(name)          \
 	void name ## _fault_start(void); \
 	void name ## _fault_end(void);   \
 	void name ## _fixup(void)
 
 #endif /* ZEPHYR_INCLUDE_EXC_HANDLE_H_ */
+//GST

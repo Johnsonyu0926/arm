@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/cache.h
 
 /**
  * @file
@@ -89,7 +85,7 @@ int arch_dcache_flush_and_invd_all(void);
  *
  * Flush the specified address range of the data cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being flushed, all the portions of the
  *       data structures sharing the same line will be flushed. This is usually
  *       not a problem because writing back is a non-destructive process that
@@ -112,7 +108,7 @@ int arch_dcache_flush_range(void *addr, size_t size);
  *
  * Invalidate the specified address range of the data cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being invalidated, all the portions of the
  *       non-read-only data structures sharing the same line will be
  *       invalidated as well. This is a destructive process that could lead to
@@ -136,7 +132,7 @@ int arch_dcache_invd_range(void *addr, size_t size);
  *
  * Flush and Invalidate the specified address range of the data cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being flushed, all the portions of the
  *       data structures sharing the same line will be flushed before being
  *       invalidated. This is usually not a problem because writing back is a
@@ -151,7 +147,6 @@ int arch_dcache_invd_range(void *addr, size_t size);
  * @retval -ENOTSUP If not supported.
  * @retval -errno Negative errno for other failures.
  */
-
 int arch_dcache_flush_and_invd_range(void *addr, size_t size);
 
 #define cache_data_flush_and_invd_range(addr, size) \
@@ -160,8 +155,7 @@ int arch_dcache_flush_and_invd_range(void *addr, size_t size);
 #if defined(CONFIG_DCACHE_LINE_SIZE_DETECT) || defined(__DOXYGEN__)
 
 /**
- *
- * @brief Get the d-cache line size.
+ * @brief Get the d-cache line size
  *
  * The API is provided to dynamically detect the data cache line size at run
  * time.
@@ -244,7 +238,7 @@ int arch_icache_flush_and_invd_all(void);
  *
  * Flush the specified address range of the instruction cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being flushed, all the portions of the
  *       data structures sharing the same line will be flushed. This is usually
  *       not a problem because writing back is a non-destructive process that
@@ -267,7 +261,7 @@ int arch_icache_flush_range(void *addr, size_t size);
  *
  * Invalidate the specified address range of the instruction cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being invalidated, all the portions of the
  *       non-read-only data structures sharing the same line will be
  *       invalidated as well. This is a destructive process that could lead to
@@ -291,7 +285,7 @@ int arch_icache_invd_range(void *addr, size_t size);
  *
  * Flush and Invalidate the specified address range of the instruction cache.
  *
- * @note the cache operations act on cache line. When multiple data structures
+ * @note The cache operations act on cache line. When multiple data structures
  *       share the same cache line being flushed, all the portions of the
  *       data structures sharing the same line will be flushed before being
  *       invalidated. This is usually not a problem because writing back is a
@@ -314,8 +308,7 @@ int arch_icache_flush_and_invd_range(void *addr, size_t size);
 #if defined(CONFIG_ICACHE_LINE_SIZE_DETECT) || defined(__DOXYGEN__)
 
 /**
- *
- * @brief Get the i-cache line size.
+ * @brief Get the i-cache line size
  *
  * The API is provided to dynamically detect the instruction cache line size at
  * run time.
@@ -323,10 +316,9 @@ int arch_icache_flush_and_invd_range(void *addr, size_t size);
  * The function must be implemented only when CONFIG_ICACHE_LINE_SIZE_DETECT is
  * defined.
  *
- * @retval size Size of the d-cache line.
- * @retval 0 If the d-cache is not enabled.
+ * @retval size Size of the i-cache line.
+ * @retval 0 If the i-cache is not enabled.
  */
-
 size_t arch_icache_line_size_get(void);
 
 #define cache_instr_line_size_get arch_icache_line_size_get
@@ -336,16 +328,52 @@ size_t arch_icache_line_size_get(void);
 #endif /* CONFIG_ICACHE || __DOXYGEN__ */
 
 #if CONFIG_CACHE_DOUBLEMAP  || __DOXYGEN__
+/**
+ * @brief Check if a pointer is cached
+ *
+ * This function checks if the specified pointer is cached.
+ *
+ * @param ptr The pointer to check
+ * @return True if the pointer is cached, false otherwise
+ */
 bool arch_cache_is_ptr_cached(void *ptr);
+
 #define cache_is_ptr_cached(ptr) arch_cache_is_ptr_cached(ptr)
 
+/**
+ * @brief Check if a pointer is uncached
+ *
+ * This function checks if the specified pointer is uncached.
+ *
+ * @param ptr The pointer to check
+ * @return True if the pointer is uncached, false otherwise
+ */
 bool arch_cache_is_ptr_uncached(void *ptr);
+
 #define cache_is_ptr_uncached(ptr) arch_cache_is_ptr_uncached(ptr)
 
+/**
+ * @brief Get a cached pointer
+ *
+ * This function returns a cached pointer for the specified pointer.
+ *
+ * @param ptr The pointer to get the cached pointer for
+ * @return The cached pointer
+ */
 void __sparse_cache *arch_cache_cached_ptr_get(void *ptr);
+
 #define cache_cached_ptr(ptr) arch_cache_cached_ptr_get(ptr)
 
+/**
+ * @brief Get an uncached pointer
+ *
+ * This function returns an uncached pointer for the specified cached pointer.
+ *
+ * @param ptr The cached pointer to get the uncached pointer for
+ * @return The uncached pointer
+ */
 void *arch_cache_uncached_ptr_get(void __sparse_cache *ptr);
+
 #define cache_uncached_ptr(ptr) arch_cache_uncached_ptr_get(ptr)
 #endif /* CONFIG_CACHE_DOUBLEMAP */
 
@@ -354,3 +382,4 @@ void *arch_cache_uncached_ptr_get(void __sparse_cache *ptr);
  */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_CACHE_H_ */
+//GST

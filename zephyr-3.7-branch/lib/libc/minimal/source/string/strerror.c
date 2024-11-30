@@ -1,12 +1,6 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/minimal/source/string/strerror.c
 #include <errno.h>
 #include <string.h>
-
 #include <zephyr/sys/util.h>
 
 /*
@@ -18,7 +12,12 @@
  */
 #include "libc/minimal/strerror_table.h"
 
-/*
+/**
+ * @brief Get a string describing an error number
+ *
+ * @param errnum Error number
+ * @return Pointer to the error string
+ *
  * See https://pubs.opengroup.org/onlinepubs/9699919799/functions/strerror.html
  */
 char *strerror(int errnum)
@@ -31,9 +30,15 @@ char *strerror(int errnum)
 	return (char *) "";
 }
 
-/*
- * See
- * https://pubs.opengroup.org/onlinepubs/9699919799/functions/strerror_r.html
+/**
+ * @brief Get a string describing an error number (reentrant)
+ *
+ * @param errnum Error number
+ * @param strerrbuf Buffer to store the error string
+ * @param buflen Length of the buffer
+ * @return 0 on success, or an error number on failure
+ *
+ * See https://pubs.opengroup.org/onlinepubs/9699919799/functions/strerror_r.html
  */
 int strerror_r(int errnum, char *strerrbuf, size_t buflen)
 {
@@ -62,3 +67,4 @@ int strerror_r(int errnum, char *strerrbuf, size_t buflen)
 
 	return 0;
 }
+//GST

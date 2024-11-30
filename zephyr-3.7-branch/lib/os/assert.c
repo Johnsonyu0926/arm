@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2019 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/assert.c
 #include <zephyr/sys/__assert.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/kernel.h>
@@ -44,6 +39,12 @@ __weak void assert_post_action(const char *file, unsigned int line)
 }
 EXPORT_SYMBOL(assert_post_action);
 
+/**
+ * @brief Print an assertion message
+ *
+ * @param fmt Format string
+ * @param ... Additional arguments
+ */
 void assert_print(const char *fmt, ...)
 {
 	va_list ap;
@@ -55,3 +56,4 @@ void assert_print(const char *fmt, ...)
 	va_end(ap);
 }
 EXPORT_SYMBOL(assert_print);
+//GST

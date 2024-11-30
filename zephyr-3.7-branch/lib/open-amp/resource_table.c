@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 2020 STMicroelectronics
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
- * In addition to the standard ELF segments, most remote processors would
- * also include a special section which we call "the resource table".
- *
- * The resource table contains system resources that the remote processor
- * requires before it should be powered on, such as allocation of physically
- * contiguous memory, or iommu mapping of certain on-chip peripherals.
-
- * In addition to system resources, the resource table may also contain
- * resource entries that publish the existence of supported features
- * or configurations by the remote processor, such as trace buffers and
- * supported virtio devices (and their configurations).
-
- * Dependencies:
- *   to be compliant with Linux kernel OS the resource table must be linked in a
- *   specific section named ".resource_table".
-
- * Related documentation:
- *   https://www.kernel.org/doc/Documentation/remoteproc.txt
- *   https://github.com/OpenAMP/open-amp/wiki/OpenAMP-Life-Cycle-Management
- */
+//zephyr-3.7-branch/lib/open-amp/resource_table.c
 
 #include <zephyr/kernel.h>
 #include <resource_table.h>
@@ -33,6 +7,9 @@ extern char ram_console[];
 
 #define __resource Z_GENERIC_SECTION(.resource_table)
 
+/**
+ * @brief Resource table structure
+ */
 static struct fw_resource_table __resource resource_table = {
 	.hdr = {
 		.ver = 1,
@@ -74,8 +51,15 @@ static struct fw_resource_table __resource resource_table = {
 #endif
 };
 
+/**
+ * @brief Get the resource table
+ *
+ * @param table_ptr Pointer to store the resource table
+ * @param length Pointer to store the length of the resource table
+ */
 void rsc_table_get(struct fw_resource_table **table_ptr, int *length)
 {
 	*table_ptr = &resource_table;
 	*length = sizeof(resource_table);
 }
+//GST

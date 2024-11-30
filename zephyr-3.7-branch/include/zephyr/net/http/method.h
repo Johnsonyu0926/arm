@@ -1,12 +1,4 @@
-/** @file
- * @brief HTTP request methods
- */
-
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/method.h
 
 #ifndef ZEPHYR_INCLUDE_NET_HTTP_METHOD_H_
 #define ZEPHYR_INCLUDE_NET_HTTP_METHOD_H_
@@ -71,4 +63,5 @@ enum http_method {
  * @}
  */
 
-#endif
+#endif /* ZEPHYR_INCLUDE_NET_HTTP_METHOD_H_ */
+//GST

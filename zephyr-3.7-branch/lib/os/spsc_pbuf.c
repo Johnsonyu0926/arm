@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2022 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/spsc_pbuf.c
 #include <zephyr/kernel.h>
 #include <string.h>
 #include <errno.h>
@@ -106,6 +101,14 @@ static bool check_alignment(void *buf, uint32_t flags)
 	return (((uintptr_t)buf & (sizeof(uint32_t) - 1)) == 0) ? true : false;
 }
 
+/**
+ * @brief Initialize the SPSC buffer
+ *
+ * @param buf Pointer to the buffer
+ * @param blen Length of the buffer
+ * @param flags Flags for the buffer
+ * @return Pointer to the initialized SPSC buffer, or NULL on failure
+ */
 struct spsc_pbuf *spsc_pbuf_init(void *buf, size_t blen, uint32_t flags)
 {
 	if (!check_alignment(buf, flags)) {
@@ -133,6 +136,14 @@ struct spsc_pbuf *spsc_pbuf_init(void *buf, size_t blen, uint32_t flags)
 	return pb;
 }
 
+/**
+ * @brief Allocate space in the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param len Length of the space to allocate
+ * @param buf Pointer to store the allocated space
+ * @return Length of the allocated space, or an error code on failure
+ */
 int spsc_pbuf_alloc(struct spsc_pbuf *pb, uint16_t len, char **buf)
 {
 	/* Length of the buffer and flags are immutable - avoid reloading. */
@@ -198,6 +209,12 @@ int spsc_pbuf_alloc(struct spsc_pbuf *pb, uint16_t len, char **buf)
 	return len;
 }
 
+/**
+ * @brief Commit the allocated space in the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param len Length of the allocated space
+ */
 void spsc_pbuf_commit(struct spsc_pbuf *pb, uint16_t len)
 {
 	if (len == 0) {
@@ -225,6 +242,14 @@ void spsc_pbuf_commit(struct spsc_pbuf *pb, uint16_t len)
 	cache_wb(wr_idx_loc, sizeof(*wr_idx_loc), flags);
 }
 
+/**
+ * @brief Write data to the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param buf Pointer to the data to write
+ * @param len Length of the data to write
+ * @return Length of the written data, or an error code on failure
+ */
 int spsc_pbuf_write(struct spsc_pbuf *pb, const char *buf, uint16_t len)
 {
 	char *pbuf;
@@ -246,6 +271,13 @@ int spsc_pbuf_write(struct spsc_pbuf *pb, const char *buf, uint16_t len)
 	return len;
 }
 
+/**
+ * @brief Claim data from the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param buf Pointer to store the claimed data
+ * @return Length of the claimed data, or 0 if no data is available
+ */
 uint16_t spsc_pbuf_claim(struct spsc_pbuf *pb, char **buf)
 {
 	/* Length of the buffer and flags are immutable - avoid reloading. */
@@ -316,6 +348,12 @@ uint16_t spsc_pbuf_claim(struct spsc_pbuf *pb, char **buf)
 	return len;
 }
 
+/**
+ * @brief Free claimed data from the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param len Length of the claimed data
+ */
 void spsc_pbuf_free(struct spsc_pbuf *pb, uint16_t len)
 {
 	/* Length of the buffer and flags are immutable - avoid reloading. */
@@ -349,6 +387,14 @@ void spsc_pbuf_free(struct spsc_pbuf *pb, uint16_t len)
 	cache_wb(rd_idx_loc, sizeof(*rd_idx_loc), flags);
 }
 
+/**
+ * @brief Read data from the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @param buf Pointer to the buffer to store the data
+ * @param len Length of the buffer
+ * @return Length of the read data, or an error code on failure
+ */
 int spsc_pbuf_read(struct spsc_pbuf *pb, char *buf, uint16_t len)
 {
 	char *pkt;
@@ -373,6 +419,12 @@ int spsc_pbuf_read(struct spsc_pbuf *pb, char *buf, uint16_t len)
 	return plen;
 }
 
+/**
+ * @brief Get the utilization of the SPSC buffer
+ *
+ * @param pb Pointer to the SPSC buffer
+ * @return Utilization of the buffer, or an error code on failure
+ */
 int spsc_pbuf_get_utilization(struct spsc_pbuf *pb)
 {
 	if (!IS_ENABLED(CONFIG_SPSC_PBUF_UTILIZATION)) {
@@ -384,3 +436,4 @@ int spsc_pbuf_get_utilization(struct spsc_pbuf *pb)
 
 	return GET_UTILIZATION(pb->common.flags);
 }
+//GST

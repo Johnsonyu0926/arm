@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2023 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/acpi/acpi_shell.c
 #include <zephyr/kernel.h>
 #include <zephyr/arch/cpu.h>
 #include <zephyr/device.h>
@@ -19,17 +14,15 @@ static void dump_dev_res(const struct shell *sh, ACPI_RESOURCE *res_lst)
 	shell_print(sh, "**** ACPI Device Resource Info ****");
 
 	do {
-
 		if (!res->Length) {
 			shell_error(sh, "Error: zero length found!");
 			break;
 		}
 
 		switch (res->Type) {
-		case ACPI_RESOURCE_TYPE_IRQ:
+		case ACPI_RESOURCE_TYPE_IRQ: {
 			shell_print(sh, "ACPI_RESOURCE_TYPE_IRQ");
 			ACPI_RESOURCE_IRQ *irq_res = &res->Data.Irq;
-
 			shell_print(sh, "\tDescriptorLength: %x", irq_res->DescriptorLength);
 			shell_print(sh, "\tTriggering: %x", irq_res->Triggering);
 			shell_print(sh, "\tPolarity: %x", irq_res->Polarity);
@@ -37,10 +30,10 @@ static void dump_dev_res(const struct shell *sh, ACPI_RESOURCE *res_lst)
 			shell_print(sh, "\tInterruptCount: %d", irq_res->InterruptCount);
 			shell_print(sh, "\tInterrupts[0]: %x", irq_res->Interrupts[0]);
 			break;
+		}
 		case ACPI_RESOURCE_TYPE_IO: {
-			ACPI_RESOURCE_IO *io_res = &res->Data.Io;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_IO");
+			ACPI_RESOURCE_IO *io_res = &res->Data.Io;
 			shell_print(sh, "\tIoDecode: %x", io_res->IoDecode);
 			shell_print(sh, "\tAlignment: %x", io_res->Alignment);
 			shell_print(sh, "\tAddressLength: %x", io_res->AddressLength);
@@ -67,17 +60,15 @@ static void dump_dev_res(const struct shell *sh, ACPI_RESOURCE *res_lst)
 			shell_print(sh, "ACPI_RESOURCE_TYPE_MEMORY24");
 			break;
 		case ACPI_RESOURCE_TYPE_MEMORY32: {
-			ACPI_RESOURCE_MEMORY32 *mem_res = &res->Data.Memory32;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_MEMORY32");
+			ACPI_RESOURCE_MEMORY32 *mem_res = &res->Data.Memory32;
 			shell_print(sh, "\tMinimum: %x", mem_res->Minimum);
 			shell_print(sh, "\tMaximum: %x", mem_res->Maximum);
 			break;
 		}
 		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32: {
-			ACPI_RESOURCE_FIXED_MEMORY32 *fix_mem_res = &res->Data.FixedMemory32;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_FIXED_MEMORY32");
+			ACPI_RESOURCE_FIXED_MEMORY32 *fix_mem_res = &res->Data.FixedMemory32;
 			shell_print(sh, "\tAddress: %x", fix_mem_res->Address);
 			break;
 		}
@@ -85,17 +76,15 @@ static void dump_dev_res(const struct shell *sh, ACPI_RESOURCE *res_lst)
 			shell_print(sh, "ACPI_RESOURCE_TYPE_ADDRESS16");
 			break;
 		case ACPI_RESOURCE_TYPE_ADDRESS32: {
-			ACPI_RESOURCE_ADDRESS32 *add_res = &res->Data.Address32;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_ADDRESS32");
+			ACPI_RESOURCE_ADDRESS32 *add_res = &res->Data.Address32;
 			shell_print(sh, "\tMinimum: %x", add_res->Address.Minimum);
 			shell_print(sh, "\tMaximum: %x", add_res->Address.Maximum);
 			break;
 		}
 		case ACPI_RESOURCE_TYPE_ADDRESS64: {
-			ACPI_RESOURCE_ADDRESS64 *add_res64 = &res->Data.Address64;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_ADDRESS64");
+			ACPI_RESOURCE_ADDRESS64 *add_res64 = &res->Data.Address64;
 			shell_print(sh, "\tMinimum: %llx", add_res64->Address.Minimum);
 			shell_print(sh, "\tMaximum: %llx", add_res64->Address.Maximum);
 			break;
@@ -104,12 +93,11 @@ static void dump_dev_res(const struct shell *sh, ACPI_RESOURCE *res_lst)
 			shell_print(sh, "ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64");
 			break;
 		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ: {
-			ACPI_RESOURCE_EXTENDED_IRQ *ext_irq_res = &res->Data.ExtendedIrq;
-
 			shell_print(sh, "ACPI_RESOURCE_TYPE_EXTENDED_IRQ");
+			ACPI_RESOURCE_EXTENDED_IRQ *ext_irq_res = &res->Data.ExtendedIrq;
 			shell_print(sh, "\tTriggering: %x", ext_irq_res->Triggering);
 			shell_print(sh, "\tPolarity: %x", ext_irq_res->Polarity);
-			shell_print(sh, "\tShareable: %s", ext_irq_res->Shareable ? "YES":"NO");
+			shell_print(sh, "\tShareable: %s", ext_irq_res->Shareable ? "YES" : "NO");
 			shell_print(sh, "\tInterruptCount: %d", ext_irq_res->InterruptCount);
 			shell_print(sh, "\tInterrupts[0]: %d", ext_irq_res->Interrupts[0]);
 			break;
@@ -167,7 +155,6 @@ static int dump_dev_crs(const struct shell *sh, size_t argc, char **argv)
 	}
 
 	dump_dev_res(sh, res_lst);
-
 	acpi_current_resource_free(res_lst);
 
 	return 0;
@@ -298,7 +285,6 @@ static int get_acpi_dev_resource(const struct shell *sh, size_t argc, char **arg
 		mmio_res.mmio_max = ARRAY_SIZE(reg_base);
 		mmio_res.reg_base = reg_base;
 		if (!acpi_device_mmio_get(dev, &mmio_res)) {
-
 			shell_print(sh, "Device MMIO resources");
 			for (int i = 0; i < ACPI_RESOURCE_COUNT_GET(&mmio_res); i++) {
 				shell_print(sh, "\tType: %x, Address: %p, Size: %d",
@@ -311,7 +297,6 @@ static int get_acpi_dev_resource(const struct shell *sh, size_t argc, char **arg
 		irq_res.irq_vector_max = ARRAY_SIZE(irqs);
 		irq_res.irqs = irqs;
 		if (!acpi_device_irq_get(dev, &irq_res)) {
-
 			shell_print(sh, "Device IRQ resources");
 			for (int i = 0; i < irq_res.irq_vector_max; i++) {
 				shell_print(sh, "\tIRQ Num: %x, Flags: %x", irq_res.irqs[i],
@@ -370,3 +355,4 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 );
 
 SHELL_CMD_REGISTER(acpi, &sub_acpi, "Demo commands", NULL);
+//GST

@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2023, Emna Rekik
- * Copyright (c) 2024 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/server.h
 
 #ifndef ZEPHYR_INCLUDE_NET_HTTP_SERVER_H_
 #define ZEPHYR_INCLUDE_NET_HTTP_SERVER_H_
@@ -19,7 +14,6 @@
  */
 
 #include <stdint.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/net/http/parser.h>
 #include <zephyr/net/http/hpack.h>
@@ -413,4 +407,5 @@ int http_server_stop(void);
  * @}
  */
 
-#endif
+#endif /* ZEPHYR_INCLUDE_NET_HTTP_SERVER_H_ */
+//GST

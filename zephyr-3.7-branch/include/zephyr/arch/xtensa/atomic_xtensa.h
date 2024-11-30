@@ -1,7 +1,4 @@
-/*
- * Copyright (c) 2021 Intel Corporation
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/atomic_xtensa.h
 
 #ifndef ZEPHYR_INCLUDE_ATOMIC_XTENSA_H_
 #define ZEPHYR_INCLUDE_ATOMIC_XTENSA_H_
@@ -174,3 +171,4 @@ static ALWAYS_INLINE void *atomic_ptr_clear(atomic_ptr_t *target)
 }
 
 #endif /* ZEPHYR_INCLUDE_ATOMIC_XTENSA_H_ */
+//GST

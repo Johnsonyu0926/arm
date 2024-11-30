@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/posix/options/getopt/getopt_common.c
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #if CONFIG_SHELL_GETOPT
@@ -11,16 +7,16 @@
 
 #include "getopt.h"
 
-/* Referring  below variables is not thread safe. They reflects getopt state
+/* Referring below variables is not thread safe. They reflect getopt state
  * only when 1 thread is using getopt.
  * When more threads are using getopt please call getopt_state_get to know
  * getopt state for the current thread.
  */
-int opterr = 1;	/* if error message should be printed */
-int optind = 1;	/* index into parent argv vector */
-int optopt;	/* character checked for validity */
-int optreset;	/* reset getopt */
-char *optarg;	/* argument associated with option */
+int opterr = 1;  /* if error message should be printed */
+int optind = 1;  /* index into parent argv vector */
+int optopt;      /* character checked for validity */
+int optreset;    /* reset getopt */
+char *optarg;    /* argument associated with option */
 
 /* Common state for all threads that did not have own getopt state. */
 static struct getopt_state m_getopt_common_state = {
@@ -34,12 +30,17 @@ static struct getopt_state m_getopt_common_state = {
 
 #if CONFIG_GETOPT_LONG
 	.nonopt_start = -1, /* first non option argument (for permute) */
-	.nonopt_end = -1, /* first option after non options (for permute) */
+	.nonopt_end = -1,   /* first option after non options (for permute) */
 #endif
 };
 
-/* This function is not thread safe. All threads using getopt are calling
+/**
+ * @brief Update global getopt state
+ *
+ * This function is not thread safe. All threads using getopt are calling
  * this function.
+ *
+ * @param state Pointer to the getopt state
  */
 void z_getopt_global_state_update(struct getopt_state *state)
 {
@@ -50,7 +51,13 @@ void z_getopt_global_state_update(struct getopt_state *state)
 	optarg = state->optarg;
 }
 
-/* It is internal getopt API function, it shall not be called by the user. */
+/**
+ * @brief Get the getopt state for the current thread
+ *
+ * It is internal getopt API function, it shall not be called by the user.
+ *
+ * @return Pointer to the getopt state
+ */
 struct getopt_state *getopt_state_get(void)
 {
 #if CONFIG_SHELL_GETOPT
@@ -66,3 +73,5 @@ struct getopt_state *getopt_state_get(void)
 	/* If not a shell thread return a common pointer */
 	return &m_getopt_common_state;
 }
+
+//GST

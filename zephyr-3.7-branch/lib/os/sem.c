@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/sem.c
 #include <zephyr/sys/sem.h>
 #include <zephyr/internal/syscall_handler.h>
 
@@ -11,6 +6,13 @@
 #define SYS_SEM_MINIMUM      0
 #define SYS_SEM_CONTENDED    (SYS_SEM_MINIMUM - 1)
 
+/**
+ * @brief Decrement an atomic value with a minimum bound
+ *
+ * @param val Pointer to the atomic value
+ * @param minimum Minimum bound
+ * @return The old value
+ */
 static inline atomic_t bounded_dec(atomic_t *val, atomic_t minimum)
 {
 	atomic_t old_value, new_value;
@@ -27,6 +29,14 @@ static inline atomic_t bounded_dec(atomic_t *val, atomic_t minimum)
 	return old_value;
 }
 
+/**
+ * @brief Increment an atomic value with a minimum and maximum bound
+ *
+ * @param val Pointer to the atomic value
+ * @param minimum Minimum bound
+ * @param maximum Maximum bound
+ * @return The old value
+ */
 static inline atomic_t bounded_inc(atomic_t *val, atomic_t minimum,
 				   atomic_t maximum)
 {
@@ -44,6 +54,14 @@ static inline atomic_t bounded_inc(atomic_t *val, atomic_t minimum,
 	return old_value;
 }
 
+/**
+ * @brief Initialize a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param initial_count Initial count
+ * @param limit Maximum count
+ * @return 0 on success, or -EINVAL on error
+ */
 int sys_sem_init(struct sys_sem *sem, unsigned int initial_count,
 		 unsigned int limit)
 {
@@ -58,6 +76,12 @@ int sys_sem_init(struct sys_sem *sem, unsigned int initial_count,
 	return 0;
 }
 
+/**
+ * @brief Give a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @return 0 on success, or -EAGAIN if the semaphore is already at its limit
+ */
 int sys_sem_give(struct sys_sem *sem)
 {
 	int ret = 0;
@@ -79,6 +103,13 @@ int sys_sem_give(struct sys_sem *sem)
 	return ret;
 }
 
+/**
+ * @brief Take a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param timeout Timeout for the take operation
+ * @return 0 on success, or an error code on failure
+ */
 int sys_sem_take(struct sys_sem *sem, k_timeout_t timeout)
 {
 	int ret = 0;
@@ -98,6 +129,12 @@ int sys_sem_take(struct sys_sem *sem, k_timeout_t timeout)
 	return ret;
 }
 
+/**
+ * @brief Get the current count of a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @return The current count
+ */
 unsigned int sys_sem_count_get(struct sys_sem *sem)
 {
 	int value = atomic_get(&sem->futex.val);
@@ -105,6 +142,14 @@ unsigned int sys_sem_count_get(struct sys_sem *sem)
 	return (value > SYS_SEM_MINIMUM) ? value : SYS_SEM_MINIMUM;
 }
 #else
+/**
+ * @brief Initialize a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param initial_count Initial count
+ * @param limit Maximum count
+ * @return 0 on success
+ */
 int sys_sem_init(struct sys_sem *sem, unsigned int initial_count,
 		 unsigned int limit)
 {
@@ -113,6 +158,12 @@ int sys_sem_init(struct sys_sem *sem, unsigned int initial_count,
 	return 0;
 }
 
+/**
+ * @brief Give a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @return 0 on success
+ */
 int sys_sem_give(struct sys_sem *sem)
 {
 	k_sem_give(&sem->kernel_sem);
@@ -120,6 +171,13 @@ int sys_sem_give(struct sys_sem *sem)
 	return 0;
 }
 
+/**
+ * @brief Take a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @param timeout Timeout for the take operation
+ * @return 0 on success, or -ETIMEDOUT on timeout
+ */
 int sys_sem_take(struct sys_sem *sem, k_timeout_t timeout)
 {
 	int ret_value = 0;
@@ -132,8 +190,15 @@ int sys_sem_take(struct sys_sem *sem, k_timeout_t timeout)
 	return ret_value;
 }
 
+/**
+ * @brief Get the current count of a semaphore
+ *
+ * @param sem Pointer to the semaphore
+ * @return The current count
+ */
 unsigned int sys_sem_count_get(struct sys_sem *sem)
 {
 	return k_sem_count_get(&sem->kernel_sem);
 }
 #endif
+//GST

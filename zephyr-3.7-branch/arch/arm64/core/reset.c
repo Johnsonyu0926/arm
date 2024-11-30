@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/core/reset.c
 #include <kernel_internal.h>
 #include <zephyr/sys/barrier.h>
 #include "boot.h"
@@ -30,6 +25,9 @@ void __weak z_arm64_el1_plat_init(void)
 	/* do nothing */
 }
 
+/**
+ * @brief Initialize the highest exception level
+ */
 void z_arm64_el_highest_init(void)
 {
 	if (is_el_highest_implemented()) {
@@ -41,7 +39,6 @@ void z_arm64_el_highest_init(void)
 	barrier_isync_fence_full();
 }
 
-
 #if !defined(CONFIG_ARMV8_R)
 enum el3_next_el {
 	EL3_TO_EL2,
@@ -49,6 +46,11 @@ enum el3_next_el {
 	EL3_TO_EL1_SKIP_EL2
 };
 
+/**
+ * @brief Get the next exception level from EL3
+ *
+ * @return The next exception level
+ */
 static inline enum el3_next_el el3_get_next_el(void)
 {
 	if (!is_el_implemented(2)) {
@@ -65,6 +67,9 @@ static inline enum el3_next_el el3_get_next_el(void)
 	}
 }
 
+/**
+ * @brief Initialize EL3
+ */
 void z_arm64_el3_init(void)
 {
 	uint64_t reg;
@@ -117,6 +122,9 @@ void z_arm64_el3_init(void)
 }
 #endif /* CONFIG_ARMV8_R */
 
+/**
+ * @brief Initialize EL2
+ */
 void z_arm64_el2_init(void)
 {
 	uint64_t reg;
@@ -166,6 +174,9 @@ void z_arm64_el2_init(void)
 	barrier_isync_fence_full();
 }
 
+/**
+ * @brief Initialize EL1
+ */
 void z_arm64_el1_init(void)
 {
 	uint64_t reg;
@@ -199,6 +210,11 @@ void z_arm64_el1_init(void)
 }
 
 #if !defined(CONFIG_ARMV8_R)
+/**
+ * @brief Get the next exception level from EL3 and set the switch address
+ *
+ * @param switch_addr The address to switch to
+ */
 void z_arm64_el3_get_next_el(uint64_t switch_addr)
 {
 	uint64_t spsr;
@@ -219,3 +235,4 @@ void z_arm64_el3_get_next_el(uint64_t switch_addr)
 	write_spsr_el3(spsr);
 }
 #endif /* CONFIG_ARMV8_R */
+//GST

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2016 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/fs_interface.h
 
 #ifndef ZEPHYR_INCLUDE_FS_FS_INTERFACE_H_
 #define ZEPHYR_INCLUDE_FS_FS_INTERFACE_H_
@@ -57,7 +53,6 @@ extern "C" {
 
 #endif /* CONFIG_FILE_SYSTEM_MAX_FILE_NAME */
 
-
 /* Type for fs_open flags */
 typedef uint8_t fs_mode_t;
 
@@ -103,3 +98,4 @@ struct fs_dir_t {
 #endif
 
 #endif /* ZEPHYR_INCLUDE_FS_FS_INTERFACE_H_ */
+//GST

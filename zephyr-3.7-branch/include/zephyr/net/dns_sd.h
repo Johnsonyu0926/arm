@@ -1,12 +1,4 @@
-/** @file
- *  @brief DNS Service Discovery
- */
-
-/*
- * Copyright (c) 2020 Friedt Professional Engineering Services, Inc
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/dns_sd.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DNS_SD_H_
 #define ZEPHYR_INCLUDE_NET_DNS_SD_H_
@@ -290,7 +282,9 @@ void dns_sd_create_wildcard_filter(struct dns_sd_rec *filter);
  */
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_DNS_SD_H_ */
+
+// By GST @Data

@@ -1,64 +1,39 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-#ifndef ZEPHYR_KERNEL_INCLUDE_OFFSETS_SHORT_H_
-#define ZEPHYR_KERNEL_INCLUDE_OFFSETS_SHORT_H_
+ //arch/arc/include/offsets_short_arch.h
+#ifndef ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_
+#define ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_
 
 #include <zephyr/offsets.h>
-#include <offsets_short_arch.h>
 
-/* kernel */
+/* Thread offset definitions */
+#define _thread_offset_to_exception_depth \
+	(___thread_t_arch_OFFSET + ___thread_arch_t_exception_depth_OFFSET)
 
-/* main */
-#ifndef CONFIG_SMP
-/* Relies on _kernel.cpu being the first member of _kernel and having 1 element
- */
-#define _kernel_offset_to_nested \
-	(___cpu_t_nested_OFFSET)
+#define _thread_offset_to_callee_saved_x19_x20 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x19_x20_OFFSET)
+#define _thread_offset_to_callee_saved_x21_x22 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x21_x22_OFFSET)
+#define _thread_offset_to_callee_saved_x23_x24 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x23_x24_OFFSET)
+#define _thread_offset_to_callee_saved_x25_x26 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x25_x26_OFFSET)
+#define _thread_offset_to_callee_saved_x27_x28 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x27_x28_OFFSET)
+#define _thread_offset_to_callee_saved_x29_sp_el0 \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_x29_sp_el0_OFFSET)
+#define _thread_offset_to_callee_saved_sp_elx_lr \
+	(___thread_t_callee_saved_OFFSET + ___callee_saved_t_sp_elx_lr_OFFSET)
 
-#define _kernel_offset_to_irq_stack \
-	(___cpu_t_irq_stack_OFFSET)
+#ifdef CONFIG_ARM64_SAFE_EXCEPTION_STACK
+/* CPU offset definitions for safe exception stack */
+#define _cpu_offset_to_safe_exception_stack \
+	(___cpu_t_arch_OFFSET + ___cpu_arch_t_safe_exception_stack_OFFSET)
+#define _cpu_offset_to_current_stack_limit \
+	(___cpu_t_arch_OFFSET + ___cpu_arch_t_current_stack_limit_OFFSET)
+#define _cpu_offset_to_corrupted_sp \
+	(___cpu_t_arch_OFFSET + ___cpu_arch_t_corrupted_sp_OFFSET)
+#define _thread_offset_to_stack_limit \
+	(___thread_t_arch_OFFSET + ___thread_arch_t_stack_limit_OFFSET)
+#endif
 
-#define _kernel_offset_to_current \
-	(___cpu_t_current_OFFSET)
-
-#if defined(CONFIG_FPU_SHARING)
-#define _kernel_offset_to_fp_ctx \
-	(___cpu_t_fp_ctx_OFFSET)
-#endif /* CONFIG_FPU_SHARING */
-#endif /* CONFIG_SMP */
-
-#define _kernel_offset_to_idle \
-	(___kernel_t_idle_OFFSET)
-
-#define _kernel_offset_to_current_fp \
-	(___kernel_t_current_fp_OFFSET)
-
-#define _kernel_offset_to_ready_q_cache \
-	(___kernel_t_ready_q_OFFSET + ___ready_q_t_cache_OFFSET)
-
-/* end - kernel */
-
-/* threads */
-
-/* main */
-
-#define _thread_offset_to_callee_saved \
-	(___thread_t_callee_saved_OFFSET)
-
-#ifdef CONFIG_THREAD_LOCAL_STORAGE
-#define _thread_offset_to_tls \
-	(___thread_t_tls_OFFSET)
-#endif /* CONFIG_THREAD_LOCAL_STORAGE */
-
-/* base */
-
-#define _thread_offset_to_user_options \
-	(___thread_t_base_OFFSET + ___thread_base_t_user_options_OFFSET)
-
-/* end - threads */
-
-#endif /* ZEPHYR_KERNEL_INCLUDE_OFFSETS_SHORT_H_ */
+#endif /* ZEPHYR_ARCH_ARM64_INCLUDE_OFFSETS_SHORT_ARCH_H_ */
+//GST

@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2018 Google LLC.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/crc/crc7_sw.c
 #include <zephyr/sys/crc.h>
 
 uint8_t crc7_be(uint8_t seed, const uint8_t *src, size_t len)
@@ -17,3 +12,4 @@ uint8_t crc7_be(uint8_t seed, const uint8_t *src, size_t len)
 
 	return seed;
 }
+//GST

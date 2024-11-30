@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 STMicroelectronics
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/open-amp/resource_table.h
 
 #ifndef RESOURCE_TABLE_H__
 #define RESOURCE_TABLE_H__
@@ -30,6 +26,9 @@ extern "C" {
 
 #endif
 
+/**
+ * @brief Resource table entries enumeration
+ */
 enum rsc_table_entries {
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 	RSC_TABLE_VDEV_ENTRY,
@@ -40,6 +39,9 @@ enum rsc_table_entries {
 	RSC_TABLE_NUM_ENTRY
 };
 
+/**
+ * @brief Firmware resource table structure
+ */
 struct fw_resource_table {
 	struct resource_table hdr;
 	uint32_t offset[RSC_TABLE_NUM_ENTRY];
@@ -56,20 +58,44 @@ struct fw_resource_table {
 #endif
 } METAL_PACKED_END;
 
+/**
+ * @brief Get the resource table
+ *
+ * @param table_ptr Pointer to store the resource table
+ * @param length Pointer to store the length of the resource table
+ */
 void rsc_table_get(struct fw_resource_table **table_ptr, int *length);
 
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 
+/**
+ * @brief Convert resource table to vdev
+ *
+ * @param rsc_table Pointer to the resource table
+ * @return Pointer to the vdev
+ */
 inline struct fw_rsc_vdev *rsc_table_to_vdev(struct fw_resource_table *rsc_table)
 {
 	return &rsc_table->vdev;
 }
 
+/**
+ * @brief Get the first vring from the resource table
+ *
+ * @param rsc_table Pointer to the resource table
+ * @return Pointer to the first vring
+ */
 inline struct fw_rsc_vdev_vring *rsc_table_get_vring0(struct fw_resource_table *rsc_table)
 {
 	return &rsc_table->vring0;
 }
 
+/**
+ * @brief Get the second vring from the resource table
+ *
+ * @param rsc_table Pointer to the resource table
+ * @return Pointer to the second vring
+ */
 inline struct fw_rsc_vdev_vring *rsc_table_get_vring1(struct fw_resource_table *rsc_table)
 {
 	return &rsc_table->vring1;
@@ -81,4 +107,5 @@ inline struct fw_rsc_vdev_vring *rsc_table_get_vring1(struct fw_resource_table *
 }
 #endif
 
-#endif
+#endif /* RESOURCE_TABLE_H__ */
+//GST

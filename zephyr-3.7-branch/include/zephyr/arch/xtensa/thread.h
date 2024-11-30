@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/thread.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_H_
@@ -15,33 +11,43 @@
 #endif
 
 /* Xtensa doesn't use these structs, but Zephyr core requires they be
- * defined so they can be included in struct _thread_base.  Dummy
+ * defined so they can be included in struct _thread_base. Dummy
  * field exists for sizeof compatibility with C++.
  */
 
+/**
+ * @brief Callee-saved registers structure
+ *
+ * This structure represents the callee-saved registers.
+ */
 struct _callee_saved {
-	char dummy;
+	char dummy; /**< Dummy field for sizeof compatibility with C++ */
 };
 
 typedef struct _callee_saved _callee_saved_t;
 
+/**
+ * @brief Thread architecture-specific structure
+ *
+ * This structure represents the architecture-specific information for a thread.
+ */
 struct _thread_arch {
-	uint32_t last_cpu;
+	uint32_t last_cpu; /**< Last CPU the thread ran on */
 #ifdef CONFIG_USERSPACE
 
 #ifdef CONFIG_XTENSA_MMU
-	uint32_t *ptables;
+	uint32_t *ptables; /**< Page tables for MMU */
 #endif
 
 #ifdef CONFIG_XTENSA_MPU
 	/* Pointer to the memory domain's MPU map. */
-	struct xtensa_mpu_map *mpu_map;
+	struct xtensa_mpu_map *mpu_map; /**< MPU map for memory domain */
 #endif
 
 	/* Initial privilege mode stack pointer when doing a system call.
-	 * Un-set for surpervisor threads.
+	 * Un-set for supervisor threads.
 	 */
-	uint8_t *psp;
+	uint8_t *psp; /**< Privilege mode stack pointer */
 #endif
 };
 
@@ -50,3 +56,4 @@ typedef struct _thread_arch _thread_arch_t;
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_THREAD_H_ */
+//GST

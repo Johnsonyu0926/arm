@@ -1,12 +1,4 @@
-/*
- * Copyright (c) 2020 DENX Software Engineering GmbH
- *               Lukasz Majewski <lukma@denx.de>
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- * @brief DSA definitions and handlers
- */
+// zephyr-3.7-branch/include/zephyr/net/dsa.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DSA_H_
 #define ZEPHYR_INCLUDE_NET_DSA_H_
@@ -222,7 +214,7 @@ int dsa_switch_read(struct net_if *iface, uint16_t reg_addr, uint8_t *value);
  * @param[in]  reg_addr  The register address
  * @param[in]  value     The value
  *
- * @return     { description_of_the_return_value }
+ * @return     0 if successful, negative if error
  */
 int dsa_switch_write(struct net_if *iface, uint16_t reg_addr, uint8_t value);
 
@@ -273,3 +265,4 @@ struct dsa_slave_config {
  * @}
  */
 #endif /* ZEPHYR_INCLUDE_NET_DSA_H_ */
+//GST

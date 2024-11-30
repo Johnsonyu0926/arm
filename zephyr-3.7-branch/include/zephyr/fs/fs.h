@@ -1,15 +1,9 @@
-/*
- * Copyright (c) 2016 Intel Corporation.
- * Copyright (c) 2020-2024 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/fs.h
 
 #ifndef ZEPHYR_INCLUDE_FS_FS_H_
 #define ZEPHYR_INCLUDE_FS_FS_H_
 
 #include <sys/types.h>
-
 #include <zephyr/sys/dlist.h>
 #include <zephyr/fs/fs_interface.h>
 
@@ -31,10 +25,10 @@ struct fs_file_system_t;
  * @brief Enumeration for directory entry types
  */
 enum fs_dir_entry_type {
-	/** Identifier for file entry */
-	FS_DIR_ENTRY_FILE = 0,
-	/** Identifier for directory entry */
-	FS_DIR_ENTRY_DIR
+    /** Identifier for file entry */
+    FS_DIR_ENTRY_FILE = 0,
+    /** Identifier for directory entry */
+    FS_DIR_ENTRY_DIR
 };
 
 /** @brief Enumeration to uniquely identify file system types.
@@ -52,17 +46,17 @@ enum fs_dir_entry_type {
  * used by the application.
  */
 enum {
-	/** Identifier for in-tree FatFS file system. */
-	FS_FATFS = 0,
+    /** Identifier for in-tree FatFS file system. */
+    FS_FATFS = 0,
 
-	/** Identifier for in-tree LittleFS file system. */
-	FS_LITTLEFS,
+    /** Identifier for in-tree LittleFS file system. */
+    FS_LITTLEFS,
 
-	/** Identifier for in-tree Ext2 file system. */
-	FS_EXT2,
+    /** Identifier for in-tree Ext2 file system. */
+    FS_EXT2,
 
-	/** Base identifier for external file systems. */
-	FS_TYPE_EXTERNAL_BASE,
+    /** Base identifier for external file systems. */
+    FS_TYPE_EXTERNAL_BASE,
 };
 
 /** Flag prevents formatting device if requested file system not found */
@@ -75,54 +69,41 @@ enum {
  * This flag has no impact in user-defined mount structures.
  */
 #define FS_MOUNT_FLAG_AUTOMOUNT BIT(2)
-/** Flag requests file system driver to use Disk Access API. When the flag is
- * set to the fs_mount_t.flags prior to fs_mount call, a file system
- * needs to use the Disk Access API, otherwise mount callback for the driver
- * should return -ENOSUP; when the flag is not set the file system driver
- * should use Flash API by default, unless it only supports Disc Access API.
- * When file system will use Disk Access API and the flag is not set, the mount
- * callback for the file system should set the flag on success.
- */
+/** Flag to use disk access */
 #define FS_MOUNT_FLAG_USE_DISK_ACCESS BIT(3)
 
 /**
  * @brief File system mount info structure
  */
 struct fs_mount_t {
-	/** Entry for the fs_mount_list list */
-	sys_dnode_t node;
-	/** File system type */
-	int type;
-	/** Mount point directory name (ex: "/fatfs") */
-	const char *mnt_point;
-	/** Pointer to file system specific data */
-	void *fs_data;
-	/** Pointer to backend storage device */
-	void *storage_dev;
-	/* The following fields are filled by file system core */
-	/** Length of Mount point string */
-	size_t mountp_len;
-	/** Pointer to File system interface of the mount point */
-	const struct fs_file_system_t *fs;
-	/** Mount flags */
-	uint8_t flags;
+    /** Entry for the fs_mount_list list */
+    sys_dnode_t node;
+    /** File system type */
+    int type;
+    /** Mount point directory name (ex: "/fatfs") */
+    const char *mnt_point;
+    /** Pointer to file system specific data */
+    void *fs_data;
+    /** Pointer to backend storage device */
+    void *storage_dev;
+    /* The following fields are filled by file system core */
+    /** Length of Mount point string */
+    size_t mountp_len;
+    /** Pointer to File system interface of the mount point */
+    const struct fs_file_system_t *fs;
+    /** Mount flags */
+    uint8_t flags;
 };
 
-/**
- * @brief Structure to receive file or directory information
- *
- * Used in functions that read the directory entries to get
- * file or directory information.
- */
 struct fs_dirent {
-	/**
-	 * File/directory type (FS_DIR_ENTRY_FILE or FS_DIR_ENTRY_DIR)
-	 */
-	enum fs_dir_entry_type type;
-	/** Name of file or directory */
-	char name[MAX_FILE_NAME + 1];
-	/** Size of file (0 if directory). */
-	size_t size;
+    /**
+     * File/directory type (FS_DIR_ENTRY_FILE or FS_DIR_ENTRY_DIR)
+     */
+    enum fs_dir_entry_type type;
+    /** Name of file or directory */
+    char name[MAX_FILE_NAME + 1];
+    /** Size of file (0 if directory). */
+    size_t size;
 };
 
 /**
@@ -132,16 +113,15 @@ struct fs_dirent {
  * in the volume.
  */
 struct fs_statvfs {
-	/** Optimal transfer block size */
-	unsigned long f_bsize;
-	/** Allocation unit size */
-	unsigned long f_frsize;
-	/** Size of FS in f_frsize units */
-	unsigned long f_blocks;
-	/** Number of free blocks */
-	unsigned long f_bfree;
+    /** Optimal transfer block size */
+    unsigned long f_bsize;
+    /** Allocation unit size */
+    unsigned long f_frsize;
+    /** Size of FS in f_frsize units */
+    unsigned long f_blocks;
+    /** Number of free blocks */
+    unsigned long f_bfree;
 };
-
 
 /**
  * @name fs_open open and creation mode flags
@@ -165,7 +145,6 @@ struct fs_statvfs {
 /** Bitmask for open/create flags */
 #define FS_O_FLAGS_MASK 0x70
 
-
 /** Bitmask for open flags */
 #define FS_O_MASK       (FS_O_MODE_MASK | FS_O_FLAGS_MASK)
 /**
@@ -178,15 +157,15 @@ struct fs_statvfs {
  */
 #ifndef FS_SEEK_SET
 /** Seek from the beginning of file */
-#define FS_SEEK_SET	0
+#define FS_SEEK_SET    0
 #endif
 #ifndef FS_SEEK_CUR
 /** Seek from a current position */
-#define FS_SEEK_CUR	1
+#define FS_SEEK_CUR    1
 #endif
 #ifndef FS_SEEK_END
 /** Seek from the end of file */
-#define FS_SEEK_END	2
+#define FS_SEEK_END    2
 #endif
 /**
  * @}
@@ -194,17 +173,17 @@ struct fs_statvfs {
 
 /**
  * @brief Get the common mount flags for an fstab entry.
-
+ *
  * @param node_id the node identifier for a child entry in a
  * zephyr,fstab node.
  * @return a value suitable for initializing an fs_mount_t flags
  * member.
  */
-#define FSTAB_ENTRY_DT_MOUNT_FLAGS(node_id)				\
-	((DT_PROP(node_id, automount) ? FS_MOUNT_FLAG_AUTOMOUNT : 0)	\
-	 | (DT_PROP(node_id, read_only) ? FS_MOUNT_FLAG_READ_ONLY : 0)	\
-	 | (DT_PROP(node_id, no_format) ? FS_MOUNT_FLAG_NO_FORMAT : 0)  \
-	 | (DT_PROP(node_id, disk_access) ? FS_MOUNT_FLAG_USE_DISK_ACCESS : 0))
+#define FSTAB_ENTRY_DT_MOUNT_FLAGS(node_id)                \
+    ((DT_PROP(node_id, automount) ? FS_MOUNT_FLAG_AUTOMOUNT : 0)    \
+     | (DT_PROP(node_id, read_only) ? FS_MOUNT_FLAG_READ_ONLY : 0)    \
+     | (DT_PROP(node_id, no_format) ? FS_MOUNT_FLAG_NO_FORMAT : 0)  \
+     | (DT_PROP(node_id, disk_access) ? FS_MOUNT_FLAG_USE_DISK_ACCESS : 0))
 
 /**
  * @brief The name under which a zephyr,fstab entry mount structure is
@@ -222,8 +201,8 @@ struct fs_statvfs {
  *
  * @param node_id the node identifier for a child entry in a zephyr,fstab node.
  */
-#define FS_FSTAB_DECLARE_ENTRY(node_id)		\
-	extern struct fs_mount_t FS_FSTAB_ENTRY(node_id)
+#define FS_FSTAB_DECLARE_ENTRY(node_id)        \
+    extern struct fs_mount_t FS_FSTAB_ENTRY(node_id)
 
 /**
  * @brief Initialize fs_file_t object
@@ -236,9 +215,9 @@ struct fs_statvfs {
  */
 static inline void fs_file_t_init(struct fs_file_t *zfp)
 {
-	zfp->filep = NULL;
-	zfp->mp = NULL;
-	zfp->flags = 0;
+    zfp->filep = NULL;
+    zfp->mp = NULL;
+    zfp->flags = 0;
 }
 
 /**
@@ -252,8 +231,8 @@ static inline void fs_file_t_init(struct fs_file_t *zfp)
  */
 static inline void fs_dir_t_init(struct fs_dir_t *zdp)
 {
-	zdp->dirp = NULL;
-	zdp->mp = NULL;
+    zdp->dirp = NULL;
+    zdp->mp = NULL;
 }
 
 /**
@@ -284,8 +263,8 @@ static inline void fs_dir_t_init(struct fs_dir_t *zdp)
  * @retval -EBUSY when zfp is already used;
  * @retval -EINVAL when a bad file name is given;
  * @retval -EROFS when opening read-only file for write, or attempting to
- *	   create a file on a system that has been mounted with the
- *	   FS_MOUNT_FLAG_READ_ONLY flag;
+ *       create a file on a system that has been mounted with the
+ *       FS_MOUNT_FLAG_READ_ONLY flag;
  * @retval -ENOENT when the file does not exist at the path;
  * @retval -ENOTSUP when not implemented by underlying file system driver;
  * @retval -EACCES when trying to truncate a file without opening it for write.
@@ -316,7 +295,7 @@ int fs_close(struct fs_file_t *zfp);
  * @retval 0 on success;
  * @retval -EINVAL when a bad file name is given;
  * @retval -EROFS if file is read-only, or when file system has been mounted
- *	   with the FS_MOUNT_FLAG_READ_ONLY flag;
+ *       with the FS_MOUNT_FLAG_READ_ONLY flag;
  * @retval -ENOTSUP when not implemented by underlying file system driver;
  * @retval <0 an other negative errno code on error.
  */
@@ -341,9 +320,9 @@ int fs_unlink(const char *path);
  *
  * @retval 0 on success;
  * @retval -EINVAL when a bad file name is given, or when rename would cause move
- *	   between mount points;
+ *       between mount points;
  * @retval -EROFS if file is read-only, or when file system has been mounted
- *	   with the FS_MOUNT_FLAG_READ_ONLY flag;
+ *       with the FS_MOUNT_FLAG_READ_ONLY flag;
  * @retval -ENOTSUP when not implemented by underlying file system driver;
  * @retval <0 an other negative errno code on error.
  */
@@ -533,8 +512,8 @@ int fs_closedir(struct fs_dir_t *zdp);
 /**
  * @brief Mount filesystem
  *
- * Perform steps needed for mounting a file system like
- * calling the file system specific mount function and adding
+ * Perform steps needed for mounting a file
+  * system like calling the file system specific mount function and adding
  * the mount point to mounted file system list.
  *
  * @note Current implementation of ELM FAT driver allows only following mount
@@ -558,7 +537,6 @@ int fs_closedir(struct fs_dir_t *zdp);
  * @retval <0 an other negative errno code on error.
  */
 int fs_mount(struct fs_mount_t *mp);
-
 /**
  * @brief Unmount filesystem
  *
@@ -574,7 +552,6 @@ int fs_mount(struct fs_mount_t *mp);
  * @retval <0 an other negative errno code on error.
  */
 int fs_unmount(struct fs_mount_t *mp);
-
 /**
  * @brief Get path of mount point at index
  *
@@ -591,7 +568,6 @@ int fs_unmount(struct fs_mount_t *mp);
  * @retval -ENOENT if there is no mount point with given index.
  */
 int fs_readmount(int *index, const char **name);
-
 /**
  * @brief File or directory status
  *
@@ -609,7 +585,6 @@ int fs_readmount(int *index, const char **name);
  * @retval <0 negative errno code on error.
  */
 int fs_stat(const char *path, struct fs_dirent *entry);
-
 /**
  * @brief Retrieves statistics of the file system volume
  *
@@ -625,7 +600,6 @@ int fs_stat(const char *path, struct fs_dirent *entry);
  * @retval <0 an other negative errno code on error.
  */
 int fs_statvfs(const char *path, struct fs_statvfs *stat);
-
 /**
  * @brief Create fresh file system
  *
@@ -638,7 +612,6 @@ int fs_statvfs(const char *path, struct fs_statvfs *stat);
  * @retval <0 negative errno code on error.
  */
 int fs_mkfs(int fs_type, uintptr_t dev_id, void *cfg, int flags);
-
 /**
  * @brief Register a file system
  *
@@ -651,11 +624,10 @@ int fs_mkfs(int fs_type, uintptr_t dev_id, void *cfg, int flags);
  *
  * @retval 0 on success;
  * @retval -EALREADY when a file system of a given type has already been registered;
- * @retval -ENOSCP when there is no space left, in file system registry, to add
+ * @retval -ENOSPC when there is no space left, in file system registry, to add
  *	   this file system type.
  */
 int fs_register(int type, const struct fs_file_system_t *fs);
-
 /**
  * @brief Unregister a file system
  *
@@ -668,14 +640,11 @@ int fs_register(int type, const struct fs_file_system_t *fs);
  * @retval -EINVAL when file system of a given type has not been registered.
  */
 int fs_unregister(int type, const struct fs_file_system_t *fs);
-
 /**
  * @}
  */
-
-
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* ZEPHYR_INCLUDE_FS_FS_H_ */
+//GST

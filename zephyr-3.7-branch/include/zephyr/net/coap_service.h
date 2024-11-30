@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2023 Basalte bv
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/** @file
- * @brief CoAP Service API
- *
- * An API for applications to respond to CoAP requests
- */
+// zephyr-3.7-branch/include/zephyr/net/coap_service.h
 
 #ifndef ZEPHYR_INCLUDE_NET_COAP_SERVICE_H_
 #define ZEPHYR_INCLUDE_NET_COAP_SERVICE_H_
@@ -308,3 +298,4 @@ int coap_resource_remove_observer_by_token(struct coap_resource *resource,
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_COAP_SERVICE_H_ */
+//GST

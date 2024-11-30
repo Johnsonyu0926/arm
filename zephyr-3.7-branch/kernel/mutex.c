@@ -1,30 +1,4 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file @brief mutex kernel services
- *
- * This module contains routines for handling mutex locking and unlocking.
- *
- * Mutexes implement a priority inheritance algorithm that boosts the priority
- * level of the owning thread to match the priority level of the highest
- * priority thread waiting on the mutex.
- *
- * Each mutex that contributes to priority inheritance must be released in the
- * reverse order in which it was acquired.  Furthermore each subsequent mutex
- * that contributes to raising the owning thread's priority level must be
- * acquired at a point after the most recent "bumping" of the priority level.
- *
- * For example, if thread A has two mutexes contributing to the raising of its
- * priority level, the second mutex M2 must be acquired by thread A after
- * thread A's priority level was bumped due to owning the first mutex M1.
- * When releasing the mutex, thread A must release M2 before it releases M1.
- * Failure to follow this nested model may result in threads running at
- * unexpected priority levels (too high, or too low).
- */
+// kernel/mutex.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
@@ -52,6 +26,12 @@ static struct k_spinlock lock;
 static struct k_obj_type obj_type_mutex;
 #endif /* CONFIG_OBJ_CORE_MUTEX */
 
+/**
+ * @brief Initialize a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_mutex_init(struct k_mutex *mutex)
 {
 	mutex->owner = NULL;
@@ -79,6 +59,13 @@ static inline int z_vrfy_k_mutex_init(struct k_mutex *mutex)
 #include <zephyr/syscalls/k_mutex_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Calculate new priority for priority inheritance
+ *
+ * @param target Target priority
+ * @param limit Priority limit
+ * @return New priority
+ */
 static int32_t new_prio_for_inheritance(int32_t target, int32_t limit)
 {
 	int new_prio = z_is_prio_higher(target, limit) ? target : limit;
@@ -88,6 +75,13 @@ static int32_t new_prio_for_inheritance(int32_t target, int32_t limit)
 	return new_prio;
 }
 
+/**
+ * @brief Adjust the priority of the mutex owner
+ *
+ * @param mutex Pointer to the mutex
+ * @param new_prio New priority
+ * @return true if the priority was adjusted, false otherwise
+ */
 static bool adjust_owner_prio(struct k_mutex *mutex, int32_t new_prio)
 {
 	if (mutex->owner->base.prio != new_prio) {
@@ -102,6 +96,13 @@ static bool adjust_owner_prio(struct k_mutex *mutex, int32_t new_prio)
 	return false;
 }
 
+/**
+ * @brief Lock a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_mutex_lock(struct k_mutex *mutex, k_timeout_t timeout)
 {
 	int new_prio;
@@ -208,6 +209,12 @@ static inline int z_vrfy_k_mutex_lock(struct k_mutex *mutex,
 #include <zephyr/syscalls/k_mutex_lock_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Unlock a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_mutex_unlock(struct k_mutex *mutex)
 {
 	struct k_thread *new_owner;
@@ -276,7 +283,6 @@ int z_impl_k_mutex_unlock(struct k_mutex *mutex)
 		k_spin_unlock(&lock, key);
 	}
 
-
 k_mutex_unlock_return:
 	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_mutex, unlock, mutex, 0);
 
@@ -293,6 +299,11 @@ static inline int z_vrfy_k_mutex_unlock(struct k_mutex *mutex)
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_OBJ_CORE_MUTEX
+/**
+ * @brief Initialize mutex object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_mutex_obj_core_list(void)
 {
 	/* Initialize mutex object type */
@@ -312,3 +323,4 @@ static int init_mutex_obj_core_list(void)
 SYS_INIT(init_mutex_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_MUTEX */
+//GST

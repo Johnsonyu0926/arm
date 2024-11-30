@@ -1,15 +1,12 @@
-/*
- * Copyright (c) 2023 Antmicro <www.antmicro.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/ext2.h
 
 #ifndef ZEPHYR_INCLUDE_FS_EXT2_H_
 #define ZEPHYR_INCLUDE_FS_EXT2_H_
 
 #include <stdint.h>
 
-/** @brief Configuration used to format ext2 file system.
+/**
+ * @brief Configuration used to format ext2 file system.
  *
  * If a field is set to 0 then default value is used.
  * (In volume name the first cell of an array must be 0 to use default value.)
@@ -28,10 +25,17 @@ struct ext2_cfg {
 	uint32_t fs_size; /* Number of blocks that we want to take. */
 	uint32_t bytes_per_inode;
 	uint8_t uuid[16];
-	uint8_t volume_name[17]; /* If first byte is 0 then name ext2" is given. */
+	uint8_t volume_name[17]; /* If first byte is 0 then name "ext2" is given. */
 	bool set_uuid;
 };
 
+/**
+ * @brief Define a default configuration for ext2 file system.
+ *
+ * This macro defines a default configuration for ext2 file system.
+ *
+ * @param name The name for the configuration structure.
+ */
 #define FS_EXT2_DECLARE_DEFAULT_CONFIG(name)			\
 	static struct ext2_cfg name = {				\
 		.block_size = 1024,				\
@@ -41,5 +45,5 @@ struct ext2_cfg {
 		.set_uuid = false,				\
 	}
 
-
 #endif /* ZEPHYR_INCLUDE_FS_EXT2_H_ */
+//GST

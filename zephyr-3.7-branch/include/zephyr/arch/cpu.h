@@ -1,10 +1,4 @@
-/* cpu.h - automatically selects the correct arch.h file to include */
-
-/*
- * Copyright (c) 1997-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/cpu.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_CPU_H_
 #define ZEPHYR_INCLUDE_ARCH_CPU_H_
@@ -34,3 +28,4 @@
 #endif
 
 #endif /* ZEPHYR_INCLUDE_ARCH_CPU_H_ */
+//GST

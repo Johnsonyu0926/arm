@@ -1,22 +1,15 @@
-/* string.c - common string routines */
-
-/*
- * Copyright (c) 2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/minimal/source/string/string.c
 #include <string.h>
 #include <stdint.h>
 #include <sys/types.h>
 
 /**
- *
  * @brief Copy a string
  *
- * @return pointer to destination buffer <d>
+ * @param d Destination buffer
+ * @param s Source string
+ * @return Pointer to destination buffer
  */
-
 char *strcpy(char *ZRESTRICT d, const char *ZRESTRICT s)
 {
 	char *dest = d;
@@ -33,12 +26,13 @@ char *strcpy(char *ZRESTRICT d, const char *ZRESTRICT s)
 }
 
 /**
- *
  * @brief Copy part of a string
  *
- * @return pointer to destination buffer <d>
+ * @param d Destination buffer
+ * @param s Source string
+ * @param n Maximum number of characters to copy
+ * @return Pointer to destination buffer
  */
-
 char *strncpy(char *ZRESTRICT d, const char *ZRESTRICT s, size_t n)
 {
 	char *dest = d;
@@ -60,12 +54,12 @@ char *strncpy(char *ZRESTRICT d, const char *ZRESTRICT s, size_t n)
 }
 
 /**
+ * @brief Locate the first occurrence of a character in a string
  *
- * @brief String scanning operation
- *
- * @return pointer to 1st instance of found byte, or NULL if not found
+ * @param s String to search
+ * @param c Character to locate
+ * @return Pointer to the first occurrence of the character, or NULL if not found
  */
-
 char *strchr(const char *s, int c)
 {
 	char tmp = (char) c;
@@ -78,12 +72,12 @@ char *strchr(const char *s, int c)
 }
 
 /**
+ * @brief Locate the last occurrence of a character in a string
  *
- * @brief String scanning operation
- *
- * @return pointer to last instance of found byte, or NULL if not found
+ * @param s String to search
+ * @param c Character to locate
+ * @return Pointer to the last occurrence of the character, or NULL if not found
  */
-
 char *strrchr(const char *s, int c)
 {
 	char *match = NULL;
@@ -98,12 +92,11 @@ char *strrchr(const char *s, int c)
 }
 
 /**
+ * @brief Get the length of a string
  *
- * @brief Get string length
- *
- * @return number of bytes in string <s>
+ * @param s String to measure
+ * @return Number of bytes in the string
  */
-
 size_t strlen(const char *s)
 {
 	size_t n = 0;
@@ -117,12 +110,12 @@ size_t strlen(const char *s)
 }
 
 /**
- *
  * @brief Compare two strings
  *
- * @return negative # if <s1> < <s2>, 0 if <s1> == <s2>, else positive #
+ * @param s1 First string
+ * @param s2 Second string
+ * @return Negative value if s1 < s2, 0 if s1 == s2, positive value if s1 > s2
  */
-
 int strcmp(const char *s1, const char *s2)
 {
 	while ((*s1 == *s2) && (*s1 != '\0')) {
@@ -134,12 +127,13 @@ int strcmp(const char *s1, const char *s2)
 }
 
 /**
- *
  * @brief Compare part of two strings
  *
- * @return negative # if <s1> < <s2>, 0 if <s1> == <s2>, else positive #
+ * @param s1 First string
+ * @param s2 Second string
+ * @param n Maximum number of characters to compare
+ * @return Negative value if s1 < s2, 0 if s1 == s2, positive value if s1 > s2
  */
-
 int strncmp(const char *s1, const char *s2, size_t n)
 {
 	while ((n > 0) && (*s1 == *s2) && (*s1 != '\0')) {
@@ -152,11 +146,12 @@ int strncmp(const char *s1, const char *s2, size_t n)
 }
 
 /**
- * @brief Separate `str` by any char in `sep` and return NULL terminated
- * sections. Consecutive `sep` chars in `str` are treated as a single
- * separator.
+ * @brief Separate a string into tokens
  *
- * @return pointer to NULL terminated string or NULL on errors.
+ * @param str String to tokenize
+ * @param sep Delimiters
+ * @param state Pointer to a char* variable that is used internally by strtok_r to maintain context between successive calls that parse the same string
+ * @return Pointer to the next token, or NULL if there are no more tokens
  */
 char *strtok_r(char *str, const char *sep, char **state)
 {
@@ -164,7 +159,7 @@ char *strtok_r(char *str, const char *sep, char **state)
 
 	start = str ? str : *state;
 
-	/* skip leading delimiters */
+	/* Skip leading delimiters */
 	while (*start && strchr(sep, *start)) {
 		start++;
 	}
@@ -174,7 +169,7 @@ char *strtok_r(char *str, const char *sep, char **state)
 		return NULL;
 	}
 
-	/* look for token chars */
+	/* Look for token chars */
 	end = start;
 	while (*end && !strchr(sep, *end)) {
 		end++;
@@ -190,14 +185,28 @@ char *strtok_r(char *str, const char *sep, char **state)
 	return start;
 }
 
+/**
+ * @brief Concatenate two strings
+ *
+ * @param dest Destination string
+ * @param src Source string
+ * @return Pointer to the destination string
+ */
 char *strcat(char *ZRESTRICT dest, const char *ZRESTRICT src)
 {
 	strcpy(dest + strlen(dest), src);
 	return dest;
 }
 
-char *strncat(char *ZRESTRICT dest, const char *ZRESTRICT src,
-	      size_t n)
+/**
+ * @brief Concatenate two strings with a maximum length
+ *
+ * @param dest Destination string
+ * @param src Source string
+ * @param n Maximum number of characters to concatenate
+ * @return Pointer to the destination string
+ */
+char *strncat(char *ZRESTRICT dest, const char *ZRESTRICT src, size_t n)
 {
 	char *orig_dest = dest;
 	size_t len = strlen(dest);
@@ -212,10 +221,12 @@ char *strncat(char *ZRESTRICT dest, const char *ZRESTRICT src,
 }
 
 /**
- *
  * @brief Compare two memory areas
  *
- * @return negative # if <m1> < <m2>, 0 if <m1> == <m2>, else positive #
+ * @param m1 First memory area
+ * @param m2 Second memory area
+ * @param n Number of bytes to compare
+ * @return Negative value if m1 < m2, 0 if m1 == m2, positive value if m1 > m2
  */
 int memcmp(const void *m1, const void *m2, size_t n)
 {
@@ -235,12 +246,13 @@ int memcmp(const void *m1, const void *m2, size_t n)
 }
 
 /**
- *
  * @brief Copy bytes in memory with overlapping areas
  *
- * @return pointer to destination buffer <d>
+ * @param d Destination buffer
+ * @param s Source buffer
+ * @param n Number of bytes to copy
+ * @return Pointer to destination buffer
  */
-
 void *memmove(void *d, const void *s, size_t n)
 {
 	char *dest = d;
@@ -251,7 +263,6 @@ void *memmove(void *d, const void *s, size_t n)
 		 * The <src> buffer overlaps with the start of the <dest> buffer.
 		 * Copy backwards to prevent the premature corruption of <src>.
 		 */
-
 		while (n > 0) {
 			n--;
 			dest[n] = src[n];
@@ -270,16 +281,16 @@ void *memmove(void *d, const void *s, size_t n)
 }
 
 /**
- *
  * @brief Copy bytes in memory
  *
- * @return pointer to start of destination buffer
+ * @param d Destination buffer
+ * @param s Source buffer
+ * @param n Number of bytes to copy
+ * @return Pointer to destination buffer
  */
-
 void *memcpy(void *ZRESTRICT d, const void *ZRESTRICT s, size_t n)
 {
-	/* attempt word-sized copying only if buffers have identical alignment */
-
+	/* Attempt word-sized copying only if buffers have identical alignment */
 	unsigned char *d_byte = (unsigned char *)d;
 	const unsigned char *s_byte = (const unsigned char *)s;
 
@@ -287,9 +298,7 @@ void *memcpy(void *ZRESTRICT d, const void *ZRESTRICT s, size_t n)
 	const uintptr_t mask = sizeof(mem_word_t) - 1;
 
 	if ((((uintptr_t)d ^ (uintptr_t)s_byte) & mask) == 0) {
-
-		/* do byte-sized copying until word-aligned or finished */
-
+		/* Do byte-sized copying until word-aligned or finished */
 		while (((uintptr_t)d_byte) & mask) {
 			if (n == 0) {
 				return d;
@@ -298,8 +307,7 @@ void *memcpy(void *ZRESTRICT d, const void *ZRESTRICT s, size_t n)
 			n--;
 		}
 
-		/* do word-sized copying as long as possible */
-
+		/* Do word-sized copying as long as possible */
 		mem_word_t *d_word = (mem_word_t *)d_byte;
 		const mem_word_t *s_word = (const mem_word_t *)s_byte;
 
@@ -313,8 +321,7 @@ void *memcpy(void *ZRESTRICT d, const void *ZRESTRICT s, size_t n)
 	}
 #endif
 
-	/* do byte-sized copying until finished */
-
+	/* Do byte-sized copying until finished */
 	while (n > 0) {
 		*(d_byte++) = *(s_byte++);
 		n--;
@@ -324,16 +331,16 @@ void *memcpy(void *ZRESTRICT d, const void *ZRESTRICT s, size_t n)
 }
 
 /**
- *
  * @brief Set bytes in memory
  *
- * @return pointer to start of buffer
+ * @param buf Buffer to set
+ * @param c Value to set
+ * @param n Number of bytes to set
+ * @return Pointer to start of buffer
  */
-
 void *memset(void *buf, int c, size_t n)
 {
-	/* do byte-sized initialization until word-aligned or finished */
-
+	/* Do byte-sized initialization until word-aligned or finished */
 	unsigned char *d_byte = (unsigned char *)buf;
 	unsigned char c_byte = (unsigned char)c;
 
@@ -346,8 +353,7 @@ void *memset(void *buf, int c, size_t n)
 		n--;
 	}
 
-	/* do word-sized initialization as long as possible */
-
+	/* Do word-sized initialization as long as possible */
 	mem_word_t *d_word = (mem_word_t *)d_byte;
 	mem_word_t c_word = (mem_word_t)c_byte;
 
@@ -362,8 +368,7 @@ void *memset(void *buf, int c, size_t n)
 		n -= sizeof(mem_word_t);
 	}
 
-	/* do byte-sized initialization until finished */
-
+	/* Do byte-sized initialization until finished */
 	d_byte = (unsigned char *)d_word;
 #endif
 
@@ -376,12 +381,13 @@ void *memset(void *buf, int c, size_t n)
 }
 
 /**
- *
  * @brief Scan byte in memory
  *
- * @return pointer to start of found byte
+ * @param s Memory area to search
+ * @param c Byte to locate
+ * @param n Number of bytes to search
+ * @return Pointer to the first occurrence of the byte, or NULL if not found
  */
-
 void *memchr(const void *s, int c, size_t n)
 {
 	if (n != 0) {
@@ -391,9 +397,9 @@ void *memchr(const void *s, int c, size_t n)
 			if (*p++ == (unsigned char)c) {
 				return ((void *)(p - 1));
 			}
-
 		} while (--n != 0);
 	}
 
 	return NULL;
 }
+//GST

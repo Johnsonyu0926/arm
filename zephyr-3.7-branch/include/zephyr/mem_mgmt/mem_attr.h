@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/mem_mgmt/mem_attr.h
 
 #ifndef ZEPHYR_INCLUDE_MEM_ATTR_H_
 #define ZEPHYR_INCLUDE_MEM_ATTR_H_
@@ -112,3 +108,4 @@ int mem_attr_check_buf(void *addr, size_t size, uint32_t attr);
 /** @} */
 
 #endif /* ZEPHYR_INCLUDE_MEM_ATTR_H_ */
+//GST

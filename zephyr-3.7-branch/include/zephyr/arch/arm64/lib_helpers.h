@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/arm64/lib_helpers.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_LIB_HELPERS_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_LIB_HELPERS_H_
@@ -14,44 +10,81 @@
 
 /* All the macros need a memory clobber */
 
-#define read_sysreg(reg)						\
-({									\
-	uint64_t reg_val;						\
-	__asm__ volatile ("mrs %0, " STRINGIFY(reg)			\
-			  : "=r" (reg_val) :: "memory");		\
-	reg_val;							\
+/**
+ * @brief Read a system register
+ *
+ * This macro reads the value of the specified system register.
+ *
+ * @param reg The system register to read
+ * @return The value of the system register
+ */
+#define read_sysreg(reg)                        \
+({                                              \
+    uint64_t reg_val;                           \
+    __asm__ volatile ("mrs %0, " STRINGIFY(reg) \
+                      : "=r" (reg_val) :: "memory"); \
+    reg_val;                                    \
 })
 
-#define write_sysreg(val, reg)						\
-({									\
-	__asm__ volatile ("msr " STRINGIFY(reg) ", %0"			\
-			  :: "r" (val) : "memory");			\
+/**
+ * @brief Write a value to a system register
+ *
+ * This macro writes the specified value to the specified system register.
+ *
+ * @param val The value to write
+ * @param reg The system register to write to
+ */
+#define write_sysreg(val, reg)                  \
+({                                              \
+    __asm__ volatile ("msr " STRINGIFY(reg) ", %0" \
+                      :: "r" (val) : "memory"); \
 })
 
-#define zero_sysreg(reg)						\
-({									\
-	__asm__ volatile ("msr " STRINGIFY(reg) ", xzr"			\
-			  ::: "memory");				\
+/**
+ * @brief Zero a system register
+ *
+ * This macro writes zero to the specified system register.
+ *
+ * @param reg The system register to zero
+ */
+#define zero_sysreg(reg)                        \
+({                                              \
+    __asm__ volatile ("msr " STRINGIFY(reg) ", xzr" \
+                      ::: "memory");            \
 })
 
-#define MAKE_REG_HELPER(reg)						\
-	static ALWAYS_INLINE uint64_t read_##reg(void)			\
-	{								\
-		return read_sysreg(reg);				\
-	}								\
-	static ALWAYS_INLINE void write_##reg(uint64_t val)		\
-	{								\
-		write_sysreg(val, reg);					\
-	}								\
-	static ALWAYS_INLINE void zero_##reg(void)			\
-	{								\
-		zero_sysreg(reg);					\
-	}
+/**
+ * @brief Create helper functions for a system register
+ *
+ * This macro creates helper functions to read, write, and zero the specified system register.
+ *
+ * @param reg The system register
+ */
+#define MAKE_REG_HELPER(reg)                    \
+    static ALWAYS_INLINE uint64_t read_##reg(void) \
+    {                                           \
+        return read_sysreg(reg);                \
+    }                                           \
+    static ALWAYS_INLINE void write_##reg(uint64_t val) \
+    {                                           \
+        write_sysreg(val, reg);                 \
+    }                                           \
+    static ALWAYS_INLINE void zero_##reg(void)  \
+    {                                           \
+        zero_sysreg(reg);                       \
+    }
 
+/**
+ * @brief Create helper functions for system registers at EL1, EL2, and EL3
+ *
+ * This macro creates helper functions to read, write, and zero the specified system registers at EL1, EL2, and EL3.
+ *
+ * @param reg The system register
+ */
 #define MAKE_REG_HELPER_EL123(reg) \
-	MAKE_REG_HELPER(reg##_el1) \
-	MAKE_REG_HELPER(reg##_el2) \
-	MAKE_REG_HELPER(reg##_el3)
+    MAKE_REG_HELPER(reg##_el1) \
+    MAKE_REG_HELPER(reg##_el2) \
+    MAKE_REG_HELPER(reg##_el3)
 
 MAKE_REG_HELPER(ccsidr_el1);
 MAKE_REG_HELPER(clidr_el1);
@@ -93,10 +126,10 @@ MAKE_REG_HELPER_EL123(vbar)
 
 #if defined(CONFIG_ARM_MPU)
 /* Armv8-R aarch64 mpu registers */
-#define mpuir_el1	S3_0_c0_c0_4
-#define prselr_el1	S3_0_c6_c2_1
-#define prbar_el1	S3_0_c6_c8_0
-#define prlar_el1	S3_0_c6_c8_1
+#define mpuir_el1    S3_0_c0_c0_4
+#define prselr_el1   S3_0_c6_c2_1
+#define prbar_el1    S3_0_c6_c8_0
+#define prlar_el1    S3_0_c6_c8_1
 
 MAKE_REG_HELPER(mpuir_el1);
 MAKE_REG_HELPER(prselr_el1);
@@ -104,99 +137,169 @@ MAKE_REG_HELPER(prbar_el1);
 MAKE_REG_HELPER(prlar_el1);
 #endif
 
+/**
+ * @brief Enable debug exceptions
+ *
+ * This function enables debug exceptions.
+ */
 static ALWAYS_INLINE void enable_debug_exceptions(void)
 {
-	__asm__ volatile ("msr DAIFClr, %0"
-			  :: "i" (DAIFCLR_DBG_BIT) : "memory");
+    __asm__ volatile ("msr DAIFClr, %0"
+                      :: "i" (DAIFCLR_DBG_BIT) : "memory");
 }
 
+/**
+ * @brief Disable debug exceptions
+ *
+ * This function disables debug exceptions.
+ */
 static ALWAYS_INLINE void disable_debug_exceptions(void)
 {
-	__asm__ volatile ("msr DAIFSet, %0"
-			  :: "i" (DAIFSET_DBG_BIT) : "memory");
+    __asm__ volatile ("msr DAIFSet, %0"
+                      :: "i" (DAIFSET_DBG_BIT) : "memory");
 }
 
+/**
+ * @brief Enable SError exceptions
+ *
+ * This function enables SError exceptions.
+ */
 static ALWAYS_INLINE void enable_serror_exceptions(void)
 {
-	__asm__ volatile ("msr DAIFClr, %0"
-			  :: "i" (DAIFCLR_ABT_BIT) : "memory");
+    __asm__ volatile ("msr DAIFClr, %0"
+                      :: "i" (DAIFCLR_ABT_BIT) : "memory");
 }
 
+/**
+ * @brief Disable SError exceptions
+ *
+ * This function disables SError exceptions.
+ */
 static ALWAYS_INLINE void disable_serror_exceptions(void)
 {
-	__asm__ volatile ("msr DAIFSet, %0"
-			  :: "i" (DAIFSET_ABT_BIT) : "memory");
+    __asm__ volatile ("msr DAIFSet, %0"
+                      :: "i" (DAIFSET_ABT_BIT) : "memory");
 }
 
+/**
+ * @brief Enable IRQs
+ *
+ * This function enables IRQs.
+ */
 static ALWAYS_INLINE void enable_irq(void)
 {
-	__asm__ volatile ("msr DAIFClr, %0"
-			  :: "i" (DAIFCLR_IRQ_BIT) : "memory");
+    __asm__ volatile ("msr DAIFClr, %0"
+                      :: "i" (DAIFCLR_IRQ_BIT) : "memory");
 }
 
+/**
+ * @brief Disable IRQs
+ *
+ * This function disables IRQs.
+ */
 static ALWAYS_INLINE void disable_irq(void)
 {
-	__asm__ volatile ("msr DAIFSet, %0"
-			  :: "i" (DAIFSET_IRQ_BIT) : "memory");
+    __asm__ volatile ("msr DAIFSet, %0"
+                      :: "i" (DAIFSET_IRQ_BIT) : "memory");
 }
 
+/**
+ * @brief Enable FIQs
+ *
+ * This function enables FIQs.
+ */
 static ALWAYS_INLINE void enable_fiq(void)
 {
-	__asm__ volatile ("msr DAIFClr, %0"
-			  :: "i" (DAIFCLR_FIQ_BIT) : "memory");
+    __asm__ volatile ("msr DAIFClr, %0"
+                      :: "i" (DAIFCLR_FIQ_BIT) : "memory");
 }
 
+/**
+ * @brief Disable FIQs
+ *
+ * This function disables FIQs.
+ */
 static ALWAYS_INLINE void disable_fiq(void)
 {
-	__asm__ volatile ("msr DAIFSet, %0"
-			  :: "i" (DAIFSET_FIQ_BIT) : "memory");
+    __asm__ volatile ("msr DAIFSet, %0"
+                      :: "i" (DAIFSET_FIQ_BIT) : "memory");
 }
 
-#define sev()	__asm__ volatile("sev" : : : "memory")
-#define wfe()	__asm__ volatile("wfe" : : : "memory")
-#define wfi()	__asm__ volatile("wfi" : : : "memory")
+#define sev()   __asm__ volatile("sev" : : : "memory")
+#define wfe()   __asm__ volatile("wfe" : : : "memory")
+#define wfi()   __asm__ volatile("wfi" : : : "memory")
 
+/**
+ * @brief Check if an exception level is implemented
+ *
+ * This function checks if the specified exception level is implemented.
+ *
+ * @param el The exception level to check
+ * @return True if the exception level is implemented, false otherwise
+ */
 static inline bool is_el_implemented(unsigned int el)
 {
-	unsigned int shift;
+    unsigned int shift;
 
-	if (el > 3) {
-		return false;
-	}
+    if (el > 3) {
+        return false;
+    }
 
-	shift = ID_AA64PFR0_EL1_SHIFT * el;
+    shift = ID_AA64PFR0_EL1_SHIFT * el;
 
-	return (((read_id_aa64pfr0_el1() >> shift) & ID_AA64PFR0_ELX_MASK) != 0U);
+    return (((read_id_aa64pfr0_el1() >> shift) & ID_AA64PFR0_ELX_MASK) != 0U);
 }
 
+/**
+ * @brief Check if the current exception level is the highest implemented
+ *
+ * This function checks if the current exception level is the highest implemented.
+ *
+ * @return True if the current exception level is the highest implemented, false otherwise
+ */
 static inline bool is_el_highest_implemented(void)
 {
-	uint32_t el_highest;
-	uint32_t curr_el;
+    uint32_t el_highest;
+    uint32_t curr_el;
 
-	el_highest = read_id_aa64pfr0_el1() & 0xFFFF;
-	el_highest = (31U - __builtin_clz(el_highest)) / 4;
+    el_highest = read_id_aa64pfr0_el1() & 0xFFFF;
+    el_highest = (31U - __builtin_clz(el_highest)) / 4;
 
-	curr_el = GET_EL(read_currentel());
+    curr_el = GET_EL(read_currentel());
 
-	if (curr_el < el_highest)
-		return false;
+    if (curr_el < el_highest)
+        return false;
 
-	return true;
+    return true;
 }
 
+/**
+ * @brief Check if EL2 secure state is supported
+ *
+ * This function checks if EL2 secure state is supported.
+ *
+ * @return True if EL2 secure state is supported, false otherwise
+ */
 static inline bool is_el2_sec_supported(void)
 {
-	return (((read_id_aa64pfr0_el1() >> ID_AA64PFR0_SEL2_SHIFT) &
-		ID_AA64PFR0_SEL2_MASK) != 0U);
+    return (((read_id_aa64pfr0_el1() >> ID_AA64PFR0_SEL2_SHIFT) &
+        ID_AA64PFR0_SEL2_MASK) != 0U);
 }
 
+/**
+ * @brief Check if the current state is secure
+ *
+ * This function checks if the current state is secure.
+ *
+ * @return True if the current state is secure, false otherwise
+ */
 static inline bool is_in_secure_state(void)
 {
-	/* We cannot read SCR_EL3 from EL2 or EL1 */
-	return !IS_ENABLED(CONFIG_ARMV8_A_NS);
+    /* We cannot read SCR_EL3 from EL2 or EL1 */
+    return !IS_ENABLED(CONFIG_ARMV8_A_NS);
 }
 
 #endif /* !_ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_LIB_HELPERS_H_ */
+//GST

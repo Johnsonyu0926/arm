@@ -1,18 +1,7 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * @brief Pipes
- */
+// kernel/pipes.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <ksched.h>
 #include <wait_q.h>
@@ -34,7 +23,6 @@ static int pipe_get_internal(k_spinlock_key_t key, struct k_pipe *pipe,
 #ifdef CONFIG_OBJ_CORE_PIPE
 static struct k_obj_type obj_type_pipe;
 #endif /* CONFIG_OBJ_CORE_PIPE */
-
 
 void k_pipe_init(struct k_pipe *pipe, unsigned char *buffer, size_t size)
 {
@@ -830,3 +818,4 @@ static int init_pipe_obj_core_list(void)
 SYS_INIT(init_pipe_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_PIPE */
+//GST

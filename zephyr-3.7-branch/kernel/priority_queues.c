@@ -1,14 +1,17 @@
-/*
- * Copyright (c) 2018,2024 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//kernel/priority_queues.c
 
 #include <zephyr/kernel.h>
 #include <ksched.h>
 #include <zephyr/sys/math_extras.h>
 #include <zephyr/sys/dlist.h>
 
+/**
+ * @brief Compare two red-black tree nodes
+ *
+ * @param a Pointer to the first node
+ * @param b Pointer to the second node
+ * @return true if node a is less than node b, false otherwise
+ */
 bool z_priq_rb_lessthan(struct rbnode *a, struct rbnode *b)
 {
 	struct k_thread *thread_a, *thread_b;
@@ -24,7 +27,7 @@ bool z_priq_rb_lessthan(struct rbnode *a, struct rbnode *b)
 	} else if (cmp < 0) {
 		return false;
 	} else {
-		return thread_a->base.order_key < thread_b->base.order_key
-			? 1 : 0;
+		return thread_a->base.order_key < thread_b->base.order_key;
 	}
 }
+//GST

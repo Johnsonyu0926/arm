@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2016, Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/kernel/thread.h
 
 #ifndef ZEPHYR_INCLUDE_KERNEL_THREAD_H_
 #define ZEPHYR_INCLUDE_KERNEL_THREAD_H_
@@ -380,3 +376,4 @@ typedef struct k_thread _thread_t;
 typedef struct k_thread *k_tid_t;
 
 #endif /* ZEPHYR_INCLUDE_KERNEL_THREAD_H_ */
+//GST

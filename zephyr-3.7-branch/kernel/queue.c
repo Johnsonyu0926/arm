@@ -1,19 +1,7 @@
-/*
- * Copyright (c) 2010-2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- *
- * @brief dynamic-size QUEUE object.
- */
-
+// kernel/queue.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <wait_q.h>
 #include <ksched.h>
@@ -27,6 +15,13 @@ struct alloc_node {
 	void *data;
 };
 
+/**
+ * @brief Peek at a queue node
+ *
+ * @param node Pointer to the node
+ * @param needs_free Whether the node needs to be freed
+ * @return Pointer to the data
+ */
 void *z_queue_node_peek(sys_sfnode_t *node, bool needs_free)
 {
 	void *ret;
@@ -55,6 +50,11 @@ void *z_queue_node_peek(sys_sfnode_t *node, bool needs_free)
 	return ret;
 }
 
+/**
+ * @brief Initialize a queue
+ *
+ * @param queue Pointer to the queue
+ */
 void z_impl_k_queue_init(struct k_queue *queue)
 {
 	sys_sflist_init(&queue->data_q);
@@ -78,12 +78,24 @@ static inline void z_vrfy_k_queue_init(struct k_queue *queue)
 #include <zephyr/syscalls/k_queue_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Prepare a thread to run
+ *
+ * @param thread Pointer to the thread
+ * @param data Pointer to the data
+ */
 static void prepare_thread_to_run(struct k_thread *thread, void *data)
 {
 	z_thread_return_value_set_with_data(thread, 0, data);
 	z_ready_thread(thread);
 }
 
+/**
+ * @brief Handle poll events for a queue
+ *
+ * @param queue Pointer to the queue
+ * @param state Poll state
+ */
 static inline void handle_poll_events(struct k_queue *queue, uint32_t state)
 {
 #ifdef CONFIG_POLL
@@ -94,6 +106,11 @@ static inline void handle_poll_events(struct k_queue *queue, uint32_t state)
 #endif /* CONFIG_POLL */
 }
 
+/**
+ * @brief Cancel wait on a queue
+ *
+ * @param queue Pointer to the queue
+ */
 void z_impl_k_queue_cancel_wait(struct k_queue *queue)
 {
 	SYS_PORT_TRACING_OBJ_FUNC(k_queue, cancel_wait, queue);
@@ -120,6 +137,16 @@ static inline void z_vrfy_k_queue_cancel_wait(struct k_queue *queue)
 #include <zephyr/syscalls/k_queue_cancel_wait_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Insert data into a queue
+ *
+ * @param queue Pointer to the queue
+ * @param prev Pointer to the previous node
+ * @param data Pointer to the data
+ * @param alloc Whether to allocate memory for the node
+ * @param is_append Whether to append the data
+ * @return 0 on success, or an error code on failure
+ */
 static int32_t queue_insert(struct k_queue *queue, void *prev, void *data,
 			    bool alloc, bool is_append)
 {
@@ -175,6 +202,13 @@ static int32_t queue_insert(struct k_queue *queue, void *prev, void *data,
 	return 0;
 }
 
+/**
+ * @brief Insert data into a queue
+ *
+ * @param queue Pointer to the queue
+ * @param prev Pointer to the previous node
+ * @param data Pointer to the data
+ */
 void k_queue_insert(struct k_queue *queue, void *prev, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, insert, queue);
@@ -184,6 +218,12 @@ void k_queue_insert(struct k_queue *queue, void *prev, void *data)
 	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_queue, insert, queue);
 }
 
+/**
+ * @brief Append data to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ */
 void k_queue_append(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, append, queue);
@@ -193,6 +233,12 @@ void k_queue_append(struct k_queue *queue, void *data)
 	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_queue, append, queue);
 }
 
+/**
+ * @brief Prepend data to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ */
 void k_queue_prepend(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, prepend, queue);
@@ -202,6 +248,13 @@ void k_queue_prepend(struct k_queue *queue, void *data)
 	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_queue, prepend, queue);
 }
 
+/**
+ * @brief Allocate and append data to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ * @return 0 on success, or an error code on failure
+ */
 int32_t z_impl_k_queue_alloc_append(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, alloc_append, queue);
@@ -223,6 +276,13 @@ static inline int32_t z_vrfy_k_queue_alloc_append(struct k_queue *queue,
 #include <zephyr/syscalls/k_queue_alloc_append_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Allocate and prepend data to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ * @return 0 on success, or an error code on failure
+ */
 int32_t z_impl_k_queue_alloc_prepend(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, alloc_prepend, queue);
@@ -244,6 +304,14 @@ static inline int32_t z_vrfy_k_queue_alloc_prepend(struct k_queue *queue,
 #include <zephyr/syscalls/k_queue_alloc_prepend_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Append a list to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param head Pointer to the head of the list
+ * @param tail Pointer to the tail of the list
+ * @return 0 on success, or an error code on failure
+ */
 int k_queue_append_list(struct k_queue *queue, void *head, void *tail)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, append_list, queue);
@@ -279,6 +347,13 @@ int k_queue_append_list(struct k_queue *queue, void *head, void *tail)
 	return 0;
 }
 
+/**
+ * @brief Merge a singly linked list into a queue
+ *
+ * @param queue Pointer to the queue
+ * @param list Pointer to the singly linked list
+ * @return 0 on success, or an error code on failure
+ */
 int k_queue_merge_slist(struct k_queue *queue, sys_slist_t *list)
 {
 	int ret;
@@ -314,6 +389,13 @@ int k_queue_merge_slist(struct k_queue *queue, sys_slist_t *list)
 	return 0;
 }
 
+/**
+ * @brief Get data from a queue
+ *
+ * @param queue Pointer to the queue
+ * @param timeout Timeout value
+ * @return Pointer to the data, or NULL on failure
+ */
 void *z_impl_k_queue_get(struct k_queue *queue, k_timeout_t timeout)
 {
 	k_spinlock_key_t key = k_spin_lock(&queue->lock);
@@ -351,6 +433,13 @@ void *z_impl_k_queue_get(struct k_queue *queue, k_timeout_t timeout)
 	return (ret != 0) ? NULL : _current->base.swap_data;
 }
 
+/**
+ * @brief Remove data from a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ * @return true if the data was removed, false otherwise
+ */
 bool k_queue_remove(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, remove, queue);
@@ -362,6 +451,13 @@ bool k_queue_remove(struct k_queue *queue, void *data)
 	return ret;
 }
 
+/**
+ * @brief Append unique data to a queue
+ *
+ * @param queue Pointer to the queue
+ * @param data Pointer to the data
+ * @return true if the data was appended, false otherwise
+ */
 bool k_queue_unique_append(struct k_queue *queue, void *data)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_queue, unique_append, queue);
@@ -383,6 +479,12 @@ bool k_queue_unique_append(struct k_queue *queue, void *data)
 	return true;
 }
 
+/**
+ * @brief Peek at the head of a queue
+ *
+ * @param queue Pointer to the queue
+ * @return Pointer to the data
+ */
 void *z_impl_k_queue_peek_head(struct k_queue *queue)
 {
 	void *ret = z_queue_node_peek(sys_sflist_peek_head(&queue->data_q), false);
@@ -392,6 +494,12 @@ void *z_impl_k_queue_peek_head(struct k_queue *queue)
 	return ret;
 }
 
+/**
+ * @brief Peek at the tail of a queue
+ *
+ * @param queue Pointer to the queue
+ * @return Pointer to the data
+ */
 void *z_impl_k_queue_peek_tail(struct k_queue *queue)
 {
 	void *ret = z_queue_node_peek(sys_sflist_peek_tail(&queue->data_q), false);
@@ -436,6 +544,11 @@ static inline void *z_vrfy_k_queue_peek_tail(struct k_queue *queue)
 #ifdef CONFIG_OBJ_CORE_FIFO
 struct k_obj_type _obj_type_fifo;
 
+/**
+ * @brief Initialize FIFO object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_fifo_obj_core_list(void)
 {
 	/* Initialize fifo object type */
@@ -459,6 +572,11 @@ SYS_INIT(init_fifo_obj_core_list, PRE_KERNEL_1,
 #ifdef CONFIG_OBJ_CORE_LIFO
 struct k_obj_type _obj_type_lifo;
 
+/**
+ * @brief Initialize LIFO object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_lifo_obj_core_list(void)
 {
 	/* Initialize lifo object type */
@@ -478,3 +596,4 @@ static int init_lifo_obj_core_list(void)
 SYS_INIT(init_lifo_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_LIFO */
+//GST

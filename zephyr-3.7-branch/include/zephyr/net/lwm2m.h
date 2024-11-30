@@ -1,23 +1,18 @@
-/*
- * Copyright (c) 2017 Linaro Limited
- * Copyright (c) 2017-2019 Foundries.io
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/lwm2m.h
 
 /** @file lwm2m.h
  *
- * @brief LwM2M high-level API
+ * @brief LwM2M高层API
  *
  * @details
- * LwM2M high-level interface is defined in this header.
+ * LwM2M高层接口在此头文件中定义。
  *
- * @note The implementation assumes UDP module is enabled.
+ * @note 实现假定启用了UDP模块。
  *
- * @note For more information refer to Technical Specification
+ * @note 有关更多信息，请参阅技术规范
  * OMA-TS-LightweightM2M_Core-V1_1_1-20190617-A
  *
- * @defgroup lwm2m_api LwM2M high-level API
+ * @defgroup lwm2m_api LwM2M高层API
  * @since 1.9
  * @version 0.8.0
  * @ingroup networking
@@ -34,135 +29,126 @@
 #include <zephyr/net/lwm2m_path.h>
 
 /**
- * @name LwM2M Objects managed by OMA for LwM2M tech specification.
- * Objects in this range have IDs from 0 to 1023.
+ * @name OMA管理的LwM2M对象。LwM2M技术规范中的对象。
+ * 对象ID范围为0到1023。
  * @{
  */
 
 /* clang-format off */
-#define LWM2M_OBJECT_SECURITY_ID                0  /**< Security object */
-#define LWM2M_OBJECT_SERVER_ID                  1  /**< Server object */
-#define LWM2M_OBJECT_ACCESS_CONTROL_ID          2  /**< Access Control object */
-#define LWM2M_OBJECT_DEVICE_ID                  3  /**< Device object */
-#define LWM2M_OBJECT_CONNECTIVITY_MONITORING_ID 4  /**< Connectivity Monitoring object */
-#define LWM2M_OBJECT_FIRMWARE_ID                5  /**< Firmware object */
-#define LWM2M_OBJECT_LOCATION_ID                6  /**< Location object */
-#define LWM2M_OBJECT_CONNECTIVITY_STATISTICS_ID 7  /**< Connectivity Statistics object */
-#define LWM2M_OBJECT_SOFTWARE_MANAGEMENT_ID     9  /**< Software Management object */
-#define LWM2M_OBJECT_PORTFOLIO_ID               16 /**< Portfolio object */
-#define LWM2M_OBJECT_BINARYAPPDATACONTAINER_ID  19 /**< Binary App Data Container object */
-#define LWM2M_OBJECT_EVENT_LOG_ID               20 /**< Event Log object */
-#define LWM2M_OBJECT_OSCORE_ID                  21 /**< OSCORE object */
-#define LWM2M_OBJECT_GATEWAY_ID                 25 /**< Gateway object */
+#define LWM2M_OBJECT_SECURITY_ID                0  /**< 安全对象 */
+#define LWM2M_OBJECT_SERVER_ID                  1  /**< 服务器对象 */
+#define LWM2M_OBJECT_ACCESS_CONTROL_ID          2  /**< 访问控制对象 */
+#define LWM2M_OBJECT_DEVICE_ID                  3  /**< 设备对象 */
+#define LWM2M_OBJECT_CONNECTIVITY_MONITORING_ID 4  /**< 连接监控对象 */
+#define LWM2M_OBJECT_FIRMWARE_ID                5  /**< 固件对象 */
+#define LWM2M_OBJECT_LOCATION_ID                6  /**< 位置对象 */
+#define LWM2M_OBJECT_CONNECTIVITY_STATISTICS_ID 7  /**< 连接统计对象 */
+#define LWM2M_OBJECT_SOFTWARE_MANAGEMENT_ID     9  /**< 软件管理对象 */
+#define LWM2M_OBJECT_PORTFOLIO_ID               16 /**< 投资组合对象 */
+#define LWM2M_OBJECT_BINARYAPPDATACONTAINER_ID  19 /**< 二进制应用数据容器对象 */
+#define LWM2M_OBJECT_EVENT_LOG_ID               20 /**< 事件日志对象 */
+#define LWM2M_OBJECT_OSCORE_ID                  21 /**< OSCORE对象 */
+#define LWM2M_OBJECT_GATEWAY_ID                 25 /**< 网关对象 */
 /* clang-format on */
 
 /** @} */
 
 /**
- * @name LwM2M Objects produced by 3rd party Standards Development
- * Organizations.
- * Refer to the OMA LightweightM2M (LwM2M) Object and Resource Registry:
+ * @name 由第三方标准开发组织生产的LwM2M对象。
+ * 请参阅OMA LightweightM2M（LwM2M）对象和资源注册表：
  * http://www.openmobilealliance.org/wp/OMNA/LwM2M/LwM2MRegistry.html
  * @{
  */
 
 /* clang-format off */
-#define IPSO_OBJECT_GENERIC_SENSOR_ID       3300 /**< IPSO Generic Sensor object */
-#define IPSO_OBJECT_TEMP_SENSOR_ID          3303 /**< IPSO Temperature Sensor object */
-#define IPSO_OBJECT_HUMIDITY_SENSOR_ID      3304 /**< IPSO Humidity Sensor object */
-#define IPSO_OBJECT_LIGHT_CONTROL_ID        3311 /**< IPSO Light Control object */
-#define IPSO_OBJECT_ACCELEROMETER_ID        3313 /**< IPSO Accelerometer object */
-#define IPSO_OBJECT_VOLTAGE_SENSOR_ID       3316 /**< IPSO Voltage Sensor object */
-#define IPSO_OBJECT_CURRENT_SENSOR_ID       3317 /**< IPSO Current Sensor object */
-#define IPSO_OBJECT_PRESSURE_ID             3323 /**< IPSO Pressure Sensor object */
-#define IPSO_OBJECT_BUZZER_ID               3338 /**< IPSO Buzzer object */
-#define IPSO_OBJECT_TIMER_ID                3340 /**< IPSO Timer object */
-#define IPSO_OBJECT_ONOFF_SWITCH_ID         3342 /**< IPSO On/Off Switch object */
-#define IPSO_OBJECT_PUSH_BUTTON_ID          3347 /**< IPSO Push Button object */
-#define UCIFI_OBJECT_BATTERY_ID             3411 /**< uCIFI Battery object */
-#define IPSO_OBJECT_FILLING_LEVEL_SENSOR_ID 3435 /**< IPSO Filling Level Sensor object */
+#define IPSO_OBJECT_GENERIC_SENSOR_ID       3300 /**< IPSO通用传感器对象 */
+#define IPSO_OBJECT_TEMP_SENSOR_ID          3303 /**< IPSO温度传感器对象 */
+#define IPSO_OBJECT_HUMIDITY_SENSOR_ID      3304 /**< IPSO湿度传感器对象 */
+#define IPSO_OBJECT_LIGHT_CONTROL_ID        3311 /**< IPSO灯光控制对象 */
+#define IPSO_OBJECT_ACCELEROMETER_ID        3313 /**< IPSO加速度计对象 */
+#define IPSO_OBJECT_VOLTAGE_SENSOR_ID       3316 /**< IPSO电压传感器对象 */
+#define IPSO_OBJECT_CURRENT_SENSOR_ID       3317 /**< IPSO电流传感器对象 */
+#define IPSO_OBJECT_PRESSURE_ID             3323 /**< IPSO压力传感器对象 */
+#define IPSO_OBJECT_BUZZER_ID               3338 /**< IPSO蜂鸣器对象 */
+#define IPSO_OBJECT_TIMER_ID                3340 /**< IPSO定时器对象 */
+#define IPSO_OBJECT_ONOFF_SWITCH_ID         3342 /**< IPSO开关对象 */
+#define IPSO_OBJECT_PUSH_BUTTON_ID          3347 /**< IPSO按钮对象 */
+#define UCIFI_OBJECT_BATTERY_ID             3411 /**< uCIFI电池对象 */
+#define IPSO_OBJECT_FILLING_LEVEL_SENSOR_ID 3435 /**< IPSO填充液位传感器对象 */
 /* clang-format on */
 
 /** @} */
 
 /**
- * @brief Callback function called when a socket error is encountered
+ * @brief 当遇到套接字错误时调用的回调函数
  *
- * @param error Error code
+ * @param error 错误代码
  */
 typedef void (*lwm2m_socket_fault_cb_t)(int error);
 
-/** @brief LwM2M object path structure */
+/** @brief LwM2M对象路径结构 */
 struct lwm2m_obj_path {
-	uint16_t obj_id;         /**< Object ID */
-	uint16_t obj_inst_id;    /**< Object instance ID */
-	uint16_t res_id;         /**< Resource ID */
-	uint16_t res_inst_id;    /**< Resource instance ID */
-	uint8_t  level;          /**< Path level (0-4). Ex. 4 = resource instance. */
+	uint16_t obj_id;         /**< 对象ID */
+	uint16_t obj_inst_id;    /**< 对象实例ID */
+	uint16_t res_id;         /**< 资源ID */
+	uint16_t res_inst_id;    /**< 资源实例ID */
+	uint8_t  level;          /**< 路径级别（0-4）。例如，4 = 资源实例。 */
 };
 
 /**
- * @brief Observe callback events
+ * @brief 观察回调事件
  */
 enum lwm2m_observe_event {
-	LWM2M_OBSERVE_EVENT_OBSERVER_ADDED,    /**< Observer added */
-	LWM2M_OBSERVE_EVENT_OBSERVER_REMOVED,  /**< Observer removed */
-	LWM2M_OBSERVE_EVENT_NOTIFY_ACK,        /**< Notification ACKed */
-	LWM2M_OBSERVE_EVENT_NOTIFY_TIMEOUT,    /**< Notification timed out */
+	LWM2M_OBSERVE_EVENT_OBSERVER_ADDED,    /**< 添加观察者 */
+	LWM2M_OBSERVE_EVENT_OBSERVER_REMOVED,  /**< 删除观察者 */
+	LWM2M_OBSERVE_EVENT_NOTIFY_ACK,        /**< 通知已确认 */
+	LWM2M_OBSERVE_EVENT_NOTIFY_TIMEOUT,    /**< 通知超时 */
 };
 
 /**
- * @brief Observe callback indicating observer adds and deletes, and
- *	  notification ACKs and timeouts
+ * @brief 观察回调，指示观察者添加和删除，以及通知确认和超时
  *
- * @param[in] event Observer add/delete or notification ack/timeout
- * @param[in] path LwM2M path
- * @param[in] user_data Pointer to user_data buffer, as provided in
- *			send_traceable_notification(). Used to determine for which
- *			data the ACKed/timed out notification was.
+ * @param[in] event 观察者添加/删除或通知确认/超时
+ * @param[in] path LwM2M路径
+ * @param[in] user_data 指向用户数据缓冲区的指针，如在send_traceable_notification()中提供。用于确定已确认/超时通知的数据。
  */
 typedef void (*lwm2m_observe_cb_t)(enum lwm2m_observe_event event, struct lwm2m_obj_path *path,
 				   void *user_data);
 
-
 struct lwm2m_ctx;
 enum lwm2m_rd_client_event;
 /**
- * @brief Asynchronous RD client event callback
+ * @brief 异步RD客户端事件回调
  *
- * @param[in] ctx LwM2M context generating the event
- * @param[in] event LwM2M RD client event code
+ * @param[in] ctx 生成事件的LwM2M上下文
+ * @param[in] event LwM2M RD客户端事件代码
  */
 typedef void (*lwm2m_ctx_event_cb_t)(struct lwm2m_ctx *ctx,
 				     enum lwm2m_rd_client_event event);
 
-
 /**
- * @brief Different traffic states of the LwM2M socket.
+ * @brief LwM2M套接字的不同流量状态。
  *
- * This information can be used to give hints for the network interface
- * that can decide what kind of power management should be used.
+ * 此信息可用于为网络接口提供提示，网络接口可以决定应使用哪种电源管理。
  *
- * These hints are given from CoAP layer messages, so usage of DTLS might affect the
- * actual number of expected datagrams.
+ * 这些提示来自CoAP层消息，因此使用DTLS可能会影响预期数据报的实际数量。
  */
 enum lwm2m_socket_states {
-	LWM2M_SOCKET_STATE_ONGOING,	 /**< Ongoing traffic is expected. */
-	LWM2M_SOCKET_STATE_ONE_RESPONSE, /**< One response is expected for the next message. */
-	LWM2M_SOCKET_STATE_LAST,	 /**< Next message is the last one. */
-	LWM2M_SOCKET_STATE_NO_DATA,	 /**< No more data is expected. */
+	LWM2M_SOCKET_STATE_ONGOING,	 /**< 预期有持续的流量。 */
+	LWM2M_SOCKET_STATE_ONE_RESPONSE, /**< 预期下一个消息有一个响应。 */
+	LWM2M_SOCKET_STATE_LAST,	 /**< 下一个消息是最后一个。 */
+	LWM2M_SOCKET_STATE_NO_DATA,	 /**< 不再预期有数据。 */
 };
 
 /**
- * @brief LwM2M context structure to maintain information for a single
- * LwM2M connection.
+ * @brief LwM2M上下文结构，用于维护单个LwM2M连接的信息。
  */
 struct lwm2m_ctx {
-	/** Destination address storage */
+	/** 目标地址存储 */
 	struct sockaddr remote_addr;
 
 	/** @cond INTERNAL_HIDDEN
-	 * Private CoAP and networking structures + 1 is for RD Client own message
+	 * 私有CoAP和网络结构 + 1用于RD客户端自己的消息
 	 */
 	struct coap_pending pendings[CONFIG_LWM2M_ENGINE_MAX_PENDING + 1];
 	struct coap_reply replies[CONFIG_LWM2M_ENGINE_MAX_REPLIES + 1];
@@ -173,118 +159,95 @@ struct lwm2m_ctx {
 	sys_slist_t observer;
 	/** @endcond */
 
-	/** A pointer to currently processed request, for internal LwM2M engine
-	 *  use. The underlying type is ``struct lwm2m_message``, but since it's
-	 *  declared in a private header and not exposed to the application,
-	 *  it's stored as a void pointer.
-	 */
+	/** 指向当前处理的请求的指针，用于内部LwM2M引擎使用。底层类型是``struct lwm2m_message``，但由于它在私有头文件中声明，不向应用程序公开，因此存储为void指针。 */
 	void *processed_req;
 
 #if defined(CONFIG_LWM2M_DTLS_SUPPORT) || defined(__DOXYGEN__)
 	/**
-	 * @name DTLS related information
-	 * Available only when @kconfig{CONFIG_LWM2M_DTLS_SUPPORT} is enabled and
-	 * @ref lwm2m_ctx.use_dtls is set to true.
+	 * @name DTLS相关信息
+	 * 仅在启用@kconfig{CONFIG_LWM2M_DTLS_SUPPORT}并设置@ref lwm2m_ctx.use_dtls为true时可用。
 	 * @{
 	 */
-	/** TLS tag is set by client as a reference used when the
-	 *  LwM2M engine calls tls_credential_(add|delete)
-	 */
+	/** TLS标签由客户端设置，作为LwM2M引擎调用tls_credential_(add|delete)时的参考 */
 	int tls_tag;
 
-	/** Destination hostname.
-	 *  When MBEDTLS SNI is enabled socket must be set with destination
-	 *  server hostname.
+	/** 目标主机名。
+	 *  启用MBEDTLS SNI时，必须使用目标服务器主机名设置套接字。
 	 */
 	char *desthostname;
-	/** Destination hostname length */
+	/** 目标主机名长度 */
 	uint16_t desthostnamelen;
-	/** Flag to indicate if hostname verification is enabled */
+	/** 指示是否启用主机名验证的标志 */
 	bool hostname_verify;
 
-	/** Custom load_credentials function.
-	 *  Client can set load_credentials function as a way of overriding
-	 *  the default behavior of load_tls_credential() in lwm2m_engine.c
+	/** 自定义加载凭据函数。
+	 *  客户端可以设置load_credentials函数，以覆盖lwm2m_engine.c中的load_tls_credential()的默认行为
 	 */
 	int (*load_credentials)(struct lwm2m_ctx *client_ctx);
 	/** @} */
 #endif
-	/** Custom socket options.
-	 * Client can override default socket options by providing
-	 * a callback that is called after a socket is created and before
-	 * connect.
+	/** 自定义套接字选项。
+	 * 客户端可以通过提供回调来覆盖默认套接字选项，该回调在创建套接字后和连接之前调用。
 	 */
 	int (*set_socketoptions)(struct lwm2m_ctx *client_ctx);
 
-	/** Flag to indicate if context should use DTLS.
-	 *  Enabled via the use of coaps:// protocol prefix in connection
-	 *  information.
-	 *  NOTE: requires @kconfig{CONFIG_LWM2M_DTLS_SUPPORT}
+	/** 指示上下文是否应使用DTLS的标志。
+	 *  通过在连接信息中使用coaps://协议前缀启用。
+	 *  注意：需要@kconfig{CONFIG_LWM2M_DTLS_SUPPORT}
 	 */
 	bool use_dtls;
 
 	/**
-	 * Flag to indicate that the socket connection is suspended.
-	 * With queue mode, this will tell if there is a need to reconnect.
+	 * 指示套接字连接是否挂起的标志。
+	 * 使用队列模式时，这将指示是否需要重新连接。
 	 */
 	bool connection_suspended;
 
 #if defined(CONFIG_LWM2M_QUEUE_MODE_ENABLED) || defined(__DOXYGEN__)
 	/**
-	 * Flag to indicate that the client is buffering Notifications and Send messages.
-	 * True value buffer Notifications and Send messages.
+	 * 指示客户端是否正在缓冲通知和发送消息的标志。
+	 * true值缓冲通知和发送消息。
 	 */
 	bool buffer_client_messages;
 #endif
-	/** Current index of Security Object used for server credentials */
+	/** 用于服务器凭据的安全对象的当前索引 */
 	int sec_obj_inst;
 
-	/** Current index of Server Object used in this context. */
+	/** 此上下文中使用的服务器对象的当前索引。 */
 	int srv_obj_inst;
 
-	/** Flag to enable BOOTSTRAP interface. See Section "Bootstrap Interface"
-	 *  of LwM2M Technical Specification for more information.
-	 */
+	/** 启用BOOTSTRAP接口的标志。有关更多信息，请参阅LwM2M技术规范的“引导接口”部分。 */
 	bool bootstrap_mode;
 
-	/** Socket File Descriptor */
+	/** 套接字文件描述符 */
 	int sock_fd;
 
-	/** Socket fault callback. LwM2M processing thread will call this
-	 *  callback in case of socket errors on receive.
-	 */
+	/** 套接字故障回调。在接收时遇到套接字错误时，LwM2M处理线程将调用此回调。 */
 	lwm2m_socket_fault_cb_t fault_cb;
 
-	/** Callback for new or cancelled observations, and acknowledged or timed
-	 *  out notifications.
-	 */
+	/** 新观察者或取消观察者的回调，以及已确认或超时的通知。 */
 	lwm2m_observe_cb_t observe_cb;
 
-	/** Callback for client events */
+	/** 客户端事件的回调 */
 	lwm2m_ctx_event_cb_t event_cb;
 
-	/** Validation buffer. Used as a temporary buffer to decode the resource
-	 *  value before validation. On successful validation, its content is
-	 *  copied into the actual resource buffer.
-	 */
+	/** 验证缓冲区。用于在验证资源值之前解码资源值的临时缓冲区。验证成功后，其内容将复制到实际资源缓冲区中。 */
 	uint8_t validate_buf[CONFIG_LWM2M_ENGINE_VALIDATION_BUFFER_SIZE];
 
 	/**
-	 * Callback to indicate transmission states.
-	 * Client application may request LwM2M engine to indicate hints about
-	 * transmission states and use that information to control various power
-	 * saving modes.
+	 * 指示传输状态的回调。
+	 * 客户端应用程序可以请求LwM2M引擎指示传输状态的提示，并使用该信息控制各种节能模式。
 	 */
 	void (*set_socket_state)(int fd, enum lwm2m_socket_states state);
 };
 
 /**
- * LwM2M Time series data structure
+ * LwM2M时间序列数据结构
  */
 struct lwm2m_time_series_elem {
-	/** Cached data Unix timestamp */
+	/** 缓存数据的Unix时间戳 */
 	time_t t;
-	/** Element value */
+	/** 元素值 */
 	union {
 		/** @cond INTERNAL_HIDDEN */
 		uint8_t u8;
@@ -303,23 +266,20 @@ struct lwm2m_time_series_elem {
 };
 
 /**
- * @brief Asynchronous callback to get a resource buffer and length.
+ * @brief 异步回调以获取资源缓冲区和长度。
  *
- * Prior to accessing the data buffer of a resource, the engine can
- * use this callback to get the buffer pointer and length instead
- * of using the resource's data buffer.
+ * 在访问资源的数据缓冲区之前，引擎可以使用此回调获取缓冲区指针和长度，而不是使用资源的数据缓冲区。
  *
- * The client or LwM2M objects can register a function of this type via:
+ * 客户端或LwM2M对象可以通过以下方式注册此类型的函数：
  * lwm2m_register_read_callback()
  * lwm2m_register_pre_write_callback()
  *
- * @param[in] obj_inst_id Object instance ID generating the callback.
- * @param[in] res_id Resource ID generating the callback.
- * @param[in] res_inst_id Resource instance ID generating the callback
- *                        (typically 0 for non-multi instance resources).
- * @param[out] data_len Length of the data buffer.
+ * @param[in] obj_inst_id 生成回调的对象实例ID。
+ * @param[in] res_id 生成回调的资源ID。
+ * @param[in] res_inst_id 生成回调的资源实例ID（通常为0，非多实例资源）。
+ * @param[out] data_len 数据缓冲区的长度。
  *
- * @return Callback returns a pointer to the data buffer or NULL for failure.
+ * @return 回调返回指向数据缓冲区的指针，失败时返回NULL。
  */
 typedef void *(*lwm2m_engine_get_data_cb_t)(uint16_t obj_inst_id,
 					    uint16_t res_id,
@@ -327,35 +287,27 @@ typedef void *(*lwm2m_engine_get_data_cb_t)(uint16_t obj_inst_id,
 					    size_t *data_len);
 
 /**
- * @brief Asynchronous callback when data has been set to a resource buffer.
+ * @brief 异步回调，当数据已设置到资源缓冲区时。
  *
- * After changing the data of a resource buffer, the LwM2M engine can
- * make use of this callback to pass the data back to the client or LwM2M
- * objects.
+ * 更改资源缓冲区的数据后，LwM2M引擎可以使用此回调将数据传递回客户端或LwM2M对象。
  *
- * On a block-wise transfers the handler is called multiple times with the data blocks
- * and increasing offset. The last block has the last_block flag set to true.
- * Beginning of the block transfer has the offset set to 0.
+ * 在块传输中，处理程序会多次调用数据块并增加偏移量。最后一个块的last_block标志设置为true。
+ * 块传输的开始偏移量设置为0。
  *
- * A function of this type can be registered via:
+ * 可以通过以下方式注册此类型的函数：
  * lwm2m_register_validate_callback()
  * lwm2m_register_post_write_callback()
  *
- * @param[in] obj_inst_id Object instance ID generating the callback.
- * @param[in] res_id Resource ID generating the callback.
- * @param[in] res_inst_id Resource instance ID generating the callback
- *                        (typically 0 for non-multi instance resources).
- * @param[in] data Pointer to data.
- * @param[in] data_len Length of the data.
- * @param[in] last_block Flag used during block transfer to indicate the last
- *                       block of data. For non-block transfers this is always
- *                       false.
- * @param[in] total_size Expected total size of data for a block transfer.
- *                       For non-block transfers this is 0.
- * @param[in] offset Offset of the data block. For non-block transfers this is always 0.
+ * @param[in] obj_inst_id 生成回调的对象实例ID。
+ * @param[in] res_id 生成回调的资源ID。
+ * @param[in] res_inst_id 生成回调的资源实例ID（通常为0，非多实例资源）。
+ * @param[in] data 指向数据的指针。
+ * @param[in] data_len 数据的长度。
+ * @param[in] last_block 在块传输期间用于指示最后一个数据块的标志。对于非块传输，此标志始终为false。
+ * @param[in] total_size 块传输的预期总数据大小。对于非块传输，此值为0。
+ * @param[in] offset 数据块的偏移量。对于非块传输，此值始终为0。
  *
- * @return Callback returns a negative error code (errno.h) indicating
- *         reason of failure or 0 for success.
+ * @return 回调返回负错误代码（errno.h），指示失败原因，成功返回0。
  */
 typedef int (*lwm2m_engine_set_data_cb_t)(uint16_t obj_inst_id,
 					  uint16_t res_id, uint16_t res_inst_id,
@@ -363,1288 +315,1122 @@ typedef int (*lwm2m_engine_set_data_cb_t)(uint16_t obj_inst_id,
 					  bool last_block, size_t total_size, size_t offset);
 
 /**
- * @brief Asynchronous event notification callback.
+ * @brief 异步事件通知回调。
  *
- * Various object instance and resource-based events in the LwM2M engine
- * can trigger a callback of this function type: object instance create,
- * and object instance delete.
+ * LwM2M引擎中的各种对象实例和资源事件可以触发此类型的回调：对象实例创建和对象实例删除。
  *
- * Register a function of this type via:
+ * 可以通过以下方式注册此类型的函数：
  * lwm2m_register_create_callback()
  * lwm2m_register_delete_callback()
  *
- * @param[in] obj_inst_id Object instance ID generating the callback.
+ * @param[in] obj_inst_id 生成回调的对象实例ID。
  *
- * @return Callback returns a negative error code (errno.h) indicating
- *         reason of failure or 0 for success.
+ * @return 回调返回负错误代码（errno.h），指示失败原因，成功返回0。
  */
 typedef int (*lwm2m_engine_user_cb_t)(uint16_t obj_inst_id);
 
 /**
- * @brief Asynchronous execute notification callback.
+ * @brief 异步执行通知回调。
  *
- * Resource executes trigger a callback of this type.
+ * 资源执行触发此类型的回调。
  *
- * Register a function of this type via:
+ * 可以通过以下方式注册此类型的函数：
  * lwm2m_register_exec_callback()
  *
- * @param[in] obj_inst_id Object instance ID generating the callback.
- * @param[in] args Pointer to execute arguments payload. (This can be
- *            NULL if no arguments are provided)
- * @param[in] args_len Length of argument payload in bytes.
+ * @param[in] obj_inst_id 生成回调的对象实例ID。
+ * @param[in] args 指向执行参数有效负载的指针。（如果未提供参数，则可以为NULL）
+ * @param[in] args_len 参数有效负载的长度（字节）。
  *
- * @return Callback returns a negative error code (errno.h) indicating
- *         reason of failure or 0 for success.
+ * @return 回调返回负错误代码（errno.h），指示失败原因，成功返回0。
  */
 typedef int (*lwm2m_engine_execute_cb_t)(uint16_t obj_inst_id,
 					 uint8_t *args, uint16_t args_len);
 
 /**
- * @name Power source types used for the "Available Power Sources" resource of
- * the LwM2M Device object (3/0/6).
+ * @name 用于LwM2M设备对象（3/0/6）的“可用电源源”资源的电源源类型。
  * @{
  */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_DC_POWER	0 /**< DC power */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_BAT_INT	1 /**< Internal battery */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_BAT_EXT	2 /**< External battery */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_FUEL_CELL	3 /**< Fuel cell */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_PWR_OVER_ETH	4 /**< Power over Ethernet */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_DC_POWER	0 /**< 直流电源 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_BAT_INT	1 /**< 内部电池 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_BAT_EXT	2 /**< 外部电池 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_FUEL_CELL	3 /**< 燃料电池 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_PWR_OVER_ETH	4 /**< 以太网供电 */
 #define LWM2M_DEVICE_PWR_SRC_TYPE_USB		5 /**< USB */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_AC_POWER	6 /**< AC (mains) power */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_SOLAR		7 /**< Solar */
-#define LWM2M_DEVICE_PWR_SRC_TYPE_MAX		8 /**< Max value for Available Power Source type */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_AC_POWER	6 /**< 交流电源 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_SOLAR		7 /**< 太阳能 */
+#define LWM2M_DEVICE_PWR_SRC_TYPE_MAX		8 /**< 可用电源源类型的最大值 */
 /** @} */
 
 /**
- * @name Error codes used for the "Error Code" resource of the LwM2M Device
- * object.
- * An LwM2M client can register one of the following error codes via
- * the lwm2m_device_add_err() function.
+ * @name 用于LwM2M设备对象的“错误代码”资源的错误代码。
+ * LwM2M客户端可以通过lwm2m_device_add_err()函数注册以下错误代码之一。
  * @{
  */
-#define LWM2M_DEVICE_ERROR_NONE			0 /**< No error */
-#define LWM2M_DEVICE_ERROR_LOW_POWER		1 /**< Low battery power */
-#define LWM2M_DEVICE_ERROR_EXT_POWER_SUPPLY_OFF	2 /**< External power supply off */
-#define LWM2M_DEVICE_ERROR_GPS_FAILURE		3 /**< GPS module failure */
-#define LWM2M_DEVICE_ERROR_LOW_SIGNAL_STRENGTH	4 /**< Low received signal strength */
-#define LWM2M_DEVICE_ERROR_OUT_OF_MEMORY	5 /**< Out of memory */
-#define LWM2M_DEVICE_ERROR_SMS_FAILURE		6 /**< SMS failure */
-#define LWM2M_DEVICE_ERROR_NETWORK_FAILURE	7 /**< IP Connectivity failure */
-#define LWM2M_DEVICE_ERROR_PERIPHERAL_FAILURE	8 /**< Peripheral malfunction */
+#define LWM2M_DEVICE_ERROR_NONE			0 /**< 无错误 */
+#define LWM2M_DEVICE_ERROR_LOW_POWER		1 /**< 电池电量低 */
+#define LWM2M_DEVICE_ERROR_EXT_POWER_SUPPLY_OFF	2 /**< 外部电源关闭 */
+#define LWM2M_DEVICE_ERROR_GPS_FAILURE		3 /**< GPS模块故障 */
+#define LWM2M_DEVICE_ERROR_LOW_SIGNAL_STRENGTH	4 /**< 接收信号强度低 */
+#define LWM2M_DEVICE_ERROR_OUT_OF_MEMORY	5 /**< 内存不足 */
+#define LWM2M_DEVICE_ERROR_SMS_FAILURE		6 /**< SMS故障 */
+#define LWM2M_DEVICE_ERROR_NETWORK_FAILURE	7 /**< IP连接故障 */
+#define LWM2M_DEVICE_ERROR_PERIPHERAL_FAILURE	8 /**< 外围设备故障 */
 
 /** @} */
 
 /**
- * @name Battery status codes used for the "Battery Status" resource (3/0/20)
- *        of the LwM2M Device object.  As the battery status changes, an LwM2M
- *        client can set one of the following codes via:
- *        lwm2m_set_u8("3/0/20", [battery status])
+ * @name 用于LwM2M设备对象（3/0/20）的“电池状态”资源的电池状态代码。
+ * 随着电池状态的变化，LwM2M客户端可以通过以下方式设置以下代码之一：
+ * lwm2m_set_u8("3/0/20", [电池状态])
  * @{
  */
-#define LWM2M_DEVICE_BATTERY_STATUS_NORMAL	0 /**< The battery is operating normally and not on
-						    *   power
-						    */
-#define LWM2M_DEVICE_BATTERY_STATUS_CHARGING	1 /**< The battery is currently charging */
-#define LWM2M_DEVICE_BATTERY_STATUS_CHARGE_COMP	2 /**< The battery is fully charged and the charger
-						    *   is still connected
-						    */
-#define LWM2M_DEVICE_BATTERY_STATUS_DAMAGED	3 /**< The battery has some problem */
-#define LWM2M_DEVICE_BATTERY_STATUS_LOW		4 /**< The battery is low on charge */
-#define LWM2M_DEVICE_BATTERY_STATUS_NOT_INST	5 /**< The battery is not installed */
-#define LWM2M_DEVICE_BATTERY_STATUS_UNKNOWN	6 /**< The battery information is not available */
-
+#define LWM2M_DEVICE_BATTERY_STATUS_NORMAL	0 /**< 电池正常工作且未充电 */
+#define LWM2M_DEVICE_BATTERY_STATUS_CHARGING	1 /**< 电池正在充电 */
+#define LWM2M_DEVICE_BATTERY_STATUS_CHARGE_COMP	2 /**< 电池已充满电且充电器仍连接 */
+#define LWM2M_DEVICE_BATTERY_STATUS_DAMAGED	3 /**< 电池有问题 */
+#define LWM2M_DEVICE_BATTERY_STATUS_LOW		4 /**< 电池电量低 */
+#define LWM2M_DEVICE_BATTERY_STATUS_NOT_INST	5 /**< 电池未安装 */
+#define LWM2M_DEVICE_BATTERY_STATUS_UNKNOWN	6 /**< 电池信息不可用 */
 /** @} */
-
 /**
- * @brief Register a new error code with LwM2M Device object.
+ * @brief 向LwM2M设备对象注册新的错误代码。
  *
- * @param[in] error_code New error code.
+ * @param[in] error_code 新的错误代码。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_device_add_err(uint8_t error_code);
-
-
 /**
- * @name LWM2M Firmware Update object states
+ * @name LWM2M固件更新对象状态
  *
- * An LwM2M client or the LwM2M Firmware Update object use the following codes
- * to represent the LwM2M Firmware Update state (5/0/3).
+ * LwM2M客户端或LwM2M固件更新对象使用以下代码表示LwM2M固件更新状态（5/0/3）。
  * @{
  */
-
 /**
- * Idle. Before downloading or after successful updating.
+ * 空闲。在下载之前或成功更新之后。
  */
 #define STATE_IDLE		0
 /**
- * Downloading. The data sequence is being downloaded.
+ * 下载中。数据序列正在下载。
  */
 #define STATE_DOWNLOADING	1
 /**
- * Downloaded. The whole data sequence has been downloaded.
+ * 已下载。整个数据序列已下载。
  */
 #define STATE_DOWNLOADED	2
 /**
- * Updating. The device is being updated.
+ * 更新中。设备正在更新。
  */
 #define STATE_UPDATING		3
-
 /** @} */
-
 /**
- * @name LWM2M Firmware Update object result codes
+ * @name LWM2M固件更新对象结果代码
  *
- * After processing a firmware update, the client sets the result via one of
- * the following codes via lwm2m_set_u8("5/0/5", [result code])
+ * 处理固件更新后，客户端通过以下代码之一设置结果：
+ * lwm2m_set_u8("5/0/5", [结果代码])
  * @{
  */
-
-#define RESULT_DEFAULT		0	/**< Initial value */
-#define RESULT_SUCCESS		1	/**< Firmware updated successfully */
-#define RESULT_NO_STORAGE	2	/**< Not enough flash memory for the new firmware package */
-#define RESULT_OUT_OF_MEM	3	/**< Out of RAM during downloading process */
-#define RESULT_CONNECTION_LOST	4	/**< Connection lost during downloading process */
-#define RESULT_INTEGRITY_FAILED	5	/**< Integrity check failure for new downloaded package */
-#define RESULT_UNSUP_FW		6	/**< Unsupported package type */
-#define RESULT_INVALID_URI	7	/**< Invalid URI */
-#define RESULT_UPDATE_FAILED	8	/**< Firmware update failed */
-#define RESULT_UNSUP_PROTO	9	/**< Unsupported protocol */
-
+#define RESULT_DEFAULT		0	/**< 初始值 */
+#define RESULT_SUCCESS		1	/**< 固件更新成功 */
+#define RESULT_NO_STORAGE	2	/**< 新固件包的闪存不足 */
+#define RESULT_OUT_OF_MEM	3	/**< 下载过程中内存不足 */
+#define RESULT_CONNECTION_LOST	4	/**< 下载过程中连接丢失 */
+#define RESULT_INTEGRITY_FAILED	5	/**< 新下载包的完整性检查失败 */
+#define RESULT_UNSUP_FW		6	/**< 不支持的包类型 */
+#define RESULT_INVALID_URI	7	/**< 无效的URI */
+#define RESULT_UPDATE_FAILED	8	/**< 固件更新失败 */
+#define RESULT_UNSUP_PROTO	9	/**< 不支持的协议 */
 /** @} */
-
 #if defined(CONFIG_LWM2M_FIRMWARE_UPDATE_OBJ_SUPPORT) || defined(__DOXYGEN__)
 /**
- * @brief Set data callback for firmware block transfer.
+ * @brief 设置固件块传输的数据回调。
  *
- * LwM2M clients use this function to register a callback for receiving the
- * block transfer data when performing a firmware update.
+ * LwM2M客户端使用此函数注册回调，以在执行固件更新时接收块传输数据。
  *
- * @param[in] cb A callback function to receive the block transfer data
+ * @param[in] cb 接收块传输数据的回调函数
  */
 void lwm2m_firmware_set_write_cb(lwm2m_engine_set_data_cb_t cb);
-
 /**
- * @brief Get the data callback for firmware block transfer writes.
+ * @brief 获取固件块传输写入的数据回调。
  *
- * @return A registered callback function to receive the block transfer data
+ * @return 注册的接收块传输数据的回调函数
  */
 lwm2m_engine_set_data_cb_t lwm2m_firmware_get_write_cb(void);
-
 /**
- * @brief Set data callback for firmware block transfer.
+ * @brief 设置固件块传输的数据回调。
  *
- * LwM2M clients use this function to register a callback for receiving the
- * block transfer data when performing a firmware update.
+ * LwM2M客户端使用此函数注册回调，以在执行固件更新时接收块传输数据。
  *
- * @param[in] obj_inst_id Object instance ID
- * @param[in] cb A callback function to receive the block transfer data
+ * @param[in] obj_inst_id 对象实例ID
+ * @param[in] cb 接收块传输数据的回调函数
  */
 void lwm2m_firmware_set_write_cb_inst(uint16_t obj_inst_id, lwm2m_engine_set_data_cb_t cb);
-
 /**
- * @brief Get the data callback for firmware block transfer writes.
+ * @brief 获取固件块传输写入的数据回调。
  *
- * @param[in] obj_inst_id Object instance ID
- * @return A registered callback function to receive the block transfer data
+ * @param[in] obj_inst_id 对象实例ID
+ * @return 注册的接收块传输数据的回调函数
  */
 lwm2m_engine_set_data_cb_t lwm2m_firmware_get_write_cb_inst(uint16_t obj_inst_id);
-
 /**
- * @brief Set callback for firmware update cancel.
+ * @brief 设置固件更新取消的回调。
  *
- * LwM2M clients use this function to register a callback to perform actions
- * on firmware update cancel.
+ * LwM2M客户端使用此函数注册回调，以在固件更新取消时执行操作。
  *
- * @param[in] cb A callback function perform actions on firmware update cancel.
+ * @param[in] cb 在固件更新取消时执行操作的回调函数。
  */
 void lwm2m_firmware_set_cancel_cb(lwm2m_engine_user_cb_t cb);
-
 /**
- * @brief Get a callback for firmware update cancel.
+ * @brief 获取固件更新取消的回调。
  *
- * @return A registered callback function perform actions on firmware update cancel.
+ * @return 注册的在固件更新取消时执行操作的回调函数。
  */
 lwm2m_engine_user_cb_t lwm2m_firmware_get_cancel_cb(void);
-
 /**
- * @brief Set data callback for firmware update cancel.
+ * @brief 设置固件更新取消的数据回调。
  *
- * LwM2M clients use this function to register a callback to perform actions
- * on firmware update cancel.
+ * LwM2M客户端使用此函数注册回调，以在固件更新取消时执行操作。
  *
- * @param[in] obj_inst_id Object instance ID
- * @param[in] cb A callback function perform actions on firmware update cancel.
+ * @param[in] obj_inst_id 对象实例ID
+ * @param[in] cb 在固件更新取消时执行操作的回调函数。
  */
 void lwm2m_firmware_set_cancel_cb_inst(uint16_t obj_inst_id, lwm2m_engine_user_cb_t cb);
-
 /**
- * @brief Get the callback for firmware update cancel.
+ * @brief 获取固件更新取消的回调。
  *
- * @param[in] obj_inst_id Object instance ID
- * @return A registered callback function perform actions on firmware update cancel.
+ * @param[in] obj_inst_id 对象实例ID
+ * @return 注册的在固件更新取消时执行操作的回调函数。
  */
 lwm2m_engine_user_cb_t lwm2m_firmware_get_cancel_cb_inst(uint16_t obj_inst_id);
-
 /**
- * @brief Set data callback to handle firmware update execute events.
+ * @brief 设置处理固件更新执行事件的数据回调。
  *
- * LwM2M clients use this function to register a callback for receiving the
- * update resource "execute" operation on the LwM2M Firmware Update object.
+ * LwM2M客户端使用此函数注册回调，以在LwM2M固件更新对象上接收更新资源的“执行”操作。
  *
- * @param[in] cb A callback function to receive the execute event.
+ * @param[in] cb 接收执行事件的回调函数。
  */
 void lwm2m_firmware_set_update_cb(lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Get the event callback for firmware update execute events.
+ * @brief 获取固件更新执行事件的回调。
  *
- * @return A registered callback function to receive the execute event.
+ * @return 注册的接收执行事件的回调函数。
  */
 lwm2m_engine_execute_cb_t lwm2m_firmware_get_update_cb(void);
-
 /**
- * @brief Set data callback to handle firmware update execute events.
+ * @brief 设置处理固件更新执行事件的数据回调。
  *
- * LwM2M clients use this function to register a callback for receiving the
- * update resource "execute" operation on the LwM2M Firmware Update object.
+ * LwM2M客户端使用此函数注册回调，以在LwM2M固件更新对象上接收更新资源的“执行”操作。
  *
- * @param[in] obj_inst_id Object instance ID
- * @param[in] cb A callback function to receive the execute event.
+ * @param[in] obj_inst_id 对象实例ID
+ * @param[in] cb 接收执行事件的回调函数。
  */
 void lwm2m_firmware_set_update_cb_inst(uint16_t obj_inst_id, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Get the event callback for firmware update execute events.
+ * @brief 获取固件更新执行事件的回调。
  *
- * @param[in] obj_inst_id Object instance ID
- * @return A registered callback function to receive the execute event.
+ * @param[in] obj_inst_id 对象实例ID
+ * @return 注册的接收执行事件的回调函数。
  */
 lwm2m_engine_execute_cb_t lwm2m_firmware_get_update_cb_inst(uint16_t obj_inst_id);
 #endif
-
 #if defined(CONFIG_LWM2M_SWMGMT_OBJ_SUPPORT) || defined(__DOXYGEN__)
-
 /**
- * @brief Set callback to handle software activation requests
+ * @brief 设置处理软件激活请求的回调
  *
- * The callback will be executed when the LWM2M execute operation gets called
- * on the corresponding object's Activate resource instance.
+ * 当LWM2M执行操作在相应对象的激活资源实例上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function to receive the execute event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 接收执行事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_activate_cb(uint16_t obj_inst_id, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Set callback to handle software deactivation requests
+ * @brief 设置处理软件停用请求的回调
  *
- * The callback will be executed when the LWM2M execute operation gets called
- * on the corresponding object's Deactivate resource instance.
+ * 当LWM2M执行操作在相应对象的停用资源实例上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function to receive the execute event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 接收执行事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_deactivate_cb(uint16_t obj_inst_id, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Set callback to handle software install requests
+ * @brief 设置处理软件安装请求的回调
  *
- * The callback will be executed when the LWM2M execute operation gets called
- * on the corresponding object's Install resource instance.
+ * 当LWM2M执行操作在相应对象的安装资源实例上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function to receive the execute event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 接收执行事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_install_package_cb(uint16_t obj_inst_id, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Set callback to handle software uninstall requests
+ * @brief 设置处理软件卸载请求的回调
  *
- * The callback will be executed when the LWM2M execute operation gets called
- * on the corresponding object's Uninstall resource instance.
+ * 当LWM2M执行操作在相应对象的卸载资源实例上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function for handling the execute event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 处理执行事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_delete_package_cb(uint16_t obj_inst_id, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Set callback to read software package
+ * @brief 设置读取软件包的回调
  *
- * The callback will be executed when the LWM2M read operation gets called
- * on the corresponding object.
+ * 当LWM2M读取操作在相应对象上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function for handling the read event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 处理读取事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_read_package_version_cb(uint16_t obj_inst_id, lwm2m_engine_get_data_cb_t cb);
-
 /**
- * @brief Set data callback for software management block transfer.
+ * @brief 设置软件管理块传输的数据回调。
  *
- * The callback will be executed when the LWM2M block write operation gets called
- * on the corresponding object's resource instance.
+ * 当LWM2M块写入操作在相应对象的资源实例上调用时，将执行回调。
  *
- * @param[in] obj_inst_id The instance number to set the callback for.
- * @param[in] cb A callback function for handling the block write event.
+ * @param[in] obj_inst_id 要设置回调的实例编号。
+ * @param[in] cb 处理块写入事件的回调函数。
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_set_write_package_cb(uint16_t obj_inst_id, lwm2m_engine_set_data_cb_t cb);
-
 /**
- * Function to be called when a Software Management object instance
- * completed the Install operation.
+ * 当软件管理对象实例完成安装操作时调用的函数。
  *
- * @param[in] obj_inst_id The Software Management object instance
- * @param[in] error_code The result code of the operation. Zero on success
- * otherwise it should be a negative integer.
+ * @param[in] obj_inst_id 软件管理对象实例
+ * @param[in] error_code 操作的结果代码。成功时为零，否则应为负整数。
  *
- * return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int lwm2m_swmgmt_install_completed(uint16_t obj_inst_id, int error_code);
-
 #endif
-
 #if defined(CONFIG_LWM2M_EVENT_LOG_OBJ_SUPPORT) || defined(__DOXYGEN__)
-
 /**
- * @brief Set callback to read log data
+ * @brief 设置读取日志数据的回调
  *
- * The callback will be executed when the LWM2M read operation gets called
- * on the corresponding object.
+ * 当LWM2M读取操作在相应对象上调用时，将执行回调。
  *
- * @param[in] cb A callback function for handling the read event.
+ * @param[in] cb 处理读取事件的回调函数。
  */
 void lwm2m_event_log_set_read_log_data_cb(lwm2m_engine_get_data_cb_t cb);
-
 #endif
-
 /**
- * @brief Maximum value for Objlnk resource fields
+ * @brief 对象链接资源字段的最大值
  */
 #define LWM2M_OBJLNK_MAX_ID USHRT_MAX
-
 /**
- * @brief LWM2M Objlnk resource type structure
+ * @brief LWM2M对象链接资源类型结构
  */
 struct lwm2m_objlnk {
-	uint16_t obj_id;     /**< Object ID */
-	uint16_t obj_inst;   /**< Object instance ID */
+	uint16_t obj_id;     /**< 对象ID */
+	uint16_t obj_inst;   /**< 对象实例ID */
 };
-
 /**
- * @brief Change an observer's pmin value.
+ * @brief 更改观察者的pmin值。
  *
- * LwM2M clients use this function to modify the pmin attribute
- * for an observation being made.
- * Example to update the pmin of a temperature sensor value being observed:
+ * LwM2M客户端使用此函数修改正在进行的观察的pmin属性。
+ * 例如，更新正在观察的温度传感器值的pmin：
  * lwm2m_update_observer_min_period(client_ctx, &LWM2M_OBJ(3303, 0, 5700), 5);
  *
- * @param[in] client_ctx LwM2M context
- * @param[in] path LwM2M path as a struct
- * @param[in] period_s Value of pmin to be given (in seconds).
+ * @param[in] client_ctx LwM2M上下文
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] period_s 要设置的pmin值（秒）。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_update_observer_min_period(struct lwm2m_ctx *client_ctx,
 				     const struct lwm2m_obj_path *path, uint32_t period_s);
-
 /**
- * @brief Change an observer's pmax value.
+ * @brief 更改观察者的pmax值。
  *
- * LwM2M clients use this function to modify the pmax attribute
- * for an observation being made.
- * Example to update the pmax of a temperature sensor value being observed:
- * lwm2m__update_observer_max_period(client_ctx, &LWM2M_OBJ(3303, 0, 5700), 5);
+ * LwM2M客户端使用此函数修改正在进行的观察的pmax属性。
+ * 例如，更新正在观察的温度传感器值的pmax：
+ * lwm2m_update_observer_max_period(client_ctx, &LWM2M_OBJ(3303, 0, 5700), 5);
  *
- * @param[in] client_ctx LwM2M context
- * @param[in] path LwM2M path as a struct
- * @param[in] period_s Value of pmax to be given (in seconds).
+ * @param[in] client_ctx LwM2M上下文
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] period_s 要设置的pmax值（秒）。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_update_observer_max_period(struct lwm2m_ctx *client_ctx,
 				     const struct lwm2m_obj_path *path, uint32_t period_s);
-
 /**
- * @brief Create an LwM2M object instance.
+ * @brief 创建LwM2M对象实例。
  *
- * LwM2M clients use this function to create non-default LwM2M objects:
- * Example to create first temperature sensor object:
+ * LwM2M客户端使用此函数创建非默认的LwM2M对象：
+ * 例如，创建第一个温度传感器对象：
  * lwm2m_create_obj_inst(&LWM2M_OBJ(3303, 0));
  *
- * @param[in] path LwM2M path as a struct
+ * @param[in] path LwM2M路径作为结构
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_create_object_inst(const struct lwm2m_obj_path *path);
-
 /**
- * @brief Delete an LwM2M object instance.
+ * @brief 删除LwM2M对象实例。
  *
- * LwM2M clients use this function to delete LwM2M objects.
+ * LwM2M客户端使用此函数删除LwM2M对象。
  *
- * @param[in] path LwM2M path as a struct
+ * @param[in] path LwM2M路径作为结构
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_delete_object_inst(const struct lwm2m_obj_path *path);
-
 /**
- * @brief Locks the registry for this thread.
+ * @brief 锁定此线程的注册表。
  *
- * Use this function before writing to multiple resources. This halts the
- * lwm2m main thread until all the write-operations are finished.
+ * 在写入多个资源之前使用此函数。这将暂停lwm2m主线程，直到所有写操作完成。
  *
  */
 void lwm2m_registry_lock(void);
-
 /**
- * @brief Unlocks the registry previously locked by lwm2m_registry_lock().
+ * @brief 解锁先前由lwm2m_registry_lock()锁定的注册表。
  *
  */
 void lwm2m_registry_unlock(void);
-
 /**
- * @brief Set resource (instance) value (opaque buffer)
+ * @brief 设置资源（实例）值（不透明缓冲区）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] data_ptr Data buffer
- * @param[in] data_len Length of buffer
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] data_ptr 数据缓冲区
+ * @param[in] data_len 缓冲区长度
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_opaque(const struct lwm2m_obj_path *path, const char *data_ptr, uint16_t data_len);
-
 /**
- * @brief Set resource (instance) value (string)
+ * @brief 设置资源（实例）值（字符串）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] data_ptr NULL terminated char buffer
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] data_ptr 以NULL结尾的字符缓冲区
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_string(const struct lwm2m_obj_path *path, const char *data_ptr);
-
 /**
- * @brief Set resource (instance) value (u8)
+ * @brief 设置资源（实例）值（u8）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value u8 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value u8值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_u8(const struct lwm2m_obj_path *path, uint8_t value);
-
 /**
- * @brief Set resource (instance) value (u16)
+ * @brief 设置资源（实例）值（u16）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value u16 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value u16值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_u16(const struct lwm2m_obj_path *path, uint16_t value);
-
 /**
- * @brief Set resource (instance) value (u32)
+ * @brief 设置资源（实例）值（u32）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value u32 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value u32值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_u32(const struct lwm2m_obj_path *path, uint32_t value);
-
 /**
- * @brief Set resource (instance) value (u64)
+ * @brief 设置资源（实例）值（u64）
  *
- * @deprecated Unsigned 64bit value type does not exits.
- *             This is internally handled as a int64_t.
- *             Use lwm2m_set_s64() instead.
+ * @deprecated 无符号64位值类型不存在。
+ *             这在内部处理为int64_t。
+ *             请改用lwm2m_set_s64()。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value u64 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value u64值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 __deprecated
 int lwm2m_set_u64(const struct lwm2m_obj_path *path, uint64_t value);
-
 /**
- * @brief Set resource (instance) value (s8)
+ * @brief 设置资源（实例）值（s8）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value s8 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value s8值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_s8(const struct lwm2m_obj_path *path, int8_t value);
-
 /**
- * @brief Set resource (instance) value (s16)
+ * @brief 设置资源（实例）值（s16）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value s16 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value s16值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_s16(const struct lwm2m_obj_path *path, int16_t value);
-
 /**
- * @brief Set resource (instance) value (s32)
+ * @brief 设置资源（实例）值（s32）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value s32 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value s32值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_s32(const struct lwm2m_obj_path *path, int32_t value);
-
 /**
- * @brief Set resource (instance) value (s64)
+ * @brief 设置资源（实例）值（s64）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value s64 value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value s64值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_s64(const struct lwm2m_obj_path *path, int64_t value);
-
 /**
- * @brief Set resource (instance) value (bool)
+ * @brief 设置资源（实例）值（bool）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value bool value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value bool值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_bool(const struct lwm2m_obj_path *path, bool value);
-
 /**
- * @brief Set resource (instance) value (double)
+ * @brief 设置资源（实例）值（double）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value double value
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value double值
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值
  */
 int lwm2m_set_f64(const struct lwm2m_obj_path *path, const double value);
-
 /**
- * @brief Set resource (instance) value (Objlnk)
+ * @brief 设置资源（实例）值（Objlnk）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value pointer to the lwm2m_objlnk structure
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value 指向lwm2m_objlnk结构的指针
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_objlnk(const struct lwm2m_obj_path *path, const struct lwm2m_objlnk *value);
-
 /**
- * @brief Set resource (instance) value (Time)
+ * @brief 设置资源（实例）值（时间）
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] value Epoch timestamp
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] value 纪元时间戳
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_time(const struct lwm2m_obj_path *path, time_t value);
-
 /**
- * @brief LwM2M resource item structure
+ * @brief LwM2M资源项结构
  *
- * Value type must match the target resource as no type conversion are
- * done and the value is just memcopied.
+ * 值类型必须与目标资源匹配，因为不会进行类型转换，值只是内存复制。
  *
- * Following C types are used for resource types:
- * * BOOL is uint8_t
- * * U8 is uint8_t
- * * S8 is int8_t
- * * U16 is uint16_t
- * * S16 is int16_t
- * * U32 is uint32_t
- * * S32 is int32_t
- * * S64 is int64_t
- * * TIME is time_t
- * * FLOAT is double
- * * OBJLNK is struct lwm2m_objlnk
- * * STRING is char * and the null-terminator should be included in the size.
- * * OPAQUE is any binary data. When null-terminated string is written in OPAQUE
- *   resource, the terminator should not be included in size.
+ * 以下C类型用于资源类型：
+ * * BOOL 是 uint8_t
+ * * U8 是 uint8_t
+ * * S8 是 int8_t
+ * * U16 是 uint16_t
+ * * S16 是 int16_t
+ * * U32 是 uint32_t
+ * * S32 是 int32_t
+ * * S64 是 int64_t
+ * * TIME 是 time_t
+ * * FLOAT 是 double
+ * * OBJLNK 是 struct lwm2m_objlnk
+ * * STRING 是 char *，并且应包含空终止符。
+ * * OPAQUE 是任何二进制数据。当在OPAQUE资源中写入空终止字符串时，不应包含终止符。
  *
  */
 struct lwm2m_res_item {
-	/** Pointer to LwM2M path as a struct */
+	/** 指向LwM2M路径的指针，作为结构 */
 	struct lwm2m_obj_path *path;
-	/** Pointer to resource value */
+	/** 指向资源值的指针 */
 	void *value;
-	/** Size of the value. For string resources, it should contain the null-terminator. */
+	/** 值的大小。对于字符串资源，应包含空终止符。 */
 	uint16_t size;
 };
-
 /**
- * @brief Set multiple resource (instance) values
+ * @brief 设置多个资源（实例）值
  *
- * NOTE: Value type must match the target resource as this function
- * does not do any type conversion.
- * See struct @ref lwm2m_res_item for list of resource types.
+ * 注意：值类型必须与目标资源匹配，因为此函数不会进行任何类型转换。
+ * 请参阅struct @ref lwm2m_res_item以获取资源类型列表。
  *
- * @param[in] res_list LwM2M resource item list
- * @param[in] res_list_size Length of resource list
+ * @param[in] res_list LwM2M资源项列表
+ * @param[in] res_list_size 资源列表的长度
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_bulk(const struct lwm2m_res_item res_list[], size_t res_list_size);
-
 /**
- * @brief Get resource (instance) value (opaque buffer)
+ * @brief 获取资源（实例）值（不透明缓冲区）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] buf Data buffer to copy data into
- * @param[in] buflen Length of buffer
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] buf 数据缓冲区以复制数据
+ * @param[in] buflen 缓冲区长度
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_opaque(const struct lwm2m_obj_path *path, void *buf, uint16_t buflen);
-
 /**
- * @brief Get resource (instance) value (string)
+ * @brief 获取资源（实例）值（字符串）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] str String buffer to copy data into
- * @param[in] buflen Length of buffer
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] str 字符串缓冲区以复制数据
+ * @param[in] buflen 缓冲区长度
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_string(const struct lwm2m_obj_path *path, void *str, uint16_t buflen);
-
 /**
- * @brief Get resource (instance) value (u8)
+ * @brief 获取资源（实例）值（u8）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value u8 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value u8缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_u8(const struct lwm2m_obj_path *path, uint8_t *value);
-
 /**
- * @brief Get resource (instance) value (u16)
+ * @brief 获取资源（实例）值（u16）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value u16 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value u16缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_u16(const struct lwm2m_obj_path *path, uint16_t *value);
-
 /**
- * @brief Get resource (instance) value (u32)
+ * @brief 获取资源（实例）值（u32）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value u32 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value u32缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_u32(const struct lwm2m_obj_path *path, uint32_t *value);
-
 /**
- * @brief Get resource (instance) value (u64)
+ * @brief 获取资源（实例）值（u64）
  *
- * @deprecated Unsigned 64bit value type does not exits.
- *             This is internally handled as a int64_t.
- *             Use lwm2m_get_s64() instead.
-
- * @param[in] path LwM2M path as a struct
- * @param[out] value u64 buffer to copy data into
+ * @deprecated 无符号64位值类型不存在。
+ *             这在内部处理为int64_t。
+ *             请改用lwm2m_get_s64()。
  *
- * @return 0 for success or negative in case of error.
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value u64缓冲区以复制数据
+ *
+ * @return 成功返回0，错误返回负值。
  */
 __deprecated
 int lwm2m_get_u64(const struct lwm2m_obj_path *path, uint64_t *value);
-
 /**
- * @brief Get resource (instance) value (s8)
+ * @brief 获取资源（实例）值（s8）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value s8 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value s8缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_s8(const struct lwm2m_obj_path *path, int8_t *value);
-
 /**
- * @brief Get resource (instance) value (s16)
+ * @brief 获取资源（实例）值（s16）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value s16 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value s16缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_s16(const struct lwm2m_obj_path *path, int16_t *value);
-
 /**
- * @brief Get resource (instance) value (s32)
+ * @brief 获取资源（实例）值（s32）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value s32 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value s32缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_s32(const struct lwm2m_obj_path *path, int32_t *value);
-
 /**
- * @brief Get resource (instance) value (s64)
+ * @brief 获取资源（实例）值（s64）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value s64 buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value s64缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_s64(const struct lwm2m_obj_path *path, int64_t *value);
-
 /**
- * @brief Get resource (instance) value (bool)
+ * @brief 获取资源（实例）值（bool）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value bool buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value bool缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_bool(const struct lwm2m_obj_path *path, bool *value);
-
 /**
- * @brief Get resource (instance) value (double)
+ * @brief 获取资源（实例）值（double）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] value double buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] value double缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_f64(const struct lwm2m_obj_path *path, double *value);
-
 /**
- * @brief Get resource (instance) value (Objlnk)
+ * @brief 获取资源（实例）值（Objlnk）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] buf lwm2m_objlnk buffer to copy data into
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] buf lwm2m_objlnk缓冲区以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_objlnk(const struct lwm2m_obj_path *path, struct lwm2m_objlnk *buf);
-
 /**
- * @brief Get resource (instance) value (Time)
+ * @brief 获取资源（实例）值（时间）
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] buf time_t pointer to copy data
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] buf time_t指针以复制数据
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_time(const struct lwm2m_obj_path *path, time_t *buf);
-
 /**
- * @brief Set resource (instance) read callback
+ * @brief 设置资源（实例）读取回调
  *
- * LwM2M clients can use this to set the callback function for resource reads when data
- * handling in the LwM2M engine needs to be bypassed.
- * For example reading back opaque binary data from external storage.
+ * LwM2M客户端可以使用此函数设置资源读取的回调函数，以绕过LwM2M引擎中的数据处理。
+ * 例如，从外部存储读取不透明的二进制数据。
  *
- * This callback should not generally be used for any data that might be observed as
- * engine does not have any knowledge of data changes.
+ * 此回调通常不应用于任何可能被观察的数据，因为引擎不知道数据的变化。
  *
- * When separate buffer for data should be used, use lwm2m_set_res_buf() instead
- * to set the storage.
+ * 当应使用单独的数据缓冲区时，请改用lwm2m_set_res_buf()设置存储。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] cb Read resource callback
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] cb 读取资源回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_read_callback(const struct lwm2m_obj_path *path, lwm2m_engine_get_data_cb_t cb);
-
 /**
- * @brief Set resource (instance) pre-write callback
+ * @brief 设置资源（实例）预写回调
  *
- * This callback is triggered before setting the value of a resource.  It
- * can pass a special data buffer to the engine so that the actual resource
- * value can be calculated later, etc.
+ * 在设置资源值之前触发此回调。它可以将特殊数据缓冲区传递给引擎，以便稍后计算实际资源值等。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] cb Pre-write resource callback
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] cb 预写资源回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_pre_write_callback(const struct lwm2m_obj_path *path,
 				      lwm2m_engine_get_data_cb_t cb);
-
 /**
- * @brief Set resource (instance) validation callback
+ * @brief 设置资源（实例）验证回调
  *
- * This callback is triggered before setting the value of a resource to the
- * resource data buffer.
+ * 在将资源值设置到资源数据缓冲区之前触发此回调。
  *
- * The callback allows an LwM2M client or object to validate the data before
- * writing and notify an error if the data should be discarded for any reason
- * (by returning a negative error code).
+ * 回调允许LwM2M客户端或对象在写入之前验证数据，并在任何原因导致数据应被丢弃时通知错误（通过返回负错误代码）。
  *
- * @note All resources that have a validation callback registered are initially
- *       decoded into a temporary validation buffer. Make sure that
- *       ``CONFIG_LWM2M_ENGINE_VALIDATION_BUFFER_SIZE`` is large enough to
- *       store each of the validated resources (individually).
+ * @note 所有注册了验证回调的资源最初都写入临时缓冲区。如果验证成功，数据将复制到实际资源缓冲区。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] cb Validate resource data callback
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] cb 验证资源数据回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_validate_callback(const struct lwm2m_obj_path *path,
 				     lwm2m_engine_set_data_cb_t cb);
-
 /**
- * @brief Set resource (instance) post-write callback
+ * @brief 设置资源（实例）后写回调
  *
- * This callback is triggered after setting the value of a resource to the
- * resource data buffer.
+ * 在将资源值设置到资源数据缓冲区之后触发此回调。
  *
- * It allows an LwM2M client or object to post-process the value of a resource
- * or trigger other related resource calculations.
+ * 回调允许LwM2M客户端或对象在数据写入资源缓冲区后执行操作。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] cb Post-write resource callback
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] cb 后写资源回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_post_write_callback(const struct lwm2m_obj_path *path,
 				       lwm2m_engine_set_data_cb_t cb);
-
 /**
- * @brief Set resource execute event callback
+ * @brief 设置资源执行事件回调
  *
- * This event is triggered when the execute method of a resource is enabled.
+ * 启用资源的执行方法时触发此事件。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] cb Execute resource callback
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] cb 执行资源回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_exec_callback(const struct lwm2m_obj_path *path, lwm2m_engine_execute_cb_t cb);
-
 /**
- * @brief Set object instance create event callback
+ * @brief 设置对象实例创建事件回调
  *
- * This event is triggered when an object instance is created.
+ * 创建对象实例时触发此事件。
  *
- * @param[in] obj_id LwM2M object id
- * @param[in] cb Create object instance callback
+ * @param[in] obj_id LwM2M对象ID
+ * @param[in] cb 创建对象实例回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_create_callback(uint16_t obj_id,
 				   lwm2m_engine_user_cb_t cb);
-
 /**
- * @brief Set object instance delete event callback
+ * @brief 设置对象实例删除事件回调
  *
- * This event is triggered when an object instance is deleted.
+ * 删除对象实例时触发此事件。
  *
- * @param[in] obj_id LwM2M object id
- * @param[in] cb Delete object instance callback
+ * @param[in] obj_id LwM2M对象ID
+ * @param[in] cb 删除对象实例回调
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_register_delete_callback(uint16_t obj_id,
-					  lwm2m_engine_user_cb_t cb);
-
+				   lwm2m_engine_user_cb_t cb);
 /**
- * @brief Resource read-only value bit
+ * @brief 资源只读值位
  */
 #define LWM2M_RES_DATA_READ_ONLY	0
-
 /**
- * @brief Resource read-only flag
+ * @brief 资源只读标志
  */
 #define LWM2M_RES_DATA_FLAG_RO		BIT(LWM2M_RES_DATA_READ_ONLY)
-
 /**
- * @brief Read resource flags helper macro
+ * @brief 读取资源标志助手宏
  */
 #define LWM2M_HAS_RES_FLAG(res, f)	((res->data_flags & f) == f)
-
 /**
- * @brief Set data buffer for a resource
+ * @brief 设置资源的数据缓冲区
  *
- * Use this function to set the data buffer and flags for the specified LwM2M
- * resource.
+ * 使用此函数设置指定LwM2M资源的数据缓冲区和标志。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] buffer_ptr Data buffer pointer
- * @param[in] buffer_len Length of buffer
- * @param[in] data_len Length of existing data in the buffer
- * @param[in] data_flags Data buffer flags (such as read-only, etc)
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] buffer_ptr 数据缓冲区指针
+ * @param[in] buffer_len 缓冲区长度
+ * @param[in] data_len 缓冲区中现有数据的长度
+ * @param[in] data_flags 数据缓冲区标志（例如只读等）
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_res_buf(const struct lwm2m_obj_path *path, void *buffer_ptr, uint16_t buffer_len,
 		      uint16_t data_len, uint8_t data_flags);
-
 /**
- * @brief Update data size for a resource
+ * @brief 更新资源的数据大小
  *
- * Use this function to set the new size of data in the buffer if you write
- * to a buffer received by lwm2m_get_res_buf().
+ * 如果通过lwm2m_get_res_buf()函数获取缓冲区后直接写入缓冲区，请使用此函数设置缓冲区中数据的新大小。
  *
- * @param[in] path LwM2M path as a struct
- * @param[in] data_len Length of data
- * @return 0 for success or negative in case of error.
+ * @param[in] path LwM2M路径作为结构
+ * @param[in] data_len 数据长度
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_res_data_len(const struct lwm2m_obj_path *path, uint16_t data_len);
-
 /**
- * @brief Get data buffer for a resource
+ * @brief 获取资源的数据缓冲区
  *
- * Use this function to get the data buffer information for the specified LwM2M
- * resource.
+ * 使用此函数获取指定LwM2M资源的数据缓冲区信息。
  *
- * If you directly write into the buffer, you must use lwm2m_set_res_data_len()
- * function to update the new size of the written data.
+ * 如果直接写入缓冲区，则必须使用lwm2m_set_res_data_len()函数更新写入数据的新大小。
  *
- * All parameters, except for the pathstr, can be NULL if you don't want to read those values.
+ * 除pathstr外，所有参数都可以为NULL，如果不想读取这些值。
  *
- * @param[in] path LwM2M path as a struct
- * @param[out] buffer_ptr Data buffer pointer
- * @param[out] buffer_len Length of buffer
- * @param[out] data_len Length of existing data in the buffer
- * @param[out] data_flags Data buffer flags (such as read-only, etc)
+ * @param[in] path LwM2M路径作为结构
+ * @param[out] buffer_ptr 数据缓冲区指针
+ * @param[out] buffer_len 缓冲区长度
+ * @param[out] data_len 缓冲区中现有数据的长度
+ * @param[out] data_flags 数据缓冲区标志（例如只读等）
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_get_res_buf(const struct lwm2m_obj_path *path, void **buffer_ptr, uint16_t *buffer_len,
 		      uint16_t *data_len, uint8_t *data_flags);
-
 /**
- * @brief Create a resource instance
+ * @brief 创建资源实例
  *
- * LwM2M clients use this function to create multi-resource instances:
- * Example to create 0 instance of device available power sources:
+ * LwM2M客户端使用此函数创建多资源实例：
+ * 例如，创建设备可用电源源的0实例：
  * lwm2m_create_res_inst(&LWM2M_OBJ(3, 0, 6, 0));
  *
- * @param[in] path LwM2M path as a struct
+ * @param[in] path LwM2M路径作为结构
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_create_res_inst(const struct lwm2m_obj_path *path);
-
 /**
- * @brief Delete a resource instance
+ * @brief 删除资源实例
  *
- * Use this function to remove an existing resource instance
+ * 使用此函数删除现有资源实例
  *
- * @param[in] path LwM2M path as a struct
+ * @param[in] path LwM2M路径作为结构
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_delete_res_inst(const struct lwm2m_obj_path *path);
-
 /**
- * @brief Update the period of the device service.
+ * @brief 更新设备服务的周期。
  *
- * Change the duration of the periodic device service that notifies the
- * current time.
+ * 更改通知当前时间的周期性设备服务的持续时间。
  *
- * @param[in] period_ms New period for the device service (in milliseconds)
+ * @param[in] period_ms 设备服务的新周期（毫秒）
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_update_device_service_period(uint32_t period_ms);
-
 /**
- * @brief Check whether a path is observed
+ * @brief 检查路径是否被观察
  *
- * @param[in] path LwM2M path as a struct to check
+ * @param[in] path 要检查的LwM2M路径作为结构
  *
- * @return true when there exists an observation of the same level
- *         or lower as the given path, false if it doesn't or path is not a
- *         valid LwM2M-path.
- *         E.g. true if path refers to a resource and the parent object has an
- *         observation, false for the inverse.
+ * @return 当存在与给定路径相同级别或更低级别的观察时返回true，否则返回false或路径不是有效的LwM2M路径。
+ *         例如，如果路径引用资源且父对象有观察，则返回true，反之则返回false。
  */
 bool lwm2m_path_is_observed(const struct lwm2m_obj_path *path);
-
 /**
- * @brief Stop the LwM2M engine
+ * @brief 停止LwM2M引擎
  *
- * LwM2M clients normally do not need to call this function as it is called
- * within lwm2m_rd_client. However, if the client does not use the RD
- * client implementation, it will need to be called manually.
+ * LwM2M客户端通常不需要调用此函数，因为它在lwm2m_rd_client中调用。
+ * 但是，如果客户端不使用RD客户端实现，则需要手动调用。
  *
- * @param[in] client_ctx LwM2M context
+ * @param[in] client_ctx LwM2M上下文
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_engine_stop(struct lwm2m_ctx *client_ctx);
-
 /**
- * @brief Start the LwM2M engine
+ * @brief 启动LwM2M引擎
  *
- * LwM2M clients normally do not need to call this function as it is called
- * by lwm2m_rd_client_start().  However, if the client does not use the RD
- * client implementation, it will need to be called manually.
+ * LwM2M客户端通常不需要调用此函数，因为它由lwm2m_rd_client_start()调用。
+ * 但是，如果客户端不使用RD客户端实现，则需要手动调用。
  *
- * @param[in] client_ctx LwM2M context
+ * @param[in] client_ctx LwM2M上下文
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_engine_start(struct lwm2m_ctx *client_ctx);
-
 /**
- * @brief Acknowledge the currently processed request with an empty ACK.
+ * @brief 使用空ACK确认当前处理的请求。
  *
- * LwM2M engine by default sends piggybacked responses for requests.
- * This function allows to send an empty ACK for a request earlier (from the
- * application callback). The LwM2M engine will then send the actual response
- * as a separate CON message after all callbacks are executed.
+ * LwM2M引擎默认发送带有响应的确认消息。此函数允许在应用程序回调中提前发送空ACK。
+ * 然后，LwM2M引擎将在所有回调执行后发送实际响应作为单独的确认消息。
  *
- * @param[in] client_ctx LwM2M context
+ * @param[in] client_ctx LwM2M上下文
  *
  */
 void lwm2m_acknowledge(struct lwm2m_ctx *client_ctx);
-
 /**
- * @brief LwM2M RD client events
+ * @brief LwM2M RD客户端事件
  *
- * LwM2M client events are passed back to the event_cb function in
- * lwm2m_rd_client_start()
+ * LwM2M客户端事件通过lwm2m_rd_client_start()中的event_cb函数传递回去
  */
 enum lwm2m_rd_client_event {
-	/** Invalid event */
+	/** 无效事件 */
 	LWM2M_RD_CLIENT_EVENT_NONE,
-	/** Bootstrap registration failure */
+	/** 引导注册失败 */
 	LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_REG_FAILURE,
-	/** Bootstrap registration complete */
+	/** 引导注册完成 */
 	LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_REG_COMPLETE,
-	/** Bootstrap transfer complete */
+	/** 引导传输完成 */
 	LWM2M_RD_CLIENT_EVENT_BOOTSTRAP_TRANSFER_COMPLETE,
-	/** Registration failure */
+	/** 注册失败 */
 	LWM2M_RD_CLIENT_EVENT_REGISTRATION_FAILURE,
-	/** Registration complete */
+	/** 注册完成 */
 	LWM2M_RD_CLIENT_EVENT_REGISTRATION_COMPLETE,
-	/** Registration timeout */
+	/** 注册超时 */
 	LWM2M_RD_CLIENT_EVENT_REG_TIMEOUT,
-	/** Registration update complete */
+	/** 注册更新完成 */
 	LWM2M_RD_CLIENT_EVENT_REG_UPDATE_COMPLETE,
-	/** De-registration failure */
+	/** 注销失败 */
 	LWM2M_RD_CLIENT_EVENT_DEREGISTER_FAILURE,
-	/** Disconnected */
+	/** 断开连接 */
 	LWM2M_RD_CLIENT_EVENT_DISCONNECT,
-	/** Queue mode RX off */
+	/** 队列模式RX关闭 */
 	LWM2M_RD_CLIENT_EVENT_QUEUE_MODE_RX_OFF,
-	/** Engine suspended */
+	/** 引擎挂起 */
 	LWM2M_RD_CLIENT_EVENT_ENGINE_SUSPENDED,
-	/** Network error */
+	/** 网络错误 */
 	LWM2M_RD_CLIENT_EVENT_NETWORK_ERROR,
-	/** Registration update */
+	/** 注册更新 */
 	LWM2M_RD_CLIENT_EVENT_REG_UPDATE,
-	/** De-register */
+	/** 注销 */
 	LWM2M_RD_CLIENT_EVENT_DEREGISTER,
-	/** Server disabled */
+	/** 服务器禁用 */
 	LWM2M_RD_CLIENT_EVENT_SERVER_DISABLED,
 };
 
 /*
- * LwM2M RD client flags, used to configure LwM2M session.
+ * LwM2M RD客户端标志，用于配置LwM2M会话。
  */
 
 /**
- * @brief Run bootstrap procedure in current session.
+ * @brief 在当前会话中运行引导程序。
  */
 #define LWM2M_RD_CLIENT_FLAG_BOOTSTRAP BIT(0)
 
 /**
- * @brief Start the LwM2M RD (Registration / Discovery) Client
+ * @brief 启动LwM2M RD（注册/发现）客户端
  *
- * The RD client sits just above the LwM2M engine and performs the necessary
- * actions to implement the "Registration interface".
- * For more information see Section "Client Registration Interface" of
- * LwM2M Technical Specification.
+ * RD客户端位于LwM2M引擎之上，执行实现“注册接口”所需的操作。
+ * 有关更多信息，请参阅LwM2M技术规范的“客户端注册接口”部分。
  *
- * NOTE: lwm2m_engine_start() is called automatically by this function.
+ * 注意：此函数会自动调用lwm2m_engine_start()。
  *
- * @param[in] client_ctx LwM2M context
- * @param[in] ep_name Registered endpoint name
- * @param[in] flags Flags used to configure current LwM2M session.
- * @param[in] event_cb Client event callback function
- * @param[in] observe_cb Observe callback function called when an observer was
- *			 added or deleted, and when a notification was acked or
- *			 has timed out
+ * @param[in] client_ctx LwM2M上下文
+ * @param[in] ep_name 注册的端点名称
+ * @param[in] flags 用于配置当前LwM2M会话的标志。
+ * @param[in] event_cb 客户端事件回调函数
+ * @param[in] observe_cb 当添加或删除观察者以及通知被确认或超时时调用的观察回调函数
  *
- * @return 0 for success, -EINPROGRESS when client is already running
- *         or negative error codes in case of failure.
+ * @return 成功返回0，客户端已在运行时返回-EINPROGRESS，失败时返回负错误代码。
  */
 int lwm2m_rd_client_start(struct lwm2m_ctx *client_ctx, const char *ep_name,
 			   uint32_t flags, lwm2m_ctx_event_cb_t event_cb,
 			   lwm2m_observe_cb_t observe_cb);
 
 /**
- * @brief Stop the LwM2M RD (De-register) Client
+ * @brief 停止LwM2M RD（注销）客户端
  *
- * The RD client sits just above the LwM2M engine and performs the necessary
- * actions to implement the "Registration interface".
- * For more information see Section "Client Registration Interface" of the
- * LwM2M Technical Specification.
+ * RD客户端位于LwM2M引擎之上，执行实现“注册接口”所需的操作。
+ * 有关更多信息，请参阅LwM2M技术规范的“客户端注册接口”部分。
  *
- * @param[in] client_ctx LwM2M context
- * @param[in] event_cb Client event callback function
- * @param[in] deregister True to deregister the client if registered.
- *                       False to force close the connection.
+ * @param[in] client_ctx LwM2M上下文
+ * @param[in] event_cb 客户端事件回调函数
+ * @param[in] deregister 如果已注册，则为true注销客户端。如果为false，则强制关闭连接。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_rd_client_stop(struct lwm2m_ctx *client_ctx,
 			  lwm2m_ctx_event_cb_t event_cb, bool deregister);
 
 /**
- * @brief Suspend the LwM2M engine Thread
+ * @brief 挂起LwM2M引擎线程
  *
- * Suspend LwM2M engine. Use case could be when network connection is down.
- * LwM2M Engine indicate before it suspend by
- * LWM2M_RD_CLIENT_EVENT_ENGINE_SUSPENDED event.
+ * 挂起LwM2M引擎。用例可能是在网络连接断开时。
+ * LwM2M引擎在挂起前通过LWM2M_RD_CLIENT_EVENT_ENGINE_SUSPENDED事件指示。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_engine_pause(void);
 
 /**
- * @brief Resume the LwM2M engine thread
+ * @brief 恢复LwM2M引擎线程
  *
- * Resume suspended LwM2M engine. After successful resume call engine will do
- * full registration or registration update based on suspended time.
- * Event's LWM2M_RD_CLIENT_EVENT_REGISTRATION_COMPLETE or LWM2M_RD_CLIENT_EVENT_REG_UPDATE_COMPLETE
- * indicate that client is connected to server.
+ * 恢复挂起的LwM2M引擎。成功恢复调用后，引擎将根据挂起时间执行完整注册或注册更新。
+ * 事件LWM2M_RD_CLIENT_EVENT_REGISTRATION_COMPLETE或LWM2M_RD_CLIENT_EVENT_REG_UPDATE_COMPLETE指示客户端已连接到服务器。
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_engine_resume(void);
 
 /**
- * @brief Trigger a Registration Update of the LwM2M RD Client
+ * @brief 触发LwM2M RD客户端的注册更新
  */
 void lwm2m_rd_client_update(void);
 
 /**
- * @brief LwM2M path maximum length
+ * @brief LwM2M路径的最大长度
  */
 #define LWM2M_MAX_PATH_STR_SIZE sizeof("/65535/65535/65535/65535")
 
 /**
- * @brief Helper function to print path objects' contents to log
+ * @brief 帮助函数将路径对象的内容打印到日志
  *
- * @param[in] buf The buffer to use for formatting the string
- * @param[in] path The path to stringify
+ * @param[in] buf 用于格式化字符串的缓冲区
+ * @param[in] path 要字符串化的路径
  *
- * @return Resulting formatted path string
+ * @return 结果格式化路径字符串
  */
 char *lwm2m_path_log_buf(char *buf, struct lwm2m_obj_path *path);
 
 /**
- * @brief LwM2M send status
+ * @brief LwM2M发送状态
  *
- * LwM2M send status are generated back to the lwm2m_send_cb_t function in
- * lwm2m_send_cb()
+ * LwM2M发送状态通过lwm2m_send_cb()函数传递回lwm2m_send_cb_t函数
  */
 enum lwm2m_send_status {
-	LWM2M_SEND_STATUS_SUCCESS,  /**< Succeed */
-	LWM2M_SEND_STATUS_FAILURE,  /**< Failure */
-	LWM2M_SEND_STATUS_TIMEOUT,  /**< Timeout */
+	LWM2M_SEND_STATUS_SUCCESS,  /**< 成功 */
+	LWM2M_SEND_STATUS_FAILURE,  /**< 失败 */
+	LWM2M_SEND_STATUS_TIMEOUT,  /**< 超时 */
 };
 
 /**
  * @typedef lwm2m_send_cb_t
- * @brief Callback returning send status
+ * @brief 返回发送状态的回调
  */
 typedef void (*lwm2m_send_cb_t)(enum lwm2m_send_status status);
 
 /** 
- * @brief LwM2M SEND operation to given path list asynchronously with confirmation callback
+ * @brief LwM2M SEND操作异步发送到给定路径列表，并带有确认回调
  *
- * @param ctx LwM2M context
- * @param path_list LwM2M path struct list
- * @param path_list_size Length of path list. Max size is CONFIG_LWM2M_COMPOSITE_PATH_LIST_SIZE
- * @param reply_cb Callback triggered with confirmation state or NULL if not used
+ * @param ctx LwM2M上下文
+ * @param path_list LwM2M路径结构列表
+ * @param path_list_size 路径列表的长度。最大大小为CONFIG_LWM2M_COMPOSITE_PATH_LIST_SIZE
+ * @param reply_cb 触发确认状态的回调或不使用时为NULL
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  *
  */
 int lwm2m_send_cb(struct lwm2m_ctx *ctx, const struct lwm2m_obj_path path_list[],
 			  uint8_t path_list_size, lwm2m_send_cb_t reply_cb);
 
 /** 
- * @brief Returns LwM2M client context
+ * @brief 返回LwM2M客户端上下文
  *
- * @return ctx LwM2M context
+ * @return ctx LwM2M上下文
  *
  */
 struct lwm2m_ctx *lwm2m_rd_client_ctx(void);
 
 /** 
- * @brief Enable data cache for a resource.
+ * @brief 启用资源的数据缓存。
  *
- * Application may enable caching of resource data by allocating buffer for LwM2M engine to use.
- * Buffer must be size of struct @ref lwm2m_time_series_elem times cache_len
+ * 应用程序可以通过为LwM2M引擎分配缓冲区来启用资源数据缓存。
+ * 缓冲区必须是struct @ref lwm2m_time_series_elem的大小乘以cache_len
  *
- * @param path LwM2M path to resource as a struct
- * @param data_cache Pointer to Data cache array
- * @param cache_len number of cached entries
+ * @param path LwM2M路径作为结构
+ * @param data_cache 数据缓存数组的指针
+ * @param cache_len 缓存条目的数量
  *
- * @return 0 for success or negative in case of error.
+ * @return 成功返回0，错误返回负值。
  *
  */
 int lwm2m_enable_cache(const struct lwm2m_obj_path *path, struct lwm2m_time_series_elem *data_cache,
 		       size_t cache_len);
 
 /**
- * @brief Security modes as defined in LwM2M Security object.
+ * @brief LwM2M安全模式，如LwM2M安全对象中定义。
  */
 enum lwm2m_security_mode_e {
-	LWM2M_SECURITY_PSK = 0,      /**< Pre-Shared Key mode */
-	LWM2M_SECURITY_RAW_PK = 1,   /**< Raw Public Key mode */
-	LWM2M_SECURITY_CERT = 2,     /**< Certificate mode */
-	LWM2M_SECURITY_NOSEC = 3,    /**< NoSec mode */
-	LWM2M_SECURITY_CERT_EST = 4, /**< Certificate mode with EST */
+	LWM2M_SECURITY_PSK = 0,      /**< 预共享密钥模式 */
+	LWM2M_SECURITY_RAW_PK = 1,   /**< 原始公钥模式 */
+	LWM2M_SECURITY_CERT = 2,     /**< 证书模式 */
+	LWM2M_SECURITY_NOSEC = 3,    /**< 无安全模式 */
+	LWM2M_SECURITY_CERT_EST = 4, /**< 证书模式与EST */
 };
 
 /**
- * @brief Read security mode from selected security object instance.
+ * @brief 从选定的安全对象实例读取安全模式。
  *
- * This data is valid only if RD client is running.
+ * 仅在RD客户端运行时有效。
  *
- * @param ctx Pointer to client context.
- * @return int Positive values are @ref lwm2m_security_mode_e, negative error codes otherwise.
+ * @param ctx 指向客户端上下文的指针。
+ * @return int 正值为@ref lwm2m_security_mode_e，负错误代码否则。
  */
 int lwm2m_security_mode(struct lwm2m_ctx *ctx);
 
 /**
- * @brief Set default socket options for DTLS connections.
+ * @brief 设置DTLS连接的默认套接字选项。
  *
- * The engine calls this when @ref lwm2m_ctx::set_socketoptions is not overwritten.
- * You can call this from the overwritten callback to set extra options after or
- * before defaults.
+ * 当@ref lwm2m_ctx::set_socketoptions未被覆盖时，引擎会调用此函数。
+ * 您可以从覆盖的回调中调用此函数，以在默认选项之前或之后设置额外选项。
  *
- * @param ctx Client context
- * @return 0 for success or negative in case of error.
+ * @param ctx 客户端上下文
+ * @return 成功返回0，错误返回负值。
  */
 int lwm2m_set_default_sockopt(struct lwm2m_ctx *ctx);
 

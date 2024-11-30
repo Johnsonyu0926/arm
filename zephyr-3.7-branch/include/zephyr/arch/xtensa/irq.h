@@ -1,13 +1,9 @@
-/*
- * Copyright (c) 2016 Cadence Design Systems, Inc.
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/irq.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_XTENSA_IRQ_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_XTENSA_IRQ_H_
 
 #include <stdint.h>
-
 #include <zephyr/toolchain.h>
 #include <xtensa/config/core-isa.h>
 
@@ -17,10 +13,10 @@
  * @cond INTERNAL_HIDDEN
  */
 
-/*
- * Call this function to enable the specified interrupts.
+/**
+ * @brief Enable the specified interrupts.
  *
- * mask     - Bit mask of interrupts to be enabled.
+ * @param mask Bit mask of interrupts to be enabled.
  */
 static inline void z_xt_ints_on(unsigned int mask)
 {
@@ -31,11 +27,10 @@ static inline void z_xt_ints_on(unsigned int mask)
 	__asm__ volatile("wsr.intenable %0; rsync" : : "r"(val));
 }
 
-
-/*
- * Call this function to disable the specified interrupts.
+/**
+ * @brief Disable the specified interrupts.
  *
- * mask     - Bit mask of interrupts to be disabled.
+ * @param mask Bit mask of interrupts to be disabled.
  */
 static inline void z_xt_ints_off(unsigned int mask)
 {
@@ -46,9 +41,10 @@ static inline void z_xt_ints_off(unsigned int mask)
 	__asm__ volatile("wsr.intenable %0; rsync" : : "r"(val));
 }
 
-
-/*
- * Call this function to set the specified (s/w) interrupt.
+/**
+ * @brief Set the specified (s/w) interrupt.
+ *
+ * @param arg Interrupt to be set.
  */
 static inline void z_xt_set_intset(unsigned int arg)
 {
@@ -165,3 +161,4 @@ int xtensa_irq_is_enabled(unsigned int irq);
 #include <zephyr/irq.h>
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_XTENSA_IRQ_H_ */
+//GST

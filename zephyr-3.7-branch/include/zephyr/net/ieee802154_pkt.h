@@ -1,22 +1,16 @@
-/*
- * Copyright (c) 2016 Intel Corporation.
- * Copyright (c) 2022 Florian Grandel.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ieee802154_pkt.h
 
 /**
  * @file
- * @brief Packet data common to all IEEE 802.15.4 L2 layers
+ * @brief IEEE 802.15.4 L2层通用数据包数据
  *
- * All references to the spec refer to IEEE 802.15.4-2020.
+ * 本文件中的所有规范引用均指IEEE 802.15.4-2020。
  */
 
 #ifndef ZEPHYR_INCLUDE_NET_IEEE802154_PKT_H_
 #define ZEPHYR_INCLUDE_NET_IEEE802154_PKT_H_
 
 #include <string.h>
-
 #include <zephyr/types.h>
 
 #ifdef __cplusplus
@@ -29,51 +23,40 @@ extern "C" {
 #define NET_PKT_HAS_CONTROL_BLOCK
 #endif
 
-/* See section 6.16.2.8 - Received Signal Strength Indicator (RSSI) */
-#define IEEE802154_MAC_RSSI_MIN       0U   /* corresponds to -174 dBm */
-#define IEEE802154_MAC_RSSI_MAX       254U /* corresponds to 80 dBm */
-#define IEEE802154_MAC_RSSI_UNDEFINED 255U /* used by us to indicate an undefined RSSI value */
+/* 参见第6.16.2.8节 - 接收信号强度指示器（RSSI） */
+#define IEEE802154_MAC_RSSI_MIN       0U   /* 对应于-174 dBm */
+#define IEEE802154_MAC_RSSI_MAX       254U /* 对应于80 dBm */
+#define IEEE802154_MAC_RSSI_UNDEFINED 255U /* 我们用来表示未定义的RSSI值 */
 
-#define IEEE802154_MAC_RSSI_DBM_MIN       -174      /* in dBm */
-#define IEEE802154_MAC_RSSI_DBM_MAX       80        /* in dBm */
-#define IEEE802154_MAC_RSSI_DBM_UNDEFINED INT16_MIN /* represents an undefined RSSI value */
+#define IEEE802154_MAC_RSSI_DBM_MIN       -174      /* 以dBm为单位 */
+#define IEEE802154_MAC_RSSI_DBM_MAX       80        /* 以dBm为单位 */
+#define IEEE802154_MAC_RSSI_DBM_UNDEFINED INT16_MIN /* 表示未定义的RSSI值 */
 
 struct net_pkt_cb_ieee802154 {
 #if defined(CONFIG_NET_L2_OPENTHREAD)
-	uint32_t ack_fc;   /* Frame counter set in the ACK */
-	uint8_t ack_keyid; /* Key index set in the ACK */
+	uint32_t ack_fc;   /* ACK中设置的帧计数器 */
+	uint8_t ack_keyid; /* ACK中设置的密钥索引 */
 #endif
 	union {
-		/* RX packets */
+		/* 接收数据包 */
 		struct {
-			uint8_t lqi;  /* Link Quality Indicator */
-			/* See section 6.16.2.8 - Received Signal Strength Indicator (RSSI)
-			 * "RSSI is represented as one octet of integer [...]; therefore,
-			 * the minimum and maximum values are 0 (–174 dBm) and 254 (80 dBm),
-			 * respectively. 255 is reserved." (MAC PIB attribute macRssi, see
-			 * section 8.4.3.10, table 8-108)
+			uint8_t lqi;  /* 链路质量指示器 */
+			/* 参见第6.16.2.8节 - 接收信号强度指示器（RSSI）
+			 * "RSSI表示为一个八位整数[...]；因此，最小值和最大值分别为0（-174 dBm）和254（80 dBm），
+			 * 255保留。"（MAC PIB属性macRssi，参见第8.4.3.10节，表8-108）
 			 *
-			 * TX packets will show zero for this value. Drivers may set the
-			 * field to the reserved value 255 (0xff) to indicate that an RSSI
-			 * value is not available for this packet.
+			 * 发送数据包将显示此值为零。驱动程序可以将该字段设置为保留值255（0xff），以表示该数据包没有可用的RSSI值。
 			 */
 			uint8_t rssi;
 		};
 	};
 
-	/* Flags */
-	uint8_t ack_fpb : 1;	   /* Frame Pending Bit was set in the ACK */
-	uint8_t frame_secured : 1; /* Frame is authenticated and
-				    * encrypted according to its
-				    * Auxiliary Security Header
-				    */
-	uint8_t mac_hdr_rdy : 1;   /* Indicates if frame's MAC header
-				    * is ready to be transmitted or if
-				    * it requires further modifications,
-				    * e.g. Frame Counter injection.
-				    */
+	/* 标志 */
+	uint8_t ack_fpb : 1;	   /* ACK中设置的帧挂起位 */
+	uint8_t frame_secured : 1; /* 帧根据其辅助安全头进行认证和加密 */
+	uint8_t mac_hdr_rdy : 1;   /* 指示帧的MAC头是否准备好传输，或者是否需要进一步修改，例如帧计数器注入。 */
 #if defined(CONFIG_NET_L2_OPENTHREAD)
-	uint8_t ack_seb : 1; /* Security Enabled Bit was set in the ACK */
+	uint8_t ack_seb : 1; /* ACK中设置的安全启用位 */
 #endif
 };
 
@@ -83,7 +66,7 @@ static inline void *net_pkt_cb(struct net_pkt *pkt);
 static inline struct net_pkt_cb_ieee802154 *net_pkt_cb_ieee802154(struct net_pkt *pkt)
 {
 	return (struct net_pkt_cb_ieee802154 *)net_pkt_cb(pkt);
-};
+}
 
 static inline uint8_t net_pkt_ieee802154_lqi(struct net_pkt *pkt)
 {
@@ -96,16 +79,15 @@ static inline void net_pkt_set_ieee802154_lqi(struct net_pkt *pkt, uint8_t lqi)
 }
 
 /**
- * @brief Get the unsigned RSSI value as defined in section 6.16.2.8,
- *        Received Signal Strength Indicator (RSSI)
+ * @brief 获取无符号RSSI值，如第6.16.2.8节所定义，
+ *        接收信号强度指示器（RSSI）
  *
- * @param pkt Pointer to the packet.
+ * @param pkt 指向数据包的指针。
  *
- * @returns RSSI represented as unsigned byte value, ranging from
- *          0 (–174 dBm) to 254 (80 dBm).
- *          The special value 255 (IEEE802154_MAC_RSSI_UNDEFINED)
- *          indicates that an RSSI value is not available for this
- *          packet. Will return zero for packets on the TX path.
+ * @returns RSSI表示为无符号字节值，范围从
+ *          0（-174 dBm）到254（80 dBm）。
+ *          特殊值255（IEEE802154_MAC_RSSI_UNDEFINED）
+ *          表示该数据包没有可用的RSSI值。对于TX路径上的数据包，将返回零。
  */
 static inline uint8_t net_pkt_ieee802154_rssi(struct net_pkt *pkt)
 {
@@ -113,16 +95,14 @@ static inline uint8_t net_pkt_ieee802154_rssi(struct net_pkt *pkt)
 }
 
 /**
- * @brief Set the unsigned RSSI value as defined in section 6.16.2.8,
- *        Received Signal Strength Indicator (RSSI).
+ * @brief 设置无符号RSSI值，如第6.16.2.8节所定义，
+ *        接收信号强度指示器（RSSI）。
  *
- * @param pkt Pointer to the packet that was received with the given
- *            RSSI.
- * @param rssi RSSI represented as unsigned byte value, ranging from
- *             0 (–174 dBm) to 254 (80 dBm).
- *             The special value 255 (IEEE802154_MAC_RSSI_UNDEFINED)
- *             indicates that an RSSI value is not available for this
- *             packet.
+ * @param pkt 指向接收到给定RSSI的数据包的指针。
+ * @param rssi RSSI表示为无符号字节值，范围从
+ *             0（-174 dBm）到254（80 dBm）。
+ *             特殊值255（IEEE802154_MAC_RSSI_UNDEFINED）
+ *             表示该数据包没有可用的RSSI值。
  */
 static inline void net_pkt_set_ieee802154_rssi(struct net_pkt *pkt, uint8_t rssi)
 {
@@ -130,15 +110,12 @@ static inline void net_pkt_set_ieee802154_rssi(struct net_pkt *pkt, uint8_t rssi
 }
 
 /**
- * @brief Get a signed RSSI value measured in dBm.
+ * @brief 获取以dBm为单位的有符号RSSI值。
  *
- * @param pkt Pointer to the packet.
+ * @param pkt 指向数据包的指针。
  *
- * @returns RSSI represented in dBm. Returns the special value
- *          IEEE802154_MAC_RSSI_DBM_UNDEFINED if an RSSI value
- *          is not available for this packet. Packets on the TX
- *          path will always show -174 dBm (which corresponds to
- *          an internal value of unsigned zero).
+ * @returns RSSI表示为dBm。如果该数据包没有可用的RSSI值，则返回特殊值
+ *          IEEE802154_MAC_RSSI_DBM_UNDEFINED。TX路径上的数据包将始终显示-174 dBm（对应于无符号零的内部值）。
  */
 static inline int16_t net_pkt_ieee802154_rssi_dbm(struct net_pkt *pkt)
 {
@@ -148,15 +125,11 @@ static inline int16_t net_pkt_ieee802154_rssi_dbm(struct net_pkt *pkt)
 }
 
 /**
- * @brief Set the RSSI value as a signed integer measured in dBm.
+ * @brief 设置以dBm为单位的有符号RSSI值。
  *
- * @param pkt Pointer to the packet that was received with the given
- *            RSSI.
- * @param rssi represented in dBm. Set to the special value
- *             IEEE802154_MAC_RSSI_DBM_UNDEFINED if an RSSI value is
- *             not available for this packet. Values above 80 dBm will
- *             be mapped to 80 dBm, values below -174 dBm will be mapped
- *             to -174 dBm.
+ * @param pkt 指向接收到给定RSSI的数据包的指针。
+ * @param rssi 表示为dBm。设置为特殊值
+ *             IEEE802154_MAC_RSSI_DBM_UNDEFINED，如果该数据包没有可用的RSSI值。值高于80 dBm将映射到80 dBm，值低于-174 dBm将映射到-174 dBm。
  */
 static inline void net_pkt_set_ieee802154_rssi_dbm(struct net_pkt *pkt, int16_t rssi)
 {
@@ -248,3 +221,5 @@ static inline void net_pkt_set_ieee802154_ack_seb(struct net_pkt *pkt, bool seb)
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_IEEE802154_PKT_H_ */
+
+// By GST @Data

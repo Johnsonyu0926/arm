@@ -1,10 +1,3 @@
-/*
- * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-
 #include <zephyr/kernel.h>
 #include <string.h>
 #include <zephyr/sys/math_extras.h>
@@ -27,10 +20,6 @@
 K_APPMEM_PARTITION_DEFINE(z_libc_partition);
 #endif /* Z_LIBC_PARTITION_EXISTS */
 
-/* TODO: Find a better place to put this. Since we pull the entire
- * lib..__modules__crypto__mbedtls.a  globals into app shared memory
- * section, we can't put this in zephyr_init.c of the mbedtls module.
- */
 #ifdef CONFIG_MBEDTLS
 K_APPMEM_PARTITION_DEFINE(k_mbedtls_partition);
 #endif /* CONFIG_MBEDTLS */
@@ -38,24 +27,11 @@ K_APPMEM_PARTITION_DEFINE(k_mbedtls_partition);
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
-/* The originally synchronization strategy made heavy use of recursive
- * irq_locking, which ports poorly to spinlocks which are
- * non-recursive.  Rather than try to redesign as part of
- * spinlockification, this uses multiple locks to preserve the
- * original semantics exactly.  The locks are named for the data they
- * protect where possible, or just for the code that uses them where
- * not.
- */
 #ifdef CONFIG_DYNAMIC_OBJECTS
 static struct k_spinlock lists_lock;       /* kobj dlist */
 static struct k_spinlock objfree_lock;     /* k_object_free */
 
 #ifdef CONFIG_GEN_PRIV_STACKS
-/* On ARM & ARC MPU we may have two different alignment requirement
- * when dynamically allocating thread stacks, one for the privileged
- * stack and other for the user stack, so we need to account the
- * worst alignment scenario and reserve space for that.
- */
 #if defined(CONFIG_ARM_MPU) || defined(CONFIG_ARC_MPU)
 #define STACK_ELEMENT_DATA_SIZE(size) \
 	(sizeof(struct z_stack_data) + CONFIG_PRIVILEGED_STACK_SIZE + \
@@ -82,15 +58,8 @@ static void clear_perms_cb(struct k_object *ko, void *ctx_ptr);
 const char *otype_to_str(enum k_objects otype)
 {
 	const char *ret;
-	/* -fdata-sections doesn't work right except in very recent
-	 * GCC and these literal strings would appear in the binary even if
-	 * otype_to_str was omitted by the linker
-	 */
 #ifdef CONFIG_LOG
 	switch (otype) {
-	/* otype-to-str.h is generated automatically during build by
-	 * gen_kobject_list.py
-	 */
 	case K_OBJ_ANY:
 		ret = "generic";
 		break;
@@ -113,10 +82,6 @@ struct perm_ctx {
 };
 
 #ifdef CONFIG_GEN_PRIV_STACKS
-/* See write_gperf_table() in scripts/build/gen_kobject_list.py. The privilege
- * mode stacks are allocated as an array. The base of the array is
- * aligned to Z_PRIVILEGE_STACK_ALIGN, and all members must be as well.
- */
 uint8_t *z_priv_stack_find(k_thread_stack_t *stack)
 {
 	struct k_object *obj = k_object_find(stack);
@@ -131,18 +96,6 @@ uint8_t *z_priv_stack_find(k_thread_stack_t *stack)
 
 #ifdef CONFIG_DYNAMIC_OBJECTS
 
-/*
- * Note that dyn_obj->data is where the kernel object resides
- * so it is the one that actually needs to be aligned.
- * Due to the need to get the fields inside struct dyn_obj
- * from kernel object pointers (i.e. from data[]), the offset
- * from data[] needs to be fixed at build time. Therefore,
- * data[] is declared with __aligned(), such that when dyn_obj
- * is allocated with alignment, data[] is also aligned.
- * Due to this requirement, data[] needs to be aligned with
- * the maximum alignment needed for all kernel objects
- * (hence the following DYN_OBJ_DATA_ALIGN).
- */
 #ifdef ARCH_DYNAMIC_OBJ_K_THREAD_ALIGNMENT
 #define DYN_OBJ_DATA_ALIGN_K_THREAD	(ARCH_DYNAMIC_OBJ_K_THREAD_ALIGNMENT)
 #else
@@ -168,8 +121,6 @@ uint8_t *z_priv_stack_find(k_thread_stack_t *stack)
 struct dyn_obj {
 	struct k_object kobj;
 	sys_dnode_t dobj_list;
-
-	/* The object itself */
 	void *data;
 };
 
@@ -177,15 +128,7 @@ extern struct k_object *z_object_gperf_find(const void *obj);
 extern void z_object_gperf_wordlist_foreach(_wordlist_cb_func_t func,
 					     void *context);
 
-/*
- * Linked list of allocated kernel objects, for iteration over all allocated
- * objects (and potentially deleting them during iteration).
- */
 static sys_dlist_t obj_list = SYS_DLIST_STATIC_INIT(&obj_list);
-
-/*
- * TODO: Write some hash table code that will replace obj_list.
- */
 
 static size_t obj_size_get(enum k_objects otype)
 {
@@ -226,11 +169,6 @@ static struct dyn_obj *dyn_object_find(const void *obj)
 	struct dyn_obj *node;
 	k_spinlock_key_t key;
 
-	/* For any dynamically allocated kernel object, the object
-	 * pointer is just a member of the containing struct dyn_obj,
-	 * so just a little arithmetic is necessary to locate the
-	 * corresponding struct rbnode
-	 */
 	key = k_spin_lock(&lists_lock);
 
 	SYS_DLIST_FOR_EACH_CONTAINER(&obj_list, node, dobj_list) {
@@ -239,7 +177,6 @@ static struct dyn_obj *dyn_object_find(const void *obj)
 		}
 	}
 
-	/* No object found */
 	node = NULL;
 
  end:
@@ -248,22 +185,6 @@ static struct dyn_obj *dyn_object_find(const void *obj)
 	return node;
 }
 
-/**
- * @internal
- *
- * @brief Allocate a new thread index for a new thread.
- *
- * This finds an unused thread index that can be assigned to a new
- * thread. If too many threads have been allocated, the kernel will
- * run out of indexes and this function will fail.
- *
- * Note that if an unused index is found, that index will be marked as
- * used after return of this function.
- *
- * @param tidx The new thread index if successful
- *
- * @return true if successful, false if failed
- **/
 static bool thread_idx_alloc(uintptr_t *tidx)
 {
 	int i;
@@ -277,12 +198,8 @@ static bool thread_idx_alloc(uintptr_t *tidx)
 		if (idx != 0) {
 			*tidx = base + (idx - 1);
 
-			/* Clear the bit. We already know the array index,
-			 * and the bit to be cleared.
-			 */
 			_thread_idx_map[i] &= ~(BIT(idx - 1));
 
-			/* Clear permission from all objects */
 			k_object_wordlist_foreach(clear_perms_cb,
 						   (void *)*tidx);
 
@@ -295,22 +212,10 @@ static bool thread_idx_alloc(uintptr_t *tidx)
 	return false;
 }
 
-/**
- * @internal
- *
- * @brief Free a thread index.
- *
- * This frees a thread index so it can be used by another
- * thread.
- *
- * @param tidx The thread index to be freed
- **/
 static void thread_idx_free(uintptr_t tidx)
 {
-	/* To prevent leaked permission when index is recycled */
 	k_object_wordlist_foreach(clear_perms_cb, (void *)tidx);
 
-	/* Figure out which bits to set in _thread_idx_map[] and set it. */
 	int base = tidx / NUM_BITS(_thread_idx_map[0]);
 	int offset = tidx % NUM_BITS(_thread_idx_map[0]);
 
@@ -409,15 +314,13 @@ static void *z_object_alloc(enum k_objects otype, size_t size)
 			return NULL;
 		}
 		break;
-	/* The following are currently not allowed at all */
-	case K_OBJ_FUTEX:			/* Lives in user memory */
-	case K_OBJ_SYS_MUTEX:			/* Lives in user memory */
-	case K_OBJ_NET_SOCKET:			/* Indeterminate size */
+	case K_OBJ_FUTEX:
+	case K_OBJ_SYS_MUTEX:
+	case K_OBJ_NET_SOCKET:
 		LOG_ERR("forbidden object type '%s' requested",
 			otype_to_str(otype));
 		return NULL;
 	default:
-		/* Remainder within bounds are permitted */
 		break;
 	}
 
@@ -433,14 +336,8 @@ static void *z_object_alloc(enum k_objects otype, size_t size)
 		zo->data.thread_id = tidx;
 	}
 
-	/* The allocating thread implicitly gets permission on kernel objects
-	 * that it allocates
-	 */
 	k_thread_perms_set(zo, _current);
 
-	/* Activates reference counting logic for automatic disposal when
-	 * all permissions have been revoked
-	 */
 	zo->flags |= K_OBJ_FLAG_ALLOC;
 
 	return zo->name;
@@ -459,11 +356,6 @@ void *z_impl_k_object_alloc_size(enum k_objects otype, size_t size)
 void k_object_free(void *obj)
 {
 	struct dyn_obj *dyn;
-
-	/* This function is intentionally not exposed to user mode.
-	 * There's currently no robust way to track that an object isn't
-	 * being used by some other thread
-	 */
 
 	k_spinlock_key_t key = k_spin_lock(&objfree_lock);
 
@@ -492,10 +384,6 @@ struct k_object *k_object_find(const void *obj)
 	if (ret == NULL) {
 		struct dyn_obj *dyn;
 
-		/* The cast to pointer-to-non-const violates MISRA
-		 * 11.8 but is justified since we know dynamic objects
-		 * were not declared with a const qualifier.
-		 */
 		dyn = dyn_object_find(obj);
 		if (dyn != NULL) {
 			ret = &dyn->kobj;
@@ -541,7 +429,6 @@ static void unref_check(struct k_object *ko, uintptr_t index)
 
 #ifdef CONFIG_DYNAMIC_OBJECTS
 	if ((ko->flags & K_OBJ_FLAG_ALLOC) == 0U) {
-		/* skip unref check for static kernel object */
 		goto out;
 	}
 
@@ -557,11 +444,6 @@ static void unref_check(struct k_object *ko, uintptr_t index)
 		}
 	}
 
-	/* This object has no more references. Some objects may have
-	 * dynamically allocated resources, require cleanup, or need to be
-	 * marked as uninitialized when all references are gone. What
-	 * specifically needs to happen depends on the object type.
-	 */
 	switch (ko->type) {
 #ifdef CONFIG_PIPES
 	case K_OBJ_PIPE:
@@ -575,7 +457,6 @@ static void unref_check(struct k_object *ko, uintptr_t index)
 		k_stack_cleanup((struct k_stack *)ko->name);
 		break;
 	default:
-		/* Nothing to do */
 		break;
 	}
 
@@ -692,7 +573,6 @@ void k_object_dump_error(int retval, const void *obj, struct k_object *ko,
 		LOG_ERR("%p %s in use", obj, otype_to_str(otype));
 		break;
 	default:
-		/* Not handled error */
 		break;
 	}
 }
@@ -737,26 +617,18 @@ int k_object_validate(struct k_object *ko, enum k_objects otype,
 		return -EBADF;
 	}
 
-	/* Manipulation of any kernel objects by a user thread requires that
-	 * thread be granted access first, even for uninitialized objects
-	 */
 	if (unlikely(thread_perms_test(ko) == 0)) {
 		return -EPERM;
 	}
 
-	/* Initialization state checks. _OBJ_INIT_ANY, we don't care */
 	if (likely(init == _OBJ_INIT_TRUE)) {
-		/* Object MUST be initialized */
 		if (unlikely((ko->flags & K_OBJ_FLAG_INITIALIZED) == 0U)) {
 			return -EINVAL;
 		}
-	} else if (init == _OBJ_INIT_FALSE) { /* _OBJ_INIT_FALSE case */
-		/* Object MUST NOT be initialized */
+	} else if (init == _OBJ_INIT_FALSE) {
 		if (unlikely((ko->flags & K_OBJ_FLAG_INITIALIZED) != 0U)) {
 			return -EADDRINUSE;
 		}
-	} else {
-		/* _OBJ_INIT_ANY */
 	}
 
 	return 0;
@@ -766,24 +638,11 @@ void k_object_init(const void *obj)
 {
 	struct k_object *ko;
 
-	/* By the time we get here, if the caller was from userspace, all the
-	 * necessary checks have been done in k_object_validate(), which takes
-	 * place before the object is initialized.
-	 *
-	 * This function runs after the object has been initialized and
-	 * finalizes it
-	 */
-
 	ko = k_object_find(obj);
 	if (ko == NULL) {
-		/* Supervisor threads can ignore rules about kernel objects
-		 * and may declare them on stacks, etc. Such objects will never
-		 * be usable from userspace, but we shouldn't explode.
-		 */
 		return;
 	}
 
-	/* Allows non-initialization system calls to be made on this object */
 	ko->flags |= K_OBJ_FLAG_INITIALIZED;
 }
 
@@ -793,7 +652,7 @@ void k_object_recycle(const void *obj)
 
 	if (ko != NULL) {
 		(void)memset(ko->perms, 0, sizeof(ko->perms));
-		k_thread_perms_set(ko, _current);
+		k_thread_perms_set(ko,_current);
 		ko->flags |= K_OBJ_FLAG_INITIALIZED;
 	}
 }
@@ -802,7 +661,6 @@ void k_object_uninit(const void *obj)
 {
 	struct k_object *ko;
 
-	/* See comments in k_object_init() */
 	ko = k_object_find(obj);
 	if (ko == NULL) {
 		return;
@@ -813,6 +671,16 @@ void k_object_uninit(const void *obj)
 
 /*
  * Copy to/from helper functions used in syscall handlers
+ */
+
+/**
+ * @brief Allocate memory and copy data from user mode
+ *
+ * This function allocates memory and copies data from user mode.
+ *
+ * @param src Pointer to the source data
+ * @param size Size of the data to copy
+ * @return Pointer to the allocated memory, or NULL if allocation fails
  */
 void *k_usermode_alloc_from_copy(const void *src, size_t size)
 {
@@ -834,6 +702,17 @@ out_err:
 	return dst;
 }
 
+/**
+ * @brief Copy data between user and kernel mode
+ *
+ * This function copies data between user and kernel mode.
+ *
+ * @param dst Pointer to the destination buffer
+ * @param src Pointer to the source buffer
+ * @param size Size of the data to copy
+ * @param to_user True if copying to user mode, false if copying from user mode
+ * @return 0 on success, or an error code
+ */
 static int user_copy(void *dst, const void *src, size_t size, bool to_user)
 {
 	int ret = EFAULT;
@@ -850,16 +729,45 @@ out_err:
 	return ret;
 }
 
+/**
+ * @brief Copy data from user mode
+ *
+ * This function copies data from user mode.
+ *
+ * @param dst Pointer to the destination buffer
+ * @param src Pointer to the source buffer
+ * @param size Size of the data to copy
+ * @return 0 on success, or an error code
+ */
 int k_usermode_from_copy(void *dst, const void *src, size_t size)
 {
 	return user_copy(dst, src, size, false);
 }
 
+/**
+ * @brief Copy data to user mode
+ *
+ * This function copies data to user mode.
+ *
+ * @param dst Pointer to the destination buffer
+ * @param src Pointer to the source buffer
+ * @param size Size of the data to copy
+ * @return 0 on success, or an error code
+ */
 int k_usermode_to_copy(void *dst, const void *src, size_t size)
 {
 	return user_copy(dst, src, size, true);
 }
 
+/**
+ * @brief Allocate memory and copy a string from user mode
+ *
+ * This function allocates memory and copies a string from user mode.
+ *
+ * @param src Pointer to the source string
+ * @param maxlen Maximum length of the string
+ * @return Pointer to the allocated memory, or NULL if allocation fails
+ */
 char *k_usermode_string_alloc_copy(const char *src, size_t maxlen)
 {
 	size_t actual_len;
@@ -893,6 +801,16 @@ out:
 	return ret;
 }
 
+/**
+ * @brief Copy a string from user mode
+ *
+ * This function copies a string from user mode.
+ *
+ * @param dst Pointer to the destination buffer
+ * @param src Pointer to the source string
+ * @param maxlen Maximum length of the string
+ * @return 0 on success, or an error code
+ */
 int k_usermode_string_copy(char *dst, const char *src, size_t maxlen)
 {
 	size_t actual_len;
@@ -930,10 +848,16 @@ out:
 extern char __app_shmem_regions_start[];
 extern char __app_shmem_regions_end[];
 
+/**
+ * @brief Zero out BSS sections in application shared memory regions
+ *
+ * This function zeros out the BSS sections in application shared memory regions.
+ *
+ * @return 0 on success
+ */
 static int app_shmem_bss_zero(void)
 {
 	struct z_app_region *region, *end;
-
 
 	end = (struct z_app_region *)&__app_shmem_regions_end[0];
 	region = (struct z_app_region *)&__app_shmem_regions_start[0];
@@ -982,6 +906,20 @@ SYS_INIT_NAMED(app_shmem_bss_zero_post, app_shmem_bss_zero,
  * Default handlers if otherwise unimplemented
  */
 
+/**
+ * @brief Handler for bad system calls
+ *
+ * This function handles bad system calls.
+ *
+ * @param bad_id ID of the bad system call
+ * @param arg2 Argument 2
+ * @param arg3 Argument 3
+ * @param arg4 Argument 4
+ * @param arg5 Argument 5
+ * @param arg6 Argument 6
+ * @param ssf System call stack frame
+ * @return This function does not return
+ */
 static uintptr_t handler_bad_syscall(uintptr_t bad_id, uintptr_t arg2,
 				     uintptr_t arg3, uintptr_t arg4,
 				     uintptr_t arg5, uintptr_t arg6,
@@ -998,6 +936,20 @@ static uintptr_t handler_bad_syscall(uintptr_t bad_id, uintptr_t arg2,
 	CODE_UNREACHABLE; /* LCOV_EXCL_LINE */
 }
 
+/**
+ * @brief Handler for unimplemented system calls
+ *
+ * This function handles unimplemented system calls.
+ *
+ * @param arg1 Argument 1
+ * @param arg2 Argument 2
+ * @param arg3 Argument 3
+ * @param arg4 Argument 4
+ * @param arg5 Argument 5
+ * @param arg6 Argument 6
+ * @param ssf System call stack frame
+ * @return This function does not return
+ */
 static uintptr_t handler_no_syscall(uintptr_t arg1, uintptr_t arg2,
 				    uintptr_t arg3, uintptr_t arg4,
 				    uintptr_t arg5, uintptr_t arg6, void *ssf)
@@ -1015,3 +967,4 @@ static uintptr_t handler_no_syscall(uintptr_t arg1, uintptr_t arg2,
 }
 
 #include <zephyr/syscall_dispatch.c>
+//GST

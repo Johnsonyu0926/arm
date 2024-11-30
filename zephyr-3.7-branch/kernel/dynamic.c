@@ -1,11 +1,6 @@
-/*
- * Copyright (c) 2022, Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/dynamic.c
 
 #include "kernel_internal.h"
-
 #include <zephyr/kernel.h>
 #include <ksched.h>
 #include <zephyr/kernel/thread_stack.h>
@@ -31,11 +26,24 @@ static K_THREAD_STACK_ARRAY_DEFINE(dynamic_stack, CONFIG_DYNAMIC_THREAD_POOL_SIZ
 				   CONFIG_DYNAMIC_THREAD_STACK_SIZE);
 SYS_BITARRAY_DEFINE_STATIC(dynamic_ba, BA_SIZE);
 
+/**
+ * @brief Allocate a dynamic thread stack
+ *
+ * @param align Alignment requirement
+ * @param size Size of the stack
+ * @return Pointer to the allocated stack, or NULL on failure
+ */
 static k_thread_stack_t *z_thread_stack_alloc_dyn(size_t align, size_t size)
 {
 	return z_thread_aligned_alloc(align, size);
 }
 
+/**
+ * @brief Allocate a thread stack from the pool
+ *
+ * @param size Size of the stack
+ * @return Pointer to the allocated stack, or NULL on failure
+ */
 static k_thread_stack_t *z_thread_stack_alloc_pool(size_t size)
 {
 	int rv;
@@ -61,6 +69,13 @@ static k_thread_stack_t *z_thread_stack_alloc_pool(size_t size)
 	return stack;
 }
 
+/**
+ * @brief Allocate a thread stack
+ *
+ * @param size Size of the stack
+ * @param flags Allocation flags
+ * @return Pointer to the allocated stack, or NULL on failure
+ */
 static k_thread_stack_t *stack_alloc_dyn(size_t size, int flags)
 {
 	if ((flags & K_USER) == K_USER) {
@@ -78,6 +93,13 @@ static k_thread_stack_t *stack_alloc_dyn(size_t size, int flags)
 					K_KERNEL_STACK_LEN(size));
 }
 
+/**
+ * @brief Allocate a thread stack
+ *
+ * @param size Size of the stack
+ * @param flags Allocation flags
+ * @return Pointer to the allocated stack, or NULL on failure
+ */
 k_thread_stack_t *z_impl_k_thread_stack_alloc(size_t size, int flags)
 {
 	k_thread_stack_t *stack = NULL;
@@ -108,6 +130,12 @@ static inline k_thread_stack_t *z_vrfy_k_thread_stack_alloc(size_t size, int fla
 #include <zephyr/syscalls/k_thread_stack_alloc_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Callback function for thread stack free
+ *
+ * @param thread Pointer to the thread
+ * @param user_data Pointer to user data
+ */
 static void dyn_cb(const struct k_thread *thread, void *user_data)
 {
 	struct dyn_cb_data *const data = (struct dyn_cb_data *)user_data;
@@ -119,6 +147,12 @@ static void dyn_cb(const struct k_thread *thread, void *user_data)
 	}
 }
 
+/**
+ * @brief Free a thread stack
+ *
+ * @param stack Pointer to the stack
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_thread_stack_free(k_thread_stack_t *stack)
 {
 	struct dyn_cb_data data = {.stack = stack};
@@ -179,3 +213,4 @@ static inline int z_vrfy_k_thread_stack_free(k_thread_stack_t *stack)
 }
 #include <zephyr/syscalls/k_thread_stack_free_mrsh.c>
 #endif /* CONFIG_USERSPACE */
+//GST

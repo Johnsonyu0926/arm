@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/heap_info.c
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/kernel.h>
@@ -74,3 +70,4 @@ void sys_heap_print_info(struct sys_heap *heap, bool dump_chunks)
 {
 	heap_print_info(heap->heap, dump_chunks);
 }
+//GST

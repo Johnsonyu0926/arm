@@ -1,15 +1,4 @@
-/*
- * Copyright (c) 2010-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Kernel initialization module
- *
- * This module contains routines that are used to initialize the kernel.
- */
+// kernel/init.c
 
 #include <offsets_short.h>
 #include <zephyr/kernel.h>
@@ -37,6 +26,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/pm/device_runtime.h>
 #include <zephyr/internal/syscall_handler.h>
+
 LOG_MODULE_REGISTER(os, CONFIG_KERNEL_LOG_LEVEL);
 
 BUILD_ASSERT(CONFIG_MP_NUM_CPUS == CONFIG_MP_MAX_NUM_CPUS,
@@ -252,7 +242,7 @@ void z_bss_zero(void)
 
 #ifdef CONFIG_LINKER_USE_BOOT_SECTION
 /**
- * @brief Clear BSS within the bot region
+ * @brief Clear BSS within the boot region
  *
  * This routine clears the BSS within the boot region.
  * This is separate from z_bss_zero() as boot region may
@@ -631,7 +621,6 @@ void __weak z_early_rand_get(uint8_t *buf, size_t length)
 }
 
 /**
- *
  * @brief Initialize kernel
  *
  * This routine is invoked when the system is ready to run C code. The
@@ -753,3 +742,4 @@ SYS_INIT(init_cpu_obj_core_list, PRE_KERNEL_1,
 SYS_INIT(init_kernel_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_SYSTEM */
+//GST

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2018
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/cpp/minial/cpp_new.cpp
 
 #include <stdlib.h>
 #include <new>
@@ -84,3 +80,5 @@ void operator delete[](void* ptr, size_t) NOEXCEPT
 	free(ptr);
 }
 #endif // __cplusplus > 201103L
+
+//GST

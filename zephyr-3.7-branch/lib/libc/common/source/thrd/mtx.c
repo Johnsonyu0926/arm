@@ -1,15 +1,16 @@
-/*
- * Copyright (c) 2023, Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/common/source/thrd/mtx.c
 #include <errno.h>
 #include <threads.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/posix/pthread.h>
 
+/**
+ * @brief Initialize a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @param type Type of the mutex
+ * @return thrd_success on success, or thrd_error on failure
+ */
 int mtx_init(mtx_t *mutex, int type)
 {
 	int ret;
@@ -49,11 +50,22 @@ int mtx_init(mtx_t *mutex, int type)
 	return ret;
 }
 
+/**
+ * @brief Destroy a mutex
+ *
+ * @param mutex Pointer to the mutex
+ */
 void mtx_destroy(mtx_t *mutex)
 {
 	(void)pthread_mutex_destroy(mutex);
 }
 
+/**
+ * @brief Lock a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @return thrd_success on success, or thrd_error on failure
+ */
 int mtx_lock(mtx_t *mutex)
 {
 	switch (pthread_mutex_lock(mutex)) {
@@ -64,6 +76,13 @@ int mtx_lock(mtx_t *mutex)
 	}
 }
 
+/**
+ * @brief Lock a mutex with a timeout
+ *
+ * @param mutex Pointer to the mutex
+ * @param time_point Pointer to the timeout duration
+ * @return thrd_success on success, thrd_timedout if timed out, or thrd_error on failure
+ */
 int mtx_timedlock(mtx_t *restrict mutex, const struct timespec *restrict time_point)
 {
 	switch (pthread_mutex_timedlock(mutex, time_point)) {
@@ -76,6 +95,12 @@ int mtx_timedlock(mtx_t *restrict mutex, const struct timespec *restrict time_po
 	}
 }
 
+/**
+ * @brief Try to lock a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @return thrd_success on success, thrd_busy if the mutex is already locked, or thrd_error on failure
+ */
 int mtx_trylock(mtx_t *mutex)
 {
 	switch (pthread_mutex_trylock(mutex)) {
@@ -88,6 +113,12 @@ int mtx_trylock(mtx_t *mutex)
 	}
 }
 
+/**
+ * @brief Unlock a mutex
+ *
+ * @param mutex Pointer to the mutex
+ * @return thrd_success on success, or thrd_error on failure
+ */
 int mtx_unlock(mtx_t *mutex)
 {
 	switch (pthread_mutex_unlock(mutex)) {
@@ -97,3 +128,4 @@ int mtx_unlock(mtx_t *mutex)
 		return thrd_error;
 	}
 }
+//GST

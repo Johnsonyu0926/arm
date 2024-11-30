@@ -1,16 +1,4 @@
-/** @file
- * @brief Ethernet Bridge public header file
- *
- * Ethernet Bridges connect two or more Ethernet networks together and
- * transparently forward packets from one network to the others as if
- * they were part of the same network.
- */
-
-/*
- * Copyright (c) 2021 BayLibre SAS
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ethernet_bridge.h
 
 #ifndef ZEPHYR_INCLUDE_NET_ETHERNET_BRIDGE_H_
 #define ZEPHYR_INCLUDE_NET_ETHERNET_BRIDGE_H_
@@ -48,9 +36,9 @@ struct eth_bridge {
 /** @endcond */
 
 /**
- * @brief Statically define and initialize a bridge instance.
+ * @brief Statically定义并初始化桥实例。
  *
- * @param name Name of the bridge object
+ * @param name 桥对象的名称
  */
 #define ETH_BRIDGE_INIT(name) \
 	STRUCT_SECTION_ITERABLE(eth_bridge, name) = \
@@ -72,115 +60,99 @@ struct eth_bridge_listener {
 /** @endcond */
 
 /**
- * @brief Add an Ethernet network interface to a bridge
+ * @brief 将以太网网络接口添加到桥
  *
- * This adds a network interface to a bridge. The interface is then put
- * into promiscuous mode, all packets received by this interface are sent
- * to the bridge, and any other packets sent to the bridge (with some
- * exceptions) are transmitted via this interface.
+ * 这会将网络接口添加到桥。然后将接口置于混杂模式，所有通过此接口接收的数据包都将发送到桥，并且发送到桥的任何其他数据包（有一些例外）将通过此接口传输。
  *
- * For transmission from the bridge to occur via this interface, it is
- * necessary to enable TX mode with eth_bridge_iface_tx(). TX mode is
- * initially disabled.
+ * 要使桥通过此接口进行传输，必须使用 eth_bridge_iface_tx() 启用 TX 模式。 TX 模式最初是禁用的。
  *
- * Once an interface is added to a bridge, all its incoming traffic is
- * diverted to the bridge. However, packets sent out with net_if_queue_tx()
- * via this interface are not subjected to the bridge.
+ * 一旦将接口添加到桥，所有传入流量都将转移到桥。然而，通过此接口发送出去的数据包不会受到桥的影响。
  *
- * @param br A pointer to an initialized bridge object
- * @param iface Interface to add
+ * @param br 指向已初始化桥对象的指针
+ * @param iface 要添加的接口
  *
- * @return 0 if OK, negative error code otherwise.
+ * @return 0 表示成功，否则为负错误代码。
  */
 int eth_bridge_iface_add(struct eth_bridge *br, struct net_if *iface);
 
 /**
- * @brief Remove an Ethernet network interface from a bridge
+ * @brief 从桥中删除以太网网络接口
  *
- * @param br A pointer to an initialized bridge object
- * @param iface Interface to remove
+ * @param br 指向已初始化桥对象的指针
+ * @param iface 要删除的接口
  *
- * @return 0 if OK, negative error code otherwise.
+ * @return 0 表示成功，否则为负错误代码。
  */
 int eth_bridge_iface_remove(struct eth_bridge *br, struct net_if *iface);
 
 /**
- * @brief Enable/disable transmission mode for a bridged interface
+ * @brief 启用/禁用桥接接口的传输模式
  *
- * When TX mode is off, the interface may receive packets and send them to
- * the bridge but no packets coming from the bridge will be sent through this
- * interface. When TX mode is on, both incoming and outgoing packets are
- * allowed.
+ * 当 TX 模式关闭时，接口可以接收数据包并将其发送到桥，但不会通过此接口发送来自桥的数据包。当 TX 模式打开时，允许传入和传出数据包。
  *
- * @param iface Interface to configure
- * @param allow true to activate TX mode, false otherwise
+ * @param iface 要配置的接口
+ * @param allow true 表示激活 TX 模式，否则为 false
  *
- * @return 0 if OK, negative error code otherwise.
+ * @return 0 表示成功，否则为负错误代码。
  */
 int eth_bridge_iface_allow_tx(struct net_if *iface, bool allow);
 
 /**
- * @brief Add (register) a listener to the bridge
+ * @brief 向桥添加（注册）监听器
  *
- * This lets a software listener register a pointer to a provided FIFO for
- * receiving packets sent to the bridge. The listener is responsible for
- * emptying the FIFO with k_fifo_get() which will return a struct net_pkt
- * pointer, and releasing the packet with net_pkt_unref() when done with it.
+ * 这允许软件监听器注册指向提供的 FIFO 的指针以接收发送到桥的数据包。监听器负责使用 k_fifo_get() 清空 FIFO，这将返回 struct net_pkt 指针，并在完成后使用 net_pkt_unref() 释放数据包。
  *
- * The listener wishing not to receive any more packets should simply
- * unregister itself with eth_bridge_listener_remove().
+ * 希望不再接收任何数据包的监听器应简单地使用 eth_bridge_listener_remove() 注销自己。
  *
- * @param br A pointer to an initialized bridge object
- * @param l A pointer to an initialized listener instance.
+ * @param br 指向已初始化桥对象的指针
+ * @param l 指向已初始化监听器实例的指针。
  *
- * @return 0 if OK, negative error code otherwise.
+ * @return 0 表示成功，否则为负错误代码。
  */
 int eth_bridge_listener_add(struct eth_bridge *br, struct eth_bridge_listener *l);
 
 /**
- * @brief Remove (unregister) a listener from the bridge
+ * @brief 从桥中删除（注销）监听器
  *
- * @param br A pointer to an initialized bridge object
- * @param l A pointer to the listener instance to be removed.
+ * @param br 指向已初始化桥对象的指针
+ * @param l 要删除的监听器实例的指针。
  *
- * @return 0 if OK, negative error code otherwise.
+ * @return 0 表示成功，否则为负错误代码。
  */
 int eth_bridge_listener_remove(struct eth_bridge *br, struct eth_bridge_listener *l);
 
 /**
- * @brief Get bridge index according to pointer
+ * @brief 根据指针获取桥索引
  *
- * @param br Pointer to bridge instance
+ * @param br 指向桥实例的指针
  *
- * @return Bridge index
+ * @return 桥索引
  */
 int eth_bridge_get_index(struct eth_bridge *br);
 
 /**
- * @brief Get bridge instance according to index
+ * @brief 根据索引获取桥实例
  *
- * @param index Bridge instance index
+ * @param index 桥实例索引
  *
- * @return Pointer to bridge instance or NULL if not found.
+ * @return 指向桥实例的指针，如果未找到则返回 NULL。
  */
 struct eth_bridge *eth_bridge_get_by_index(int index);
 
 /**
  * @typedef eth_bridge_cb_t
- * @brief Callback used while iterating over bridge instances
+ * @brief 在遍历桥实例时使用的回调
  *
- * @param br Pointer to bridge instance
- * @param user_data User supplied data
+ * @param br 指向桥实例的指针
+ * @param user_data 用户提供的数据
  */
 typedef void (*eth_bridge_cb_t)(struct eth_bridge *br, void *user_data);
 
 /**
- * @brief Go through all the bridge instances in order to get
- *        information about them. This is mainly useful in
- *        net-shell to print data about currently active bridges.
+ * @brief 遍历所有桥实例以获取有关它们的信息。这主要在 net-shell 中用于打印有关当前活动桥的数据。
  *
- * @param cb Callback to call for each bridge instance
- * @param user_data User supplied data
+ * @param cb 要为每个桥实例调用的回调
+ * @param user_data 用户提供的数据
  */
 void net_eth_bridge_foreach(eth_bridge_cb_t cb, void *user_data);
 
@@ -193,3 +165,4 @@ void net_eth_bridge_foreach(eth_bridge_cb_t cb, void *user_data);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_ETHERNET_BRIDGE_H_ */
+//GST

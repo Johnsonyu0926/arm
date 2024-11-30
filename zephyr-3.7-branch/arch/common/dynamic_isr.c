@@ -1,14 +1,19 @@
-/*
- * Copyright (c) 2018 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/common/include/dynamic_isr.c
 #include "sw_isr_common.h"
 #include <zephyr/sw_isr_table.h>
 #include <zephyr/irq.h>
 #include <zephyr/sys/__assert.h>
 
+/**
+ * @brief Install an ISR for the specified IRQ
+ *
+ * This function installs an ISR for the specified IRQ. If dynamic IRQs are
+ * enabled, the ISR table is in RAM and can be modified.
+ *
+ * @param irq IRQ number
+ * @param routine ISR routine to install
+ * @param param Parameter to pass to the ISR routine
+ */
 void __weak z_isr_install(unsigned int irq, void (*routine)(const void *),
 			  const void *param)
 {
@@ -32,8 +37,19 @@ void __weak z_isr_install(unsigned int irq, void (*routine)(const void *),
 	_sw_isr_table[table_idx].isr = routine;
 }
 
-/* Some architectures don't/can't interpret flags or priority and have
- * no more processing to do than this.  Provide a generic fallback.
+/**
+ * @brief Connect a dynamic ISR for the specified IRQ
+ *
+ * This function connects a dynamic ISR for the specified IRQ. Some
+ * architectures do not interpret flags or priority and have no more processing
+ * to do than this. This function provides a generic fallback.
+ *
+ * @param irq IRQ number
+ * @param priority IRQ priority
+ * @param routine ISR routine to connect
+ * @param parameter Parameter to pass to the ISR routine
+ * @param flags IRQ flags
+ * @return IRQ number
  */
 int __weak arch_irq_connect_dynamic(unsigned int irq,
 				    unsigned int priority,
@@ -47,3 +63,4 @@ int __weak arch_irq_connect_dynamic(unsigned int irq,
 	z_isr_install(irq, routine, parameter);
 	return irq;
 }
+//GST

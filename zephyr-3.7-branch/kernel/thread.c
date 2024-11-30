@@ -1,16 +1,4 @@
-/*
- * Copyright (c) 2010-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Kernel thread support
- *
- * This module provides general purpose thread support.
- */
-
+//kernel/thread.c
 #include <zephyr/kernel.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/sys/math_extras.h>
@@ -35,17 +23,17 @@
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 #ifdef CONFIG_OBJ_CORE_THREAD
-static struct k_obj_type  obj_type_thread;
+static struct k_obj_type obj_type_thread;
 
 #ifdef CONFIG_OBJ_CORE_STATS_THREAD
-static struct k_obj_core_stats_desc  thread_stats_desc = {
+static struct k_obj_core_stats_desc thread_stats_desc = {
 	.raw_size = sizeof(struct k_cycle_stats),
 	.query_size = sizeof(struct k_thread_runtime_stats),
-	.raw   = z_thread_stats_raw,
+	.raw = z_thread_stats_raw,
 	.query = z_thread_stats_query,
 	.reset = z_thread_stats_reset,
 	.disable = z_thread_stats_disable,
-	.enable  = z_thread_stats_enable,
+	.enable = z_thread_stats_enable,
 };
 #endif /* CONFIG_OBJ_CORE_STATS_THREAD */
 
@@ -68,7 +56,6 @@ static int init_thread_obj_core_list(void)
 SYS_INIT(init_thread_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_THREAD */
-
 
 #define _FOREACH_STATIC_THREAD(thread_data)              \
 	STRUCT_SECTION_FOREACH(_static_thread_data, thread_data)
@@ -104,7 +91,6 @@ static inline void *z_vrfy_k_thread_custom_data_get(void)
 	return z_impl_k_thread_custom_data_get();
 }
 #include <zephyr/syscalls/k_thread_custom_data_get_mrsh.c>
-
 #endif /* CONFIG_USERSPACE */
 #endif /* CONFIG_THREAD_CUSTOM_DATA */
 
@@ -211,7 +197,7 @@ int z_impl_k_thread_name_copy(k_tid_t thread, char *buf, size_t size)
 
 static size_t copy_bytes(char *dest, size_t dest_size, const char *src, size_t src_size)
 {
-	size_t  bytes_to_copy;
+	size_t bytes_to_copy;
 
 	bytes_to_copy = MIN(dest_size, src_size);
 	memcpy(dest, src, bytes_to_copy);
@@ -221,12 +207,12 @@ static size_t copy_bytes(char *dest, size_t dest_size, const char *src, size_t s
 
 const char *k_thread_state_str(k_tid_t thread_id, char *buf, size_t buf_size)
 {
-	size_t      off = 0;
-	uint8_t     bit;
-	uint8_t     thread_state = thread_id->base.thread_state;
+	size_t off = 0;
+	uint8_t bit;
+	uint8_t thread_state = thread_id->base.thread_state;
 	static const struct {
 		const char *str;
-		size_t      len;
+		size_t len;
 	} state_string[] = {
 		{ Z_STATE_STR_DUMMY, sizeof(Z_STATE_STR_DUMMY) - 1},
 		{ Z_STATE_STR_PENDING, sizeof(Z_STATE_STR_PENDING) - 1},
@@ -249,8 +235,6 @@ const char *k_thread_state_str(k_tid_t thread_id, char *buf, size_t buf_size)
 	 * been processed. If more than one thread_state bit is set, then
 	 * separate the descriptive strings with a '+'.
 	 */
-
-
 	for (unsigned int index = 0; thread_state != 0; index++) {
 		bit = BIT(index);
 		if ((thread_state & bit) == 0) {
@@ -652,7 +636,6 @@ char *z_setup_new_thread(struct k_thread *new_thread,
 
 	return stack_ptr;
 }
-
 
 k_tid_t z_impl_k_thread_create(struct k_thread *new_thread,
 			      k_thread_stack_t *stack,
@@ -1107,3 +1090,4 @@ void k_thread_abort_cleanup_check_reuse(struct k_thread *thread)
 }
 
 #endif /* CONFIG_THREAD_ABORT_NEED_CLEANUP */
+//gst

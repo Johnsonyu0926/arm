@@ -1,14 +1,4 @@
-/** @file
- * @brief VLAN specific definitions.
- *
- * Virtual LAN specific definitions.
- */
-
-/*
- * Copyright (c) 2018 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ethernet_vlan.h
 
 #ifndef ZEPHYR_INCLUDE_NET_ETHERNET_VLAN_H_
 #define ZEPHYR_INCLUDE_NET_ETHERNET_VLAN_H_
@@ -112,5 +102,5 @@ static inline uint16_t net_eth_vlan_set_pcp(uint16_t tci, uint8_t pcp)
  * @}
  */
 
-
 #endif /* ZEPHYR_INCLUDE_NET_ETHERNET_VLAN_H_ */
+//GST

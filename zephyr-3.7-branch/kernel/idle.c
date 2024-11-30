@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/idle.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/toolchain.h>
@@ -18,6 +14,15 @@
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
+/**
+ * @brief Idle thread function
+ *
+ * This function is executed when the system is idle.
+ *
+ * @param unused1 Unused parameter
+ * @param unused2 Unused parameter
+ * @param unused3 Unused parameter
+ */
 void idle(void *unused1, void *unused2, void *unused3)
 {
 	ARG_UNUSED(unused1);
@@ -27,7 +32,7 @@ void idle(void *unused1, void *unused2, void *unused3)
 	__ASSERT_NO_MSG(_current->base.prio >= 0);
 
 	while (true) {
-		/* SMP systems without a working IPI can't actual
+		/* SMP systems without a working IPI can't actually
 		 * enter an idle state, because they can't be notified
 		 * of scheduler changes (i.e. threads they should
 		 * run).  They just spin instead, with a minimal
@@ -93,6 +98,11 @@ void idle(void *unused1, void *unused2, void *unused3)
 	}
 }
 
+/**
+ * @brief Weak implementation of arch_spin_relax
+ *
+ * This function is called to relax the CPU when spinning.
+ */
 void __weak arch_spin_relax(void)
 {
 	__ASSERT(!arch_irq_unlocked(arch_irq_lock()),
@@ -100,3 +110,4 @@ void __weak arch_spin_relax(void)
 
 	arch_nop();
 }
+//GST

@@ -1,7 +1,4 @@
-/**
- * Copyright (c) 2024 Intel Corporation
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/ipi.c
 
 #include <zephyr/kernel.h>
 #include <kswap.h>
@@ -12,7 +9,11 @@
 extern void z_trace_sched_ipi(void);
 #endif
 
-
+/**
+ * @brief Flag an IPI for the specified CPUs
+ *
+ * @param ipi_mask Bitmask of CPUs to flag
+ */
 void flag_ipi(uint32_t ipi_mask)
 {
 #if defined(CONFIG_SCHED_IPI_SUPPORTED)
@@ -22,18 +23,23 @@ void flag_ipi(uint32_t ipi_mask)
 #endif /* CONFIG_SCHED_IPI_SUPPORTED */
 }
 
-/* Create a bitmask of CPUs that need an IPI. Note: sched_spinlock is held. */
+/**
+ * @brief Create a bitmask of CPUs that need an IPI
+ *
+ * @param thread Pointer to the thread
+ * @return Bitmask of CPUs that need an IPI
+ */
 atomic_val_t ipi_mask_create(struct k_thread *thread)
 {
 	if (!IS_ENABLED(CONFIG_IPI_OPTIMIZE)) {
 		return (CONFIG_MP_MAX_NUM_CPUS > 1) ? IPI_ALL_CPUS_MASK : 0;
 	}
 
-	uint32_t  ipi_mask = 0;
-	uint32_t  num_cpus = (uint32_t)arch_num_cpus();
-	uint32_t  id = _current_cpu->id;
+	uint32_t ipi_mask = 0;
+	uint32_t num_cpus = (uint32_t)arch_num_cpus();
+	uint32_t id = _current_cpu->id;
 	struct k_thread *cpu_thread;
-	bool   executable_on_cpu = true;
+	bool executable_on_cpu = true;
 
 	for (uint32_t i = 0; i < num_cpus; i++) {
 		if (id == i) {
@@ -66,6 +72,9 @@ atomic_val_t ipi_mask_create(struct k_thread *thread)
 	return (atomic_val_t)ipi_mask;
 }
 
+/**
+ * @brief Signal pending IPIs
+ */
 void signal_pending_ipi(void)
 {
 	/* Synchronization note: you might think we need to lock these
@@ -77,7 +86,7 @@ void signal_pending_ipi(void)
 	 */
 #if defined(CONFIG_SCHED_IPI_SUPPORTED)
 	if (arch_num_cpus() > 1) {
-		uint32_t  cpu_bitmap;
+		uint32_t cpu_bitmap;
 
 		cpu_bitmap = (uint32_t)atomic_clear(&_kernel.pending_ipi);
 		if (cpu_bitmap != 0) {
@@ -91,6 +100,9 @@ void signal_pending_ipi(void)
 #endif /* CONFIG_SCHED_IPI_SUPPORTED */
 }
 
+/**
+ * @brief Handle scheduler IPI
+ */
 void z_sched_ipi(void)
 {
 	/* NOTE: When adding code to this, make sure this is called
@@ -106,3 +118,4 @@ void z_sched_ipi(void)
 	}
 #endif /* CONFIG_TIMESLICING */
 }
+//GST

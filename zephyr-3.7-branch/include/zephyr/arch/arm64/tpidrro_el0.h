@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2021 BayLibre SAS
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief tpidrro_el0 bits allocation
- *
- * Among other things, the tpidrro_el0 holds the address for the current
- * CPU's struct _cpu instance. But such a pointer is at least 8-bytes
- * aligned, and the address space is 48 bits max. That leaves plenty of
- * free bits for other purposes.
- */
+//zephyr-3.7-branch/include/zephyr/arch/arm64/tpidrro_el0.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_ARM64_TPIDRRO_EL0_H_
 #define ZEPHYR_INCLUDE_ARCH_ARM64_TPIDRRO_EL0_H_
@@ -26,3 +12,4 @@
 #define TPIDRROEL0_EXC_SHIFT	56
 
 #endif /* ZEPHYR_INCLUDE_ARCH_ARM64_TPIDRRO_EL0_H_ */
+//gst

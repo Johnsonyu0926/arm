@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2019 Nordic Semiconductor ASA
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/* Copied from linker.ld */
+//arch/arc/common/include/ramfunc.ld
 
 SECTION_DATA_PROLOGUE(.ramfunc,,)
 {

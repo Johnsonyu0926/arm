@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2015-2016 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/device.c
 
 #include <stddef.h>
 #include <string.h>
@@ -26,6 +22,12 @@ void z_device_state_init(void)
 	}
 }
 
+/**
+ * @brief Get a device binding by name
+ *
+ * @param name Name of the device
+ * @return Pointer to the device, or NULL if not found
+ */
 const struct device *z_impl_device_get_binding(const char *name)
 {
 	/* A null string identifies no device.  So does an empty
@@ -60,8 +62,7 @@ static inline const struct device *z_vrfy_device_get_binding(const char *name)
 {
 	char name_copy[Z_DEVICE_MAX_NAME_LEN];
 
-	if (k_usermode_string_copy(name_copy, name, sizeof(name_copy))
-	    != 0) {
+	if (k_usermode_string_copy(name_copy, name, sizeof(name_copy)) != 0) {
 		return NULL;
 	}
 
@@ -79,6 +80,12 @@ static inline bool z_vrfy_device_is_ready(const struct device *dev)
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_DEVICE_DT_METADATA
+/**
+ * @brief Get a device by its DT nodelabel
+ *
+ * @param nodelabel Nodelabel of the device
+ * @return Pointer to the device, or NULL if not found
+ */
 const struct device *z_impl_device_get_by_dt_nodelabel(const char *nodelabel)
 {
 	/* For consistency with device_get_binding(). */
@@ -129,6 +136,12 @@ static inline const struct device *z_vrfy_device_get_by_dt_nodelabel(const char 
 #endif /* CONFIG_USERSPACE */
 #endif /* CONFIG_DEVICE_DT_METADATA */
 
+/**
+ * @brief Get all static devices
+ *
+ * @param devices Pointer to the array to store the devices
+ * @return Number of devices
+ */
 size_t z_device_get_all_static(struct device const **devices)
 {
 	size_t cnt;
@@ -139,6 +152,12 @@ size_t z_device_get_all_static(struct device const **devices)
 	return cnt;
 }
 
+/**
+ * @brief Check if a device is ready
+ *
+ * @param dev Pointer to the device
+ * @return true if the device is ready, false otherwise
+ */
 bool z_impl_device_is_ready(const struct device *dev)
 {
 	/*
@@ -154,6 +173,15 @@ bool z_impl_device_is_ready(const struct device *dev)
 
 #ifdef CONFIG_DEVICE_DEPS
 
+/**
+ * @brief Visit devices
+ *
+ * @param handles Array of device handles
+ * @param handle_count Number of handles
+ * @param visitor_cb Visitor callback function
+ * @param context Context for the callback function
+ * @return Number of visited devices, or an error code on failure
+ */
 static int device_visitor(const device_handle_t *handles,
 			   size_t handle_count,
 			   device_visitor_callback_t visitor_cb,
@@ -173,6 +201,14 @@ static int device_visitor(const device_handle_t *handles,
 	return handle_count;
 }
 
+/**
+ * @brief Visit required devices
+ *
+ * @param dev Pointer to the device
+ * @param visitor_cb Visitor callback function
+ * @param context Context for the callback function
+ * @return Number of visited devices, or an error code on failure
+ */
 int device_required_foreach(const struct device *dev,
 			    device_visitor_callback_t visitor_cb,
 			    void *context)
@@ -183,6 +219,14 @@ int device_required_foreach(const struct device *dev,
 	return device_visitor(handles, handle_count, visitor_cb, context);
 }
 
+/**
+ * @brief Visit supported devices
+ *
+ * @param dev Pointer to the device
+ * @param visitor_cb Visitor callback function
+ * @param context Context for the callback function
+ * @return Number of visited devices, or an error code on failure
+ */
 int device_supported_foreach(const struct device *dev,
 			     device_visitor_callback_t visitor_cb,
 			     void *context)
@@ -194,3 +238,4 @@ int device_supported_foreach(const struct device *dev,
 }
 
 #endif /* CONFIG_DEVICE_DEPS */
+//GST

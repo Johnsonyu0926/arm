@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/heap_validate.c
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/kernel.h>
@@ -184,3 +180,4 @@ bool sys_heap_validate(struct sys_heap *heap)
 	}
 	return true;
 }
+//GST

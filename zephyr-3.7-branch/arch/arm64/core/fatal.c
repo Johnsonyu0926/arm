@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Kernel fatal error handler for ARM64 Cortex-A
- *
- * This module provides the z_arm64_fatal_error() routine for ARM64 Cortex-A
- * CPUs and z_arm64_do_kernel_oops() routine to manage software-generated fatal
- * exceptions
- */
-
+//arch/arc/core/fatal.c
 #include <zephyr/debug/symtab.h>
 #include <zephyr/drivers/pm_cpu_ops.h>
 #include <zephyr/arch/common/exc_handle.h>
@@ -28,14 +14,15 @@ K_KERNEL_PINNED_STACK_ARRAY_DEFINE(z_arm64_safe_exception_stacks,
 				   CONFIG_MP_MAX_NUM_CPUS,
 				   CONFIG_ARM64_SAFE_EXCEPTION_STACK_SIZE);
 
+/**
+ * @brief Initialize the safe exception stack for ARM64.
+ */
 void z_arm64_safe_exception_stack_init(void)
 {
-	int cpu_id;
-	char *safe_exc_sp;
+	int cpu_id = arch_curr_cpu()->id;
+	char *safe_exc_sp = K_KERNEL_STACK_BUFFER(z_arm64_safe_exception_stacks[cpu_id]) +
+			    CONFIG_ARM64_SAFE_EXCEPTION_STACK_SIZE;
 
-	cpu_id = arch_curr_cpu()->id;
-	safe_exc_sp = K_KERNEL_STACK_BUFFER(z_arm64_safe_exception_stacks[cpu_id]) +
-		      CONFIG_ARM64_SAFE_EXCEPTION_STACK_SIZE;
 	arch_curr_cpu()->arch.safe_exception_stack = (uint64_t)safe_exc_sp;
 	write_sp_el0((uint64_t)safe_exc_sp);
 
@@ -53,6 +40,12 @@ static const struct z_exc_handle exceptions[] = {
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_EXCEPTION_DEBUG
+/**
+ * @brief Dump the Exception Syndrome Register (ESR) information.
+ *
+ * @param esr The ESR value.
+ * @param dump_far Pointer to a boolean indicating whether to dump the FAR.
+ */
 static void dump_esr(uint64_t esr, bool *dump_far)
 {
 	const char *err;
@@ -181,6 +174,11 @@ static void dump_esr(uint64_t esr, bool *dump_far)
 	LOG_ERR("  ISS: 0x%llx", GET_ESR_ISS(esr));
 }
 
+/**
+ * @brief Dump the exception stack frame (ESF) registers.
+ *
+ * @param esf Pointer to the exception stack frame.
+ */
 static void esf_dump(const struct arch_esf *esf)
 {
 	LOG_ERR("x0:  0x%016llx  x1:  0x%016llx", esf->x0, esf->x1);
@@ -196,29 +194,14 @@ static void esf_dump(const struct arch_esf *esf)
 }
 
 #ifdef CONFIG_EXCEPTION_STACK_TRACE
+/**
+ * @brief Unwind the exception stack frame (ESF) to trace the call stack.
+ *
+ * @param esf Pointer to the exception stack frame.
+ */
 static void esf_unwind(const struct arch_esf *esf)
 {
-	/*
-	 * For GCC:
-	 *
-	 *  ^  +-----------------+
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  | function stack  |
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  |                 |
-	 *  |  +-----------------+
-	 *  |  |       LR        |
-	 *  |  +-----------------+
-	 *  |  |   previous FP   | <---+ FP
-	 *  +  +-----------------+
-	 */
-
-	uint64_t *fp = (uint64_t *) esf->fp;
+	uint64_t *fp = (uint64_t *)esf->fp;
 	unsigned int count = 0;
 	uint64_t lr;
 
@@ -230,12 +213,12 @@ static void esf_unwind(const struct arch_esf *esf)
 		const char *name = symtab_find_symbol_name(lr, &offset);
 
 		LOG_ERR("backtrace %2d: fp: 0x%016llx lr: 0x%016llx [%s+0x%x]",
-			 count++, (uint64_t) fp, lr, name, offset);
+			 count++, (uint64_t)fp, lr, name, offset);
 #else
 		LOG_ERR("backtrace %2d: fp: 0x%016llx lr: 0x%016llx",
-			 count++, (uint64_t) fp, lr);
+			 count++, (uint64_t)fp, lr);
 #endif
-		fp = (uint64_t *) fp[0];
+		fp = (uint64_t *)fp[0];
 	}
 	LOG_ERR("");
 }
@@ -244,6 +227,14 @@ static void esf_unwind(const struct arch_esf *esf)
 #endif /* CONFIG_EXCEPTION_DEBUG */
 
 #ifdef CONFIG_ARM64_STACK_PROTECTION
+/**
+ * @brief Check for stack corruption in ARM64.
+ *
+ * @param esf Pointer to the exception stack frame.
+ * @param esr The ESR value.
+ * @param far The FAR value.
+ * @return true if stack corruption is detected, false otherwise.
+ */
 static bool z_arm64_stack_corruption_check(struct arch_esf *esf, uint64_t esr, uint64_t far)
 {
 	uint64_t sp, sp_limit, guard_start;
@@ -254,11 +245,6 @@ static bool z_arm64_stack_corruption_check(struct arch_esf *esf, uint64_t esr, u
 		sp = arch_curr_cpu()->arch.corrupted_sp;
 		if ((sp != 0 && sp <= sp_limit) || (guard_start <= far && far <= sp_limit)) {
 #ifdef CONFIG_FPU_SHARING
-			/*
-			 * We are in exception stack, and now we are sure the stack does overflow,
-			 * so flush the fpu context to its owner, and then set no fpu trap to avoid
-			 * a new nested exception triggered by FPU accessing (var_args).
-			 */
 			arch_flush_local_fpu();
 			write_cpacr_el1(read_cpacr_el1() | CPACR_EL1_FPEN_NOTRAP);
 #endif
@@ -284,15 +270,24 @@ static bool z_arm64_stack_corruption_check(struct arch_esf *esf, uint64_t esr, u
 }
 #endif
 
+/**
+ * @brief Check if the exception is recoverable.
+ *
+ * @param esf Pointer to the exception stack frame.
+ * @param esr The ESR value.
+ * @param far The FAR value.
+ * @param elr The ELR value.
+ * @return true if the exception is recoverable, false otherwise.
+ */
 static bool is_recoverable(struct arch_esf *esf, uint64_t esr, uint64_t far,
 			   uint64_t elr)
 {
-	if (!esf)
+	if (!esf) {
 		return false;
+	}
 
 #ifdef CONFIG_USERSPACE
 	for (int i = 0; i < ARRAY_SIZE(exceptions); i++) {
-		/* Mask out instruction mode */
 		uint64_t start = (uint64_t)exceptions[i].start;
 		uint64_t end = (uint64_t)exceptions[i].end;
 
@@ -306,6 +301,12 @@ static bool is_recoverable(struct arch_esf *esf, uint64_t esr, uint64_t far,
 	return false;
 }
 
+/**
+ * @brief Handle a fatal error in ARM64.
+ *
+ * @param reason The reason for the fatal error.
+ * @param esf Pointer to the exception stack frame.
+ */
 void z_arm64_fatal_error(unsigned int reason, struct arch_esf *esf)
 {
 	uint64_t esr = 0;
@@ -345,8 +346,9 @@ void z_arm64_fatal_error(unsigned int reason, struct arch_esf *esf)
 
 			dump_esr(esr, &dump_far);
 
-			if (dump_far)
+			if (dump_far) {
 				LOG_ERR("FAR_ELn: 0x%016llx", far);
+			}
 
 			LOG_ERR("TPIDRRO: 0x%016llx", read_tpidrro_el0());
 #endif /* CONFIG_EXCEPTION_DEBUG */
@@ -377,7 +379,7 @@ void z_arm64_fatal_error(unsigned int reason, struct arch_esf *esf)
  * @brief Handle a software-generated fatal exception
  * (e.g. kernel oops, panic, etc.).
  *
- * @param esf exception frame
+ * @param esf Pointer to the exception stack frame.
  */
 void z_arm64_do_kernel_oops(struct arch_esf *esf)
 {
@@ -422,3 +424,4 @@ FUNC_NORETURN void arch_system_halt(unsigned int reason)
 	}
 }
 #endif
+//GST

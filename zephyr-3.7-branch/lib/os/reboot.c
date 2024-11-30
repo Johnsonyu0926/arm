@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2015 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/os/reboot.c
 #include <zephyr/cache.h>
 #include <zephyr/drivers/timer/system_timer.h>
 #include <zephyr/sys/reboot.h>
@@ -13,6 +8,11 @@
 
 extern void sys_arch_reboot(int type);
 
+/**
+ * @brief Reboot the system
+ *
+ * @param type Reboot type
+ */
 FUNC_NORETURN void sys_reboot(int type)
 {
 #ifdef CONFIG_COVERAGE_DUMP
@@ -44,3 +44,4 @@ FUNC_NORETURN void sys_reboot(int type)
 		k_cpu_idle();
 	}
 }
+//GST

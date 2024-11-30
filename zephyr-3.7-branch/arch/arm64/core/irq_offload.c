@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/core/irq_offload.c
 /**
  * @file
  * @brief Software interrupts utility code - ARM64 implementation
@@ -13,6 +8,15 @@
 #include <zephyr/irq_offload.h>
 #include <exception.h>
 
+/**
+ * @brief Offload an interrupt to a specific routine
+ *
+ * This function uses a software interrupt (SVC) to offload an interrupt to a
+ * specific routine.
+ *
+ * @param routine The routine to execute in the interrupt context
+ * @param parameter The parameter to pass to the routine
+ */
 void arch_irq_offload(irq_offload_routine_t routine, const void *parameter)
 {
 	register const void *x0 __asm__("x0") = routine;
@@ -23,3 +27,4 @@ void arch_irq_offload(irq_offload_routine_t routine, const void *parameter)
 			  : [svid] "i" (_SVC_CALL_IRQ_OFFLOAD),
 			    "r" (x0), "r" (x1));
 }
+//gst

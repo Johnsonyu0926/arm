@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 Synopsys.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//zephyr-3.7-branch/lib/libc/arcmwdt/threading.c
 #ifdef CONFIG_MULTITHREADING
 
 #include <zephyr/init.h>
@@ -22,6 +17,11 @@ K_MEM_SLAB_DEFINE(z_arcmwdt_lock_slab, ARCMWDT_DYN_LOCK_SZ, ARCMWDT_MAX_DYN_LOCK
 
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
+/**
+ * @brief Create a mutex
+ *
+ * @param mutex_ptr Pointer to the mutex
+ */
 void _mwmutex_create(_lock_t *mutex_ptr)
 {
 	bool alloc_fail;
@@ -40,6 +40,11 @@ void _mwmutex_create(_lock_t *mutex_ptr)
 	k_mutex_init((struct k_mutex *)*mutex_ptr);
 }
 
+/**
+ * @brief Delete a mutex
+ *
+ * @param mutex_ptr Pointer to the mutex
+ */
 void _mwmutex_delete(_lock_t *mutex_ptr)
 {
 	__ASSERT_NO_MSG(mutex_ptr != NULL);
@@ -50,15 +55,27 @@ void _mwmutex_delete(_lock_t *mutex_ptr)
 #endif /* CONFIG_USERSPACE */
 }
 
+/**
+ * @brief Lock a mutex
+ *
+ * @param mutex Mutex to lock
+ */
 void _mwmutex_lock(_lock_t mutex)
 {
 	__ASSERT_NO_MSG(mutex != NULL);
 	k_mutex_lock((struct k_mutex *)mutex, K_FOREVER);
 }
 
+/**
+ * @brief Unlock a mutex
+ *
+ * @param mutex Mutex to unlock
+ */
 void _mwmutex_unlock(_lock_t mutex)
 {
 	__ASSERT_NO_MSG(mutex != NULL);
 	k_mutex_unlock((struct k_mutex *)mutex);
 }
+
 #endif /* CONFIG_MULTITHREADING */
+//GST

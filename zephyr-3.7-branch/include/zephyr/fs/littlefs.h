@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Bolt Innovation Management, LLC
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/littlefs.h
 
 #ifndef ZEPHYR_INCLUDE_FS_LITTLEFS_H_
 #define ZEPHYR_INCLUDE_FS_LITTLEFS_H_
@@ -10,7 +6,6 @@
 #include <zephyr/types.h>
 #include <zephyr/kernel.h>
 #include <zephyr/storage/flash_map.h>
-
 #include <lfs.h>
 
 #ifdef __cplusplus
@@ -106,3 +101,4 @@ struct fs_littlefs {
 #endif
 
 #endif /* ZEPHYR_INCLUDE_FS_LITTLEFS_H_ */
+//GST

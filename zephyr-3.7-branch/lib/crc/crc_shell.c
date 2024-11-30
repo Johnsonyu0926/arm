@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//lib/crc/crc_sheel.c
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,9 +30,7 @@ static const char *const crc_types[] = {
 
 static int string_to_crc_type(const char *s)
 {
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(crc_types); ++i) {
+	for (int i = 0; i < ARRAY_SIZE(crc_types); ++i) {
 		if (strcmp(s, crc_types[i]) == 0) {
 			return i;
 		}
@@ -48,8 +41,6 @@ static int string_to_crc_type(const char *s)
 
 static void usage(const struct shell *sh)
 {
-	size_t i;
-
 	shell_print(sh, "crc [options..] <address> <size>");
 	shell_print(sh, "options:");
 	shell_print(sh, "-f         This is the first packet");
@@ -60,7 +51,7 @@ static void usage(const struct shell *sh)
 	shell_print(sh, "-t <type>  Compute the CRC described by 'type'");
 	shell_print(sh, "Note: some options are only useful for certain CRCs");
 	shell_print(sh, "CRC Types:");
-	for (i = 0; i < ARRAY_SIZE(crc_types); ++i) {
+	for (size_t i = 0; i < ARRAY_SIZE(crc_types); ++i) {
 		shell_print(sh, "%s", crc_types[i]);
 	}
 }
@@ -145,3 +136,5 @@ static int cmd_crc(const struct shell *sh, size_t argc, char **argv)
 }
 
 SHELL_CMD_ARG_REGISTER(crc, NULL, NULL, cmd_crc, 0, 12);
+
+//GST

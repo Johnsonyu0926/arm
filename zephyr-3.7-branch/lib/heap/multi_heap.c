@@ -1,17 +1,28 @@
-/* Copyright (c) 2021 Intel Corporation
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/heap/multi_heap.c
 #include <zephyr/sys/__assert.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/sys/multi_heap.h>
 
+/**
+ * @brief Initialize a multi-heap structure
+ *
+ * @param heap Pointer to the multi-heap structure
+ * @param choice_fn Function pointer to choose the appropriate heap
+ */
 void sys_multi_heap_init(struct sys_multi_heap *heap, sys_multi_heap_fn_t choice_fn)
 {
 	heap->nheaps = 0;
 	heap->choice = choice_fn;
 }
 
+/**
+ * @brief Add a heap to the multi-heap structure
+ *
+ * @param mheap Pointer to the multi-heap structure
+ * @param heap Pointer to the heap to be added
+ * @param user_data User data associated with the heap
+ */
 void sys_multi_heap_add_heap(struct sys_multi_heap *mheap,
 			struct sys_heap *heap, void *user_data)
 {
@@ -40,17 +51,41 @@ void sys_multi_heap_add_heap(struct sys_multi_heap *mheap,
 	}
 }
 
+/**
+ * @brief Allocate memory from the multi-heap structure
+ *
+ * @param mheap Pointer to the multi-heap structure
+ * @param cfg Configuration data for the allocation
+ * @param bytes Number of bytes to allocate
+ * @return Pointer to the allocated memory, or NULL if allocation failed
+ */
 void *sys_multi_heap_alloc(struct sys_multi_heap *mheap, void *cfg, size_t bytes)
 {
 	return mheap->choice(mheap, cfg, 0, bytes);
 }
 
+/**
+ * @brief Allocate aligned memory from the multi-heap structure
+ *
+ * @param mheap Pointer to the multi-heap structure
+ * @param cfg Configuration data for the allocation
+ * @param align Alignment requirement
+ * @param bytes Number of bytes to allocate
+ * @return Pointer to the allocated memory, or NULL if allocation failed
+ */
 void *sys_multi_heap_aligned_alloc(struct sys_multi_heap *mheap,
 				   void *cfg, size_t align, size_t bytes)
 {
 	return mheap->choice(mheap, cfg, align, bytes);
 }
 
+/**
+ * @brief Get the heap containing the specified address
+ *
+ * @param mheap Pointer to the multi-heap structure
+ * @param addr Address to find the heap for
+ * @return Pointer to the heap record, or NULL if not found
+ */
 const struct sys_multi_heap_rec *sys_multi_heap_get_heap(const struct sys_multi_heap *mheap,
 							 void *addr)
 {
@@ -79,7 +114,12 @@ const struct sys_multi_heap_rec *sys_multi_heap_get_heap(const struct sys_multi_
 	return &mheap->heaps[i-1];
 }
 
-
+/**
+ * @brief Free memory allocated from the multi-heap structure
+ *
+ * @param mheap Pointer to the multi-heap structure
+ * @param block Pointer to the memory block to free
+ */
 void sys_multi_heap_free(struct sys_multi_heap *mheap, void *block)
 {
 	const struct sys_multi_heap_rec *heap;
@@ -90,3 +130,4 @@ void sys_multi_heap_free(struct sys_multi_heap *mheap, void *block)
 		sys_heap_free(heap->heap, block);
 	}
 }
+//GST

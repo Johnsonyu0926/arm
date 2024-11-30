@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/condvar.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
@@ -18,6 +14,12 @@ static struct k_obj_type obj_type_condvar;
 
 static struct k_spinlock lock;
 
+/**
+ * @brief Initialize a condition variable
+ *
+ * @param condvar Pointer to the condition variable
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_condvar_init(struct k_condvar *condvar)
 {
 	z_waitq_init(&condvar->wait_q);
@@ -41,6 +43,12 @@ int z_vrfy_k_condvar_init(struct k_condvar *condvar)
 #include <zephyr/syscalls/k_condvar_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Signal a condition variable
+ *
+ * @param condvar Pointer to the condition variable
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_condvar_signal(struct k_condvar *condvar)
 {
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -73,6 +81,12 @@ int z_vrfy_k_condvar_signal(struct k_condvar *condvar)
 #include <zephyr/syscalls/k_condvar_signal_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Broadcast a condition variable
+ *
+ * @param condvar Pointer to the condition variable
+ * @return Number of threads woken, or an error code on failure
+ */
 int z_impl_k_condvar_broadcast(struct k_condvar *condvar)
 {
 	struct k_thread *pending_thread;
@@ -97,6 +111,7 @@ int z_impl_k_condvar_broadcast(struct k_condvar *condvar)
 
 	return woken;
 }
+
 #ifdef CONFIG_USERSPACE
 int z_vrfy_k_condvar_broadcast(struct k_condvar *condvar)
 {
@@ -106,6 +121,14 @@ int z_vrfy_k_condvar_broadcast(struct k_condvar *condvar)
 #include <zephyr/syscalls/k_condvar_broadcast_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Wait on a condition variable
+ *
+ * @param condvar Pointer to the condition variable
+ * @param mutex Pointer to the mutex
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_condvar_wait(struct k_condvar *condvar, struct k_mutex *mutex,
 			  k_timeout_t timeout)
 {
@@ -124,6 +147,7 @@ int z_impl_k_condvar_wait(struct k_condvar *condvar, struct k_mutex *mutex,
 
 	return ret;
 }
+
 #ifdef CONFIG_USERSPACE
 int z_vrfy_k_condvar_wait(struct k_condvar *condvar, struct k_mutex *mutex,
 			  k_timeout_t timeout)
@@ -136,6 +160,11 @@ int z_vrfy_k_condvar_wait(struct k_condvar *condvar, struct k_mutex *mutex,
 #endif /* CONFIG_USERSPACE */
 
 #ifdef CONFIG_OBJ_CORE_CONDVAR
+/**
+ * @brief Initialize condition variable object core list
+ *
+ * @return 0 on success, or an error code on failure
+ */
 static int init_condvar_obj_core_list(void)
 {
 	/* Initialize condvar object type */
@@ -156,3 +185,4 @@ static int init_condvar_obj_core_list(void)
 SYS_INIT(init_condvar_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_CONDVAR */
+//GST

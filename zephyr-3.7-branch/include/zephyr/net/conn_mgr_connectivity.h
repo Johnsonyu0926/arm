@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2023 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief API for controlling generic network association routines on network devices that
- * support it.
- */
+// zephyr-3.7-branch/include/zephyr/net/conn_mgr_connectivity.h
 
 #ifndef ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_H_
 #define ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_H_
@@ -319,3 +309,4 @@ int conn_mgr_all_if_disconnect(bool skip_ignored);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_CONN_MGR_CONNECTIVITY_H_ */
+//GST

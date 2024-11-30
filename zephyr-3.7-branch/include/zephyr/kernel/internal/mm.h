@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/kernel/internal/mm.h
 
 #ifndef ZEPHYR_INCLUDE_KERNEL_INTERNAL_MM_H
 #define ZEPHYR_INCLUDE_KERNEL_INTERNAL_MM_H
@@ -331,3 +327,4 @@ void k_mem_unmap_phys_guard(void *addr, size_t size, bool is_anon);
 
 #endif /* !_ASMLANGUAGE */
 #endif /* ZEPHYR_INCLUDE_KERNEL_INTERNAL_MM_H */
+//GST

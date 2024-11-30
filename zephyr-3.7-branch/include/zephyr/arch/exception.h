@@ -1,9 +1,4 @@
-/* exception.h - automatically selects the correct exception.h file to include */
-
-/*
- * Copyright (c) 2024 Meta Platforms
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/exception.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_EXCEPTION_H_
 #define ZEPHYR_INCLUDE_ARCH_EXCEPTION_H_
@@ -33,3 +28,4 @@
 #endif
 
 #endif /* ZEPHYR_INCLUDE_ARCH_EXCEPTION_H_ */
+//GST

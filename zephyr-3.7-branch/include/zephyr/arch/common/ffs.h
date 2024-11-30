@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2015, Wind River Systems, Inc.
- * Copyright (c) 2017, Oticon A/S
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/common/ffs.h
 
 #ifndef ZEPHYR_INCLUDE_ARCH_COMMON_FFS_H_
 #define ZEPHYR_INCLUDE_ARCH_COMMON_FFS_H_
@@ -17,17 +12,16 @@ extern "C" {
 #endif
 
 /**
- *
- * @brief find most significant bit set in a 32-bit word
+ * @brief Find the most significant bit set in a 32-bit word
  *
  * This routine finds the first bit set starting from the most significant bit
- * in the argument passed in and returns the index of that bit.  Bits are
- * numbered starting at 1 from the least significant bit.  A return value of
+ * in the argument passed in and returns the index of that bit. Bits are
+ * numbered starting at 1 from the least significant bit. A return value of
  * zero indicates that the value passed is zero.
  *
- * @return most significant bit set, 0 if @a op is 0
+ * @param op The 32-bit word to search
+ * @return The index of the most significant bit set, or 0 if @a op is 0
  */
-
 static ALWAYS_INLINE unsigned int find_msb_set(uint32_t op)
 {
 	if (op == 0) {
@@ -37,24 +31,21 @@ static ALWAYS_INLINE unsigned int find_msb_set(uint32_t op)
 	return 32 - __builtin_clz(op);
 }
 
-
 /**
- *
- * @brief find least significant bit set in a 32-bit word
+ * @brief Find the least significant bit set in a 32-bit word
  *
  * This routine finds the first bit set starting from the least significant bit
- * in the argument passed in and returns the index of that bit.  Bits are
- * numbered starting at 1 from the least significant bit.  A return value of
+ * in the argument passed in and returns the index of that bit. Bits are
+ * numbered starting at 1 from the least significant bit. A return value of
  * zero indicates that the value passed is zero.
  *
- * @return least significant bit set, 0 if @a op is 0
+ * @param op The 32-bit word to search
+ * @return The index of the least significant bit set, or 0 if @a op is 0
  */
-
 static ALWAYS_INLINE unsigned int find_lsb_set(uint32_t op)
 {
 #ifdef CONFIG_TOOLCHAIN_HAS_BUILTIN_FFS
 	return __builtin_ffs(op);
-
 #else
 	/*
 	 * Toolchain does not have __builtin_ffs().
@@ -87,3 +78,4 @@ static ALWAYS_INLINE unsigned int find_lsb_set(uint32_t op)
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_COMMON_FFS_H_ */
+//GST

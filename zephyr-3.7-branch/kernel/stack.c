@@ -1,17 +1,8 @@
-/*
- * Copyright (c) 2010-2016 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @brief fixed-size stack object
- */
+// stack.c
 
 #include <zephyr/sys/math_extras.h>
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
-
 #include <zephyr/toolchain.h>
 #include <ksched.h>
 #include <wait_q.h>
@@ -24,6 +15,13 @@
 static struct k_obj_type obj_type_stack;
 #endif /* CONFIG_OBJ_CORE_STACK */
 
+/**
+ * @brief Initialize a stack
+ *
+ * @param stack Pointer to the stack
+ * @param buffer Pointer to the buffer
+ * @param num_entries Number of entries in the buffer
+ */
 void k_stack_init(struct k_stack *stack, stack_data_t *buffer,
 		  uint32_t num_entries)
 {
@@ -41,6 +39,13 @@ void k_stack_init(struct k_stack *stack, stack_data_t *buffer,
 #endif /* CONFIG_OBJ_CORE_STACK */
 }
 
+/**
+ * @brief Allocate and initialize a stack
+ *
+ * @param stack Pointer to the stack
+ * @param num_entries Number of entries in the stack
+ * @return 0 on success, or an error code on failure
+ */
 int32_t z_impl_k_stack_alloc_init(struct k_stack *stack, uint32_t num_entries)
 {
 	void *buffer;
@@ -77,6 +82,12 @@ static inline int32_t z_vrfy_k_stack_alloc_init(struct k_stack *stack,
 #include <zephyr/syscalls/k_stack_alloc_init_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Clean up a stack
+ *
+ * @param stack Pointer to the stack
+ * @return 0 on success, or an error code on failure
+ */
 int k_stack_cleanup(struct k_stack *stack)
 {
 	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_stack, cleanup, stack);
@@ -98,6 +109,13 @@ int k_stack_cleanup(struct k_stack *stack)
 	return 0;
 }
 
+/**
+ * @brief Push data onto a stack
+ *
+ * @param stack Pointer to the stack
+ * @param data Data to push onto the stack
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_stack_push(struct k_stack *stack, stack_data_t data)
 {
 	struct k_thread *first_pending_thread;
@@ -145,6 +163,14 @@ static inline int z_vrfy_k_stack_push(struct k_stack *stack, stack_data_t data)
 #include <zephyr/syscalls/k_stack_push_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Pop data from a stack
+ *
+ * @param stack Pointer to the stack
+ * @param data Pointer to store the popped data
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_stack_pop(struct k_stack *stack, stack_data_t *data,
 		       k_timeout_t timeout)
 {
@@ -220,3 +246,4 @@ static int init_stack_obj_core_list(void)
 SYS_INIT(init_stack_obj_core_list, PRE_KERNEL_1,
 	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
 #endif /* CONFIG_OBJ_CORE_STACK */
+//GST

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/hash/hash_map_oa_lp.c
 
 #include <errno.h>
 #include <stdbool.h>
@@ -206,8 +202,7 @@ static void sys_hashmap_oa_lp_iter(const struct sys_hashmap *map, struct sys_has
 	*((size_t *)&it->size) = map->data->size;
 }
 
-static void sys_hashmap_oa_lp_clear(struct sys_hashmap *map, sys_hashmap_callback_t cb,
-				    void *cookie)
+static void sys_hashmap_oa_lp_clear(struct sys_hashmap *map, sys_hashmap_callback_t cb, void *cookie)
 {
 	struct oalp_entry *entry;
 	struct sys_hashmap_oa_lp_data *data = (struct sys_hashmap_oa_lp_data *)map->data;
@@ -231,8 +226,7 @@ static void sys_hashmap_oa_lp_clear(struct sys_hashmap *map, sys_hashmap_callbac
 	data->n_tombstones = 0;
 }
 
-static inline int sys_hashmap_oa_lp_insert(struct sys_hashmap *map, uint64_t key, uint64_t value,
-					   uint64_t *old_value)
+static inline int sys_hashmap_oa_lp_insert(struct sys_hashmap *map, uint64_t key, uint64_t value, uint64_t *old_value)
 {
 	int ret;
 
@@ -291,3 +285,4 @@ const struct sys_hashmap_api sys_hashmap_oa_lp_api = {
 	.remove = sys_hashmap_oa_lp_remove,
 	.get = sys_hashmap_oa_lp_get,
 };
+//GST

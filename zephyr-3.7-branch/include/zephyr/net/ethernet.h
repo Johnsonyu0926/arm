@@ -1,14 +1,4 @@
-/** @file
- @brief Ethernet
-
- This is not to be included by the application.
- */
-
-/*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ethernet.h
 
 #ifndef ZEPHYR_INCLUDE_NET_ETHERNET_H_
 #define ZEPHYR_INCLUDE_NET_ETHERNET_H_
@@ -39,37 +29,37 @@ extern "C" {
 #endif
 
 /**
- * @brief Ethernet support functions
- * @defgroup ethernet Ethernet Support Functions
+ * @brief Ethernet支持函数
+ * @defgroup ethernet Ethernet支持函数
  * @ingroup networking
  * @{
  */
 
-#define NET_ETH_ADDR_LEN		6U /**< Ethernet MAC address length */
+#define NET_ETH_ADDR_LEN		6U /**< Ethernet MAC地址长度 */
 
-/** Ethernet address */
+/** Ethernet地址 */
 struct net_eth_addr {
-	uint8_t addr[NET_ETH_ADDR_LEN]; /**< Buffer storing the address */
+	uint8_t addr[NET_ETH_ADDR_LEN]; /**< 存储地址的缓冲区 */
 };
 
 /** @cond INTERNAL_HIDDEN */
 
 #define NET_ETH_HDR(pkt) ((struct net_eth_hdr *)net_pkt_data(pkt))
 
-#define NET_ETH_PTYPE_CAN		0x000C /* CAN: Controller Area Network */
-#define NET_ETH_PTYPE_CANFD		0x000D /* CANFD: CAN flexible data rate*/
-#define NET_ETH_PTYPE_HDLC		0x0019 /* HDLC frames (like in PPP) */
+#define NET_ETH_PTYPE_CAN		0x000C /* CAN: 控制器局域网 */
+#define NET_ETH_PTYPE_CANFD		0x000D /* CANFD: CAN灵活数据速率 */
+#define NET_ETH_PTYPE_HDLC		0x0019 /* HDLC帧（如在PPP中） */
 #define NET_ETH_PTYPE_ARP		0x0806
 #define NET_ETH_PTYPE_IP		0x0800
-#define NET_ETH_PTYPE_TSN		0x22f0 /* TSN (IEEE 1722) packet */
+#define NET_ETH_PTYPE_TSN		0x22f0 /* TSN（IEEE 1722）数据包 */
 #define NET_ETH_PTYPE_IPV6		0x86dd
 #define NET_ETH_PTYPE_VLAN		0x8100
 #define NET_ETH_PTYPE_PTP		0x88f7
 #define NET_ETH_PTYPE_LLDP		0x88cc
-#define NET_ETH_PTYPE_ALL               0x0003 /* from linux/if_ether.h */
+#define NET_ETH_PTYPE_ALL               0x0003 /* 来自linux/if_ether.h */
 #define NET_ETH_PTYPE_ECAT		0x88a4
 #define NET_ETH_PTYPE_EAPOL		0x888e
-#define NET_ETH_PTYPE_IEEE802154	0x00F6 /* from linux/if_ether.h: IEEE802.15.4 frame */
+#define NET_ETH_PTYPE_IEEE802154	0x00F6 /* 来自linux/if_ether.h: IEEE802.15.4帧 */
 
 #if !defined(ETH_P_ALL)
 #define ETH_P_ALL	NET_ETH_PTYPE_ALL
@@ -110,8 +100,8 @@ struct net_eth_addr {
 
 /** @endcond */
 
-#define NET_ETH_MINIMAL_FRAME_SIZE	60   /**< Minimum Ethernet frame size */
-#define NET_ETH_MTU			1500 /**< Ethernet MTU size */
+#define NET_ETH_MINIMAL_FRAME_SIZE	60   /**< 最小Ethernet帧大小 */
+#define NET_ETH_MTU			1500 /**< Ethernet MTU大小 */
 
 /** @cond INTERNAL_HIDDEN */
 
@@ -123,8 +113,7 @@ struct net_eth_addr {
 
 #define _NET_ETH_MAX_FRAME_SIZE	(NET_ETH_MTU + _NET_ETH_MAX_HDR_SIZE)
 /*
- * Extend the max frame size for DSA (KSZ8794) by one byte (to 1519) to
- * store tail tag.
+ * 将DSA（KSZ8794）的最大帧大小扩展一个字节（到1519），以存储尾标记。
  */
 #if defined(CONFIG_NET_DSA)
 #define NET_ETH_MAX_FRAME_SIZE (_NET_ETH_MAX_FRAME_SIZE + DSA_TAG_SIZE)
@@ -138,69 +127,69 @@ struct net_eth_addr {
 
 /** @endcond */
 
-/** @brief Ethernet hardware capabilities */
+/** @brief Ethernet硬件功能 */
 enum ethernet_hw_caps {
-	/** TX Checksum offloading supported for all of IPv4, UDP, TCP */
+	/** 支持所有IPv4、UDP、TCP的TX校验和卸载 */
 	ETHERNET_HW_TX_CHKSUM_OFFLOAD	= BIT(0),
 
-	/** RX Checksum offloading supported for all of IPv4, UDP, TCP */
+	/** 支持所有IPv4、UDP、TCP的RX校验和卸载 */
 	ETHERNET_HW_RX_CHKSUM_OFFLOAD	= BIT(1),
 
-	/** VLAN supported */
+	/** 支持VLAN */
 	ETHERNET_HW_VLAN		= BIT(2),
 
-	/** Enabling/disabling auto negotiation supported */
+	/** 支持启用/禁用自动协商 */
 	ETHERNET_AUTO_NEGOTIATION_SET	= BIT(3),
 
-	/** 10 Mbits link supported */
+	/** 支持10 Mbits链路 */
 	ETHERNET_LINK_10BASE_T		= BIT(4),
 
-	/** 100 Mbits link supported */
+	/** 支持100 Mbits链路 */
 	ETHERNET_LINK_100BASE_T		= BIT(5),
 
-	/** 1 Gbits link supported */
+	/** 支持1 Gbits链路 */
 	ETHERNET_LINK_1000BASE_T	= BIT(6),
 
-	/** Changing duplex (half/full) supported */
+	/** 支持更改双工（半双工/全双工） */
 	ETHERNET_DUPLEX_SET		= BIT(7),
 
-	/** IEEE 802.1AS (gPTP) clock supported */
+	/** 支持IEEE 802.1AS（gPTP）时钟 */
 	ETHERNET_PTP			= BIT(8),
 
-	/** IEEE 802.1Qav (credit-based shaping) supported */
+	/** 支持IEEE 802.1Qav（基于信用的整形） */
 	ETHERNET_QAV			= BIT(9),
 
-	/** Promiscuous mode supported */
+	/** 支持混杂模式 */
 	ETHERNET_PROMISC_MODE		= BIT(10),
 
-	/** Priority queues available */
+	/** 可用优先级队列 */
 	ETHERNET_PRIORITY_QUEUES	= BIT(11),
 
-	/** MAC address filtering supported */
+	/** 支持MAC地址过滤 */
 	ETHERNET_HW_FILTERING		= BIT(12),
 
-	/** Link Layer Discovery Protocol supported */
+	/** 支持链路层发现协议 */
 	ETHERNET_LLDP			= BIT(13),
 
-	/** VLAN Tag stripping */
+	/** VLAN标签剥离 */
 	ETHERNET_HW_VLAN_TAG_STRIP	= BIT(14),
 
-	/** DSA switch slave port */
+	/** DSA交换机从端口 */
 	ETHERNET_DSA_SLAVE_PORT		= BIT(15),
 
-	/** DSA switch master port */
+	/** DSA交换机主端口 */
 	ETHERNET_DSA_MASTER_PORT	= BIT(16),
 
-	/** IEEE 802.1Qbv (scheduled traffic) supported */
+	/** 支持IEEE 802.1Qbv（计划流量） */
 	ETHERNET_QBV			= BIT(17),
 
-	/** IEEE 802.1Qbu (frame preemption) supported */
+	/** 支持IEEE 802.1Qbu（帧抢占） */
 	ETHERNET_QBU			= BIT(18),
 
-	/** TXTIME supported */
+	/** 支持TXTIME */
 	ETHERNET_TXTIME			= BIT(19),
 
-	/** TX-Injection supported */
+	/** 支持TX-Injection */
 	ETHERNET_TXINJECTION_MODE	= BIT(20),
 };
 
@@ -239,67 +228,62 @@ enum ethernet_t1s_param_type {
 
 /** @endcond */
 
-/** Ethernet T1S specific parameters */
+/** Ethernet T1S特定参数 */
 struct ethernet_t1s_param {
-	/** Type of T1S parameter */
+	/** T1S参数类型 */
 	enum ethernet_t1s_param_type type;
 	union {
 		/**
-		 * PLCA is the Physical Layer (PHY) Collision
-		 * Avoidance technique employed with multidrop
-		 * 10Base-T1S standard.
+		 * PLCA是与多点10Base-T1S标准一起使用的物理层（PHY）碰撞避免技术。
 		 *
-		 * The PLCA parameters are described in standard [1]
-		 * as registers in memory map 4 (MMS = 4) (point 9.6).
+		 * PLCA参数在标准[1]中描述为内存映射4（MMS = 4）中的寄存器（第9.6点）。
 		 *
-		 * IDVER	(PLCA ID Version)
-		 * CTRL0	(PLCA Control 0)
-		 * CTRL1	(PLCA Control 1)
-		 * STATUS	(PLCA Status)
-		 * TOTMR	(PLCA TO Control)
-		 * BURST	(PLCA Burst Control)
+		 * IDVER	（PLCA ID版本）
+		 * CTRL0	（PLCA控制0）
+		 * CTRL1	（PLCA控制1）
+		 * STATUS	（PLCA状态）
+		 * TOTMR	（PLCA TO控制）
+		 * BURST	（PLCA突发控制）
 		 *
-		 * Those registers are implemented by each OA TC6
-		 * compliant vendor (like for e.g. LAN865x - e.g. [2]).
+		 * 这些寄存器由每个OA TC6兼容供应商实现（例如LAN865x - 例如[2]）。
 		 *
-		 * Documents:
-		 * [1] - "OPEN Alliance 10BASE-T1x MAC-PHY Serial
-		 *       Interface" (ver. 1.1)
-		 * [2] - "DS60001734C" - LAN865x data sheet
+		 * 文档：
+		 * [1] - "OPEN Alliance 10BASE-T1x MAC-PHY串行接口"（版本1.1）
+		 * [2] - "DS60001734C" - LAN865x数据表
 		 */
 		struct {
-			/** T1S PLCA enabled */
+			/** 启用T1S PLCA */
 			bool enable;
-			/** T1S PLCA node id range: 0 to 254 */
+			/** T1S PLCA节点ID范围：0到254 */
 			uint8_t node_id;
-			/** T1S PLCA node count range: 1 to 255 */
+			/** T1S PLCA节点计数范围：1到255 */
 			uint8_t node_count;
-			/** T1S PLCA burst count range: 0x0 to 0xFF */
+			/** T1S PLCA突发计数范围：0x0到0xFF */
 			uint8_t burst_count;
-			/** T1S PLCA burst timer */
+			/** T1S PLCA突发计时器 */
 			uint8_t burst_timer;
-			/** T1S PLCA TO value */
+			/** T1S PLCA TO值 */
 			uint8_t to_timer;
 		} plca;
 	};
 };
 
-/** Ethernet Qav specific parameters */
+/** Ethernet Qav特定参数 */
 struct ethernet_qav_param {
-	/** ID of the priority queue to use */
+	/** 要使用的优先级队列ID */
 	int queue_id;
-	/** Type of Qav parameter */
+	/** Qav参数类型 */
 	enum ethernet_qav_param_type type;
 	union {
-		/** True if Qav is enabled for queue */
+		/** 如果为true，则表示队列启用了Qav */
 		bool enabled;
-		/** Delta Bandwidth (percentage of bandwidth) */
+		/** Delta带宽（带宽百分比） */
 		unsigned int delta_bandwidth;
-		/** Idle Slope (bits per second) */
+		/** 空闲斜率（每秒比特数） */
 		unsigned int idle_slope;
-		/** Oper Idle Slope (bits per second) */
+		/** 操作空闲斜率（每秒比特数） */
 		unsigned int oper_idle_slope;
-		/** Traffic class the queue is bound to */
+		/** 队列绑定的流量类别 */
 		unsigned int traffic_class;
 	};
 };
@@ -326,48 +310,47 @@ enum ethernet_gate_state_operation {
 
 /** @endcond */
 
-/** Ethernet Qbv specific parameters */
+/** Ethernet Qbv特定参数 */
 struct ethernet_qbv_param {
-	/** Port id */
+	/** 端口ID */
 	int port_id;
-	/** Type of Qbv parameter */
+	/** Qbv参数类型 */
 	enum ethernet_qbv_param_type type;
-	/** What state (Admin/Oper) parameters are these */
+	/** 这些参数是哪个状态（Admin/Oper） */
 	enum ethernet_qbv_state_type state;
 	union {
-		/** True if Qbv is enabled or not */
+		/** 如果为true，则表示启用了Qbv */
 		bool enabled;
 
-		/** Gate control information */
+		/** 门控信息 */
 		struct {
-			/** True = open, False = closed */
+			/** true = 打开，false = 关闭 */
 			bool gate_status[NET_TC_TX_COUNT];
 
-			/** GateState operation */
+			/** GateState操作 */
 			enum ethernet_gate_state_operation operation;
 
-			/** Time interval ticks (nanoseconds) */
+			/** 时间间隔（纳秒） */
 			uint32_t time_interval;
 
-			/** Gate control list row */
+			/** 门控列表行 */
 			uint16_t row;
 		} gate_control;
 
-		/** Number of entries in gate control list */
+		/** 门控列表中的条目数 */
 		uint32_t gate_control_list_len;
 
 		/**
-		 * The time values are set in one go when type is set to
-		 * ETHERNET_QBV_PARAM_TYPE_TIME
+		 * 当类型设置为ETHERNET_QBV_PARAM_TYPE_TIME时，时间值一次性设置
 		 */
 		struct {
-			/** Base time */
+			/** 基准时间 */
 			struct net_ptp_extended_time base_time;
 
-			/** Cycle time */
+			/** 周期时间 */
 			struct net_ptp_time cycle_time;
 
-			/** Extension time (nanoseconds) */
+			/** 扩展时间（纳秒） */
 			uint32_t extension_time;
 		};
 	};
@@ -381,7 +364,7 @@ enum ethernet_qbu_param_type {
 	ETHERNET_QBU_PARAM_TYPE_HOLD_ADVANCE,
 	ETHERNET_QBU_PARAM_TYPE_PREEMPTION_STATUS_TABLE,
 
-	/* Some preemption settings are from Qbr spec. */
+	/* 一些抢占设置来自Qbr规范。 */
 	ETHERNET_QBR_PARAM_TYPE_LINK_PARTNER_STATUS,
 	ETHERNET_QBR_PARAM_TYPE_ADDITIONAL_FRAGMENT_SIZE,
 };
@@ -393,32 +376,31 @@ enum ethernet_qbu_preempt_status {
 
 /** @endcond */
 
-/** Ethernet Qbu specific parameters */
+/** Ethernet Qbu特定参数 */
 struct ethernet_qbu_param {
-	/** Port id */
+	/** 端口ID */
 	int port_id;
-	/** Type of Qbu parameter */
+	/** Qbu参数类型 */
 	enum ethernet_qbu_param_type type;
 	union {
-		/** Hold advance (nanoseconds) */
+		/** 保持提前量（纳秒） */
 		uint32_t hold_advance;
 
-		/** Release advance (nanoseconds) */
+		/** 释放提前量（纳秒） */
 		uint32_t release_advance;
 
-		/** sequence of framePreemptionAdminStatus values */
+		/** framePreemptionAdminStatus值的序列 */
 		enum ethernet_qbu_preempt_status
 				frame_preempt_statuses[NET_TC_TX_COUNT];
 
-		/** True if Qbu is enabled or not */
+		/** 如果为true，则表示启用了Qbu */
 		bool enabled;
 
-		/** Link partner status (from Qbr) */
+		/** 链路伙伴状态（来自Qbr） */
 		bool link_partner_status;
 
 		/**
-		 * Additional fragment size (from Qbr). The minimum non-final
-		 * fragment size is (additional_fragment_size + 1) * 64 octets
+		 * 额外的片段大小（来自Qbr）。最小的非最终片段大小为（additional_fragment_size + 1）* 64字节
 		 */
 		uint8_t additional_fragment_size : 2;
 	};
@@ -433,22 +415,22 @@ enum ethernet_filter_type {
 
 /** @endcond */
 
-/** Types of Ethernet L2 */
+/** Ethernet L2类型 */
 enum ethernet_if_types {
-	/** IEEE 802.3 Ethernet (default) */
+	/** IEEE 802.3 Ethernet（默认） */
 	L2_ETH_IF_TYPE_ETHERNET,
 
-	/** IEEE 802.11 Wi-Fi*/
+	/** IEEE 802.11 Wi-Fi */
 	L2_ETH_IF_TYPE_WIFI,
 } __packed;
 
-/** Ethernet filter description */
+/** Ethernet过滤器描述 */
 struct ethernet_filter {
-	/** Type of filter */
+	/** 过滤器类型 */
 	enum ethernet_filter_type type;
-	/** MAC address to filter */
+	/** 要过滤的MAC地址 */
 	struct net_eth_addr mac_address;
-	/** Set (true) or unset (false) the filter */
+	/** 设置（true）或取消设置（false）过滤器 */
 	bool set;
 };
 
@@ -460,31 +442,31 @@ enum ethernet_txtime_param_type {
 
 /** @endcond */
 
-/** Ethernet TXTIME specific parameters */
+/** Ethernet TXTIME特定参数 */
 struct ethernet_txtime_param {
-	/** Type of TXTIME parameter */
+	/** TXTIME参数类型 */
 	enum ethernet_txtime_param_type type;
-	/** Queue number for configuring TXTIME */
+	/** 配置TXTIME的队列号 */
 	int queue_id;
-	/** Enable or disable TXTIME per queue */
+	/** 启用或禁用每个队列的TXTIME */
 	bool enable_txtime;
 };
 
-/** Protocols that are supported by checksum offloading */
+/** 支持校验和卸载的协议 */
 enum ethernet_checksum_support {
-	/** Device does not support any L3/L4 checksum offloading */
+	/** 设备不支持任何L3/L4校验和卸载 */
 	ETHERNET_CHECKSUM_SUPPORT_NONE			= NET_IF_CHECKSUM_NONE_BIT,
-	/** Device supports checksum offloading for the IPv4 header */
+	/** 设备支持IPv4头的校验和卸载 */
 	ETHERNET_CHECKSUM_SUPPORT_IPV4_HEADER		= NET_IF_CHECKSUM_IPV4_HEADER_BIT,
-	/** Device supports checksum offloading for ICMPv4 payload (implies IPv4 header) */
+	/** 设备支持ICMPv4有效负载的校验和卸载（隐含IPv4头） */
 	ETHERNET_CHECKSUM_SUPPORT_IPV4_ICMP		= NET_IF_CHECKSUM_IPV4_ICMP_BIT,
-	/** Device supports checksum offloading for the IPv6 header */
+	/** 设备支持IPv6头的校验和卸载 */
 	ETHERNET_CHECKSUM_SUPPORT_IPV6_HEADER		= NET_IF_CHECKSUM_IPV6_HEADER_BIT,
-	/** Device supports checksum offloading for ICMPv6 payload (implies IPv6 header) */
+	/** 设备支持ICMPv6有效负载的校验和卸载（隐含IPv6头） */
 	ETHERNET_CHECKSUM_SUPPORT_IPV6_ICMP		= NET_IF_CHECKSUM_IPV6_ICMP_BIT,
-	/** Device supports TCP checksum offloading for all supported IP protocols */
+	/** 设备支持所有支持的IP协议的TCP校验和卸载 */
 	ETHERNET_CHECKSUM_SUPPORT_TCP			= NET_IF_CHECKSUM_TCP_BIT,
-	/** Device supports UDP checksum offloading for all supported IP protocols */
+	/** 设备支持所有支持的IP协议的UDP校验和卸载 */
 	ETHERNET_CHECKSUM_SUPPORT_UDP			= NET_IF_CHECKSUM_UDP_BIT,
 };
 
@@ -522,65 +504,55 @@ struct ethernet_config {
 
 /** @endcond */
 
-/** Ethernet L2 API operations. */
+/** Ethernet L2 API操作。 */
 struct ethernet_api {
 	/**
-	 * The net_if_api must be placed in first position in this
-	 * struct so that we are compatible with network interface API.
+	 * net_if_api必须放在此结构的第一个位置，以便与网络接口API兼容。
 	 */
 	struct net_if_api iface_api;
 
-	/** Collect optional ethernet specific statistics. This pointer
-	 * should be set by driver if statistics needs to be collected
-	 * for that driver.
-	 */
+	/** 收集可选的以太网特定统计信息。如果需要为该驱动程序收集统计信息，则驱动程序应设置此指针。 */
 #if defined(CONFIG_NET_STATISTICS_ETHERNET)
 	struct net_stats_eth *(*get_stats)(const struct device *dev);
 #endif
 
-	/** Start the device */
+	/** 启动设备 */
 	int (*start)(const struct device *dev);
 
-	/** Stop the device */
+	/** 停止设备 */
 	int (*stop)(const struct device *dev);
 
-	/** Get the device capabilities */
+	/** 获取设备功能 */
 	enum ethernet_hw_caps (*get_capabilities)(const struct device *dev);
 
-	/** Set specific hardware configuration */
+	/** 设置特定的硬件配置 */
 	int (*set_config)(const struct device *dev,
 			  enum ethernet_config_type type,
 			  const struct ethernet_config *config);
 
-	/** Get hardware specific configuration */
+	/** 获取特定的硬件配置 */
 	int (*get_config)(const struct device *dev,
 			  enum ethernet_config_type type,
 			  struct ethernet_config *config);
 
-	/** The IP stack will call this function when a VLAN tag is enabled
-	 * or disabled. If enable is set to true, then the VLAN tag was added,
-	 * if it is false then the tag was removed. The driver can utilize
-	 * this information if needed.
-	 */
+	/** 当启用或禁用VLAN标签时，IP堆栈将调用此函数。如果enable设置为true，则添加了VLAN标签；如果为false，则删除了标签。驱动程序可以根据需要利用此信息。 */
 #if defined(CONFIG_NET_VLAN)
 	int (*vlan_setup)(const struct device *dev, struct net_if *iface,
 			  uint16_t tag, bool enable);
 #endif /* CONFIG_NET_VLAN */
 
-	/** Return ptp_clock device that is tied to this ethernet device */
+	/** 返回与此以太网设备绑定的ptp_clock设备 */
 #if defined(CONFIG_PTP_CLOCK)
 	const struct device *(*get_ptp_clock)(const struct device *dev);
 #endif /* CONFIG_PTP_CLOCK */
 
-	/** Send a network packet */
+	/** 发送网络数据包 */
 	int (*send)(const struct device *dev, struct net_pkt *pkt);
 };
 
 /** @cond INTERNAL_HIDDEN */
 
-/* Make sure that the network interface API is properly setup inside
- * Ethernet API struct (it is the first one).
- */
+/* 确保网络接口API在以太网API结构内正确设置（它是第一个）。 */
 BUILD_ASSERT(offsetof(struct ethernet_api, iface_api) == 0);
 
 struct net_eth_hdr {
@@ -590,47 +562,46 @@ struct net_eth_hdr {
 } __packed;
 
 struct ethernet_vlan {
-	/** Network interface that has VLAN enabled */
+	/** 启用了VLAN的网络接口 */
 	struct net_if *iface;
 
-	/** VLAN tag */
+	/** VLAN标签 */
 	uint16_t tag;
 };
 
 #if defined(CONFIG_NET_VLAN_COUNT)
 #define NET_VLAN_MAX_COUNT CONFIG_NET_VLAN_COUNT
 #else
-/* Even thou there are no VLAN support, the minimum count must be set to 1.
- */
+/* 即使没有VLAN支持，最小计数也必须设置为1。 */
 #define NET_VLAN_MAX_COUNT 1
 #endif
 
 /** @endcond */
 
-/** Ethernet LLDP specific parameters */
+/** Ethernet LLDP特定参数 */
 struct ethernet_lldp {
-	/** Used for track timers */
+	/** 用于跟踪计时器 */
 	sys_snode_t node;
 
-	/** LLDP Data Unit mandatory TLVs for the interface. */
+	/** 接口的LLDP数据单元强制TLV。 */
 	const struct net_lldpdu *lldpdu;
 
-	/** LLDP Data Unit optional TLVs for the interface */
+	/** 接口的LLDP数据单元可选TLV */
 	const uint8_t *optional_du;
 
-	/** Length of the optional Data Unit TLVs */
+	/** 可选数据单元TLV的长度 */
 	size_t optional_len;
 
-	/** Network interface that has LLDP supported. */
+	/** 支持LLDP的网络接口。 */
 	struct net_if *iface;
 
-	/** LLDP TX timer start time */
+	/** LLDP TX计时器启动时间 */
 	int64_t tx_timer_start;
 
-	/** LLDP TX timeout */
+	/** LLDP TX超时 */
 	uint32_t tx_timer_timeout;
 
-	/** LLDP RX callback function */
+	/** LLDP RX回调函数 */
 	net_lldp_recv_cb_t cb;
 };
 
@@ -640,89 +611,73 @@ enum ethernet_flags {
 	ETH_CARRIER_UP,
 };
 
-/** Ethernet L2 context that is needed for VLAN */
+/** VLAN所需的以太网L2上下文 */
 struct ethernet_context {
-	/** Flags representing ethernet state, which are accessed from multiple
-	 * threads.
-	 */
+	/** 表示以太网状态的标志，从多个线程访问。 */
 	atomic_t flags;
 
 #if defined(CONFIG_NET_ETHERNET_BRIDGE)
 	struct eth_bridge_iface_context bridge;
 #endif
 
-	/** Carrier ON/OFF handler worker. This is used to create
-	 * network interface UP/DOWN event when ethernet L2 driver
-	 * notices carrier ON/OFF situation. We must not create another
-	 * network management event from inside management handler thus
-	 * we use worker thread to trigger the UP/DOWN event.
-	 */
+	/** 载波ON/OFF处理程序工作。以太网L2驱动程序注意到载波ON/OFF情况时，用于创建网络接口UP/DOWN事件。我们不能从管理处理程序内部创建另一个网络管理事件，因此我们使用工作线程触发UP/DOWN事件。 */
 	struct k_work carrier_work;
 
-	/** Network interface. */
+	/** 网络接口。 */
 	struct net_if *iface;
 
 #if defined(CONFIG_NET_LLDP)
 	struct ethernet_lldp lldp[NET_VLAN_MAX_COUNT];
 #endif
 
-	/**
-	 * This tells what L2 features does ethernet support.
-	 */
+	/** 这告诉以太网支持哪些L2功能。 */
 	enum net_l2_flags ethernet_l2_flags;
 
 #if defined(CONFIG_NET_L2_PTP)
-	/** The PTP port number for this network device. We need to store the
-	 * port number here so that we do not need to fetch it for every
-	 * incoming PTP packet.
-	 */
+	/** 此网络设备的PTP端口号。我们需要在此处存储端口号，以便不需要为每个传入的PTP数据包获取它。 */
 	int port;
 #endif
 
 #if defined(CONFIG_NET_DSA)
-	/** DSA RX callback function - for custom processing - like e.g.
-	 * redirecting packets when MAC address is caught
-	 */
+	/** DSA RX回调函数 - 用于自定义处理 - 例如捕获MAC地址时重定向数据包 */
 	dsa_net_recv_cb_t dsa_recv_cb;
 
-	/** Switch physical port number */
+	/** 交换机物理端口号 */
 	uint8_t dsa_port_idx;
 
-	/** DSA context pointer */
+	/** DSA上下文指针 */
 	struct dsa_context *dsa_ctx;
 
-	/** Send a network packet via DSA master port */
+	/** 通过DSA主端口发送网络数据包 */
 	dsa_send_t dsa_send;
 #endif
 
-	/** Is network carrier up */
+	/** 网络载波是否已启动 */
 	bool is_net_carrier_up : 1;
 
-	/** Is this context already initialized */
+	/** 此上下文是否已初始化 */
 	bool is_init : 1;
 
-	/** Types of Ethernet network interfaces */
+	/** 以太网网络接口类型 */
 	enum ethernet_if_types eth_if_type;
 };
 
 /**
- * @brief Initialize Ethernet L2 stack for a given interface
+ * @brief 初始化给定接口的以太网L2堆栈
  *
- * @param iface A valid pointer to a network interface
+ * @param iface 有效的网络接口指针
  */
 void ethernet_init(struct net_if *iface);
 
 #define ETHERNET_L2_CTX_TYPE	struct ethernet_context
 
-/* Separate header for VLAN as some of device interfaces might not
- * support VLAN.
- */
+/* VLAN的单独头文件，因为某些设备接口可能不支持VLAN。 */
 struct net_eth_vlan_hdr {
 	struct net_eth_addr dst;
 	struct net_eth_addr src;
 	struct {
-		uint16_t tpid; /* tag protocol id  */
-		uint16_t tci;  /* tag control info */
+		uint16_t tpid; /* 标签协议ID */
+		uint16_t tci;  /* 标签控制信息 */
 	} vlan;
 	uint16_t type;
 } __packed;
@@ -730,11 +685,11 @@ struct net_eth_vlan_hdr {
 /** @endcond */
 
 /**
- * @brief Check if the Ethernet MAC address is a broadcast address.
+ * @brief 检查以太网MAC地址是否为广播地址。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is a broadcast address, false if not
+ * @return 如果地址是广播地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_broadcast(struct net_eth_addr *addr)
 {
@@ -751,11 +706,11 @@ static inline bool net_eth_is_addr_broadcast(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is a all zeroes address.
+ * @brief 检查以太网MAC地址是否为全零地址。
  *
- * @param addr A valid pointer to an Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is an all zeroes address, false if not
+ * @return 如果地址是全零地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_all_zeroes(struct net_eth_addr *addr)
 {
@@ -772,11 +727,11 @@ static inline bool net_eth_is_addr_all_zeroes(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is unspecified.
+ * @brief 检查以太网MAC地址是否未指定。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is unspecified, false if not
+ * @return 如果地址未指定，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_unspecified(struct net_eth_addr *addr)
 {
@@ -793,11 +748,11 @@ static inline bool net_eth_is_addr_unspecified(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is a multicast address.
+ * @brief 检查以太网MAC地址是否为多播地址。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is a multicast address, false if not
+ * @return 如果地址是多播地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_multicast(struct net_eth_addr *addr)
 {
@@ -820,11 +775,11 @@ static inline bool net_eth_is_addr_multicast(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is a group address.
+ * @brief 检查以太网MAC地址是否为组地址。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is a group address, false if not
+ * @return 如果地址是组地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_group(struct net_eth_addr *addr)
 {
@@ -832,11 +787,11 @@ static inline bool net_eth_is_addr_group(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is valid.
+ * @brief 检查以太网MAC地址是否有效。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is valid, false if not
+ * @return 如果地址有效，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_valid(struct net_eth_addr *addr)
 {
@@ -844,11 +799,11 @@ static inline bool net_eth_is_addr_valid(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is a LLDP multicast address.
+ * @brief 检查以太网MAC地址是否为LLDP多播地址。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is a LLDP multicast address, false if not
+ * @return 如果地址是LLDP多播地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_lldp_multicast(struct net_eth_addr *addr)
 {
@@ -869,11 +824,11 @@ static inline bool net_eth_is_addr_lldp_multicast(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Check if the Ethernet MAC address is a PTP multicast address.
+ * @brief 检查以太网MAC地址是否为PTP多播地址。
  *
- * @param addr A valid pointer to a Ethernet MAC address.
+ * @param addr 有效的以太网MAC地址指针。
  *
- * @return true if address is a PTP multicast address, false if not
+ * @return 如果地址是PTP多播地址，则返回true，否则返回false
  */
 static inline bool net_eth_is_addr_ptp_multicast(struct net_eth_addr *addr)
 {
@@ -894,36 +849,36 @@ static inline bool net_eth_is_addr_ptp_multicast(struct net_eth_addr *addr)
 }
 
 /**
- * @brief Return Ethernet broadcast address.
+ * @brief 返回以太网广播地址。
  *
- * @return Ethernet broadcast address.
+ * @return 以太网广播地址。
  */
 const struct net_eth_addr *net_eth_broadcast_addr(void);
 
 /**
- * @brief Convert IPv4 multicast address to Ethernet address.
+ * @brief 将IPv4多播地址转换为以太网地址。
  *
- * @param ipv4_addr IPv4 multicast address
- * @param mac_addr Output buffer for Ethernet address
+ * @param ipv4_addr IPv4多播地址
+ * @param mac_addr 以太网地址的输出缓冲区
  */
 void net_eth_ipv4_mcast_to_mac_addr(const struct in_addr *ipv4_addr,
 				    struct net_eth_addr *mac_addr);
 
 /**
- * @brief Convert IPv6 multicast address to Ethernet address.
+ * @brief 将IPv6多播地址转换为以太网地址。
  *
- * @param ipv6_addr IPv6 multicast address
- * @param mac_addr Output buffer for Ethernet address
+ * @param ipv6_addr IPv6多播地址
+ * @param mac_addr 以太网地址的输出缓冲区
  */
 void net_eth_ipv6_mcast_to_mac_addr(const struct in6_addr *ipv6_addr,
 				    struct net_eth_addr *mac_addr);
 
 /**
- * @brief Return ethernet device hardware capability information.
+ * @brief 返回以太网设备硬件功能信息。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return Hardware capabilities
+ * @return 硬件功能
  */
 static inline
 enum ethernet_hw_caps net_eth_get_hw_capabilities(struct net_if *iface)
@@ -939,13 +894,13 @@ enum ethernet_hw_caps net_eth_get_hw_capabilities(struct net_if *iface)
 }
 
 /**
- * @brief Return ethernet device hardware configuration information.
+ * @brief 返回以太网设备硬件配置信息。
  *
- * @param iface Network interface
- * @param type configuration type
- * @param config Ethernet configuration
+ * @param iface 网络接口
+ * @param type 配置类型
+ * @param config 以太网配置
  *
- * @return 0 if ok, <0 if error
+ * @return 如果成功则返回0，如果错误则返回<0
  */
 static inline
 int net_eth_get_hw_config(struct net_if *iface, enum ethernet_config_type type,
@@ -963,12 +918,12 @@ int net_eth_get_hw_config(struct net_if *iface, enum ethernet_config_type type,
 
 
 /**
- * @brief Add VLAN tag to the interface.
+ * @brief 向接口添加VLAN标签。
  *
- * @param iface Interface to use.
- * @param tag VLAN tag to add
+ * @param iface 要使用的接口。
+ * @param tag 要添加的VLAN标签
  *
- * @return 0 if ok, <0 if error
+ * @return 如果成功则返回0，如果错误则返回<0
  */
 #if defined(CONFIG_NET_VLAN)
 int net_eth_vlan_enable(struct net_if *iface, uint16_t tag);
@@ -983,12 +938,12 @@ static inline int net_eth_vlan_enable(struct net_if *iface, uint16_t tag)
 #endif
 
 /**
- * @brief Remove VLAN tag from the interface.
+ * @brief 从接口中删除VLAN标签。
  *
- * @param iface Interface to use.
- * @param tag VLAN tag to remove
+ * @param iface 要使用的接口。
+ * @param tag 要删除的VLAN标签
  *
- * @return 0 if ok, <0 if error
+ * @return 如果成功则返回0，如果错误则返回<0
  */
 #if defined(CONFIG_NET_VLAN)
 int net_eth_vlan_disable(struct net_if *iface, uint16_t tag);
@@ -1003,15 +958,13 @@ static inline int net_eth_vlan_disable(struct net_if *iface, uint16_t tag)
 #endif
 
 /**
- * @brief Return VLAN tag specified to network interface.
+ * @brief 返回指定网络接口的VLAN标签。
  *
- * Note that the interface parameter must be the VLAN interface,
- * and not the Ethernet one.
+ * 请注意，接口参数必须是VLAN接口，而不是以太网接口。
  *
- * @param iface VLAN network interface.
+ * @param iface VLAN网络接口。
  *
- * @return VLAN tag for this interface or NET_VLAN_TAG_UNSPEC if VLAN
- * is not configured for that interface.
+ * @return 此接口的VLAN标签，如果未为该接口配置VLAN，则返回NET_VLAN_TAG_UNSPEC。
  */
 #if defined(CONFIG_NET_VLAN)
 uint16_t net_eth_get_vlan_tag(struct net_if *iface);
@@ -1025,13 +978,12 @@ static inline uint16_t net_eth_get_vlan_tag(struct net_if *iface)
 #endif
 
 /**
- * @brief Return network interface related to this VLAN tag
+ * @brief 返回与此VLAN标签相关的网络接口
  *
- * @param iface Main network interface (not the VLAN one).
- * @param tag VLAN tag
+ * @param iface 主网络接口（不是VLAN接口）。
+ * @param tag VLAN标签
  *
- * @return Network interface related to this tag or NULL if no such interface
- * exists.
+ * @return 与此标签相关的网络接口，如果不存在此类接口，则返回NULL。
  */
 #if defined(CONFIG_NET_VLAN)
 struct net_if *net_eth_get_vlan_iface(struct net_if *iface, uint16_t tag);
@@ -1047,13 +999,11 @@ struct net_if *net_eth_get_vlan_iface(struct net_if *iface, uint16_t tag)
 #endif
 
 /**
- * @brief Return main network interface that is attached to this VLAN tag.
+ * @brief 返回与此VLAN标签关联的主网络接口。
  *
- * @param iface VLAN network interface. This is used to get the
- *        pointer to ethernet L2 context
+ * @param iface VLAN网络接口。这用于获取以太网L2上下文的指针
  *
- * @return Network interface related to this tag or NULL if no such interface
- * exists.
+ * @return 与此标签相关的网络接口，如果不存在此类接口，则返回NULL。
  */
 #if defined(CONFIG_NET_VLAN)
 struct net_if *net_eth_get_vlan_main(struct net_if *iface);
@@ -1068,17 +1018,14 @@ struct net_if *net_eth_get_vlan_main(struct net_if *iface)
 #endif
 
 /**
- * @brief Check if there are any VLAN interfaces enabled to this specific
- *        Ethernet network interface.
+ * @brief 检查是否有任何VLAN接口启用到此特定的以太网网络接口。
  *
- * Note that the iface must be the actual Ethernet interface and not the
- * virtual VLAN interface.
+ * 请注意，iface必须是实际的以太网接口，而不是虚拟VLAN接口。
  *
- * @param ctx Ethernet context
- * @param iface Ethernet network interface
+ * @param ctx 以太网上下文
+ * @param iface 以太网网络接口
  *
- * @return True if there are enabled VLANs for this network interface,
- *         false if not.
+ * @return 如果此网络接口启用了VLAN，则返回true，否则返回false。
  */
 #if defined(CONFIG_NET_VLAN)
 bool net_eth_is_vlan_enabled(struct ethernet_context *ctx,
@@ -1095,11 +1042,11 @@ static inline bool net_eth_is_vlan_enabled(struct ethernet_context *ctx,
 #endif
 
 /**
- * @brief Get VLAN status for a given network interface (enabled or not).
+ * @brief 获取给定网络接口的VLAN状态（启用或未启用）。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return True if VLAN is enabled for this network interface, false if not.
+ * @return 如果此网络接口启用了VLAN，则返回true，否则返回false。
  */
 #if defined(CONFIG_NET_VLAN)
 bool net_eth_get_vlan_status(struct net_if *iface);
@@ -1113,11 +1060,11 @@ static inline bool net_eth_get_vlan_status(struct net_if *iface)
 #endif
 
 /**
- * @brief Check if the given interface is a VLAN interface.
+ * @brief 检查给定接口是否为VLAN接口。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return True if this network interface is VLAN one, false if not.
+ * @return 如果此网络接口为VLAN接口，则返回true，否则返回false。
  */
 #if defined(CONFIG_NET_VLAN)
 bool net_eth_is_vlan_interface(struct net_if *iface);
@@ -1163,146 +1110,117 @@ static inline bool net_eth_is_vlan_interface(struct net_if *iface)
 /** @endcond */
 
 /**
- * @brief Create an Ethernet network interface and bind it to network device.
+ * @brief 创建以太网网络接口并将其绑定到网络设备。
  *
- * @param dev_id Network device id.
- * @param name The name this instance of the driver exposes to
- * the system.
- * @param init_fn Address to the init function of the driver.
- * @param pm Reference to struct pm_device associated with the device.
- * (optional).
- * @param data Pointer to the device's private data.
- * @param config The address to the structure containing the
- * configuration information for this instance of the driver.
- * @param prio The initialization level at which configuration occurs.
- * @param api Provides an initial pointer to the API function struct
- * used by the driver. Can be NULL.
- * @param mtu Maximum transfer unit in bytes for this network interface.
+ * @param dev_id 网络设备ID。
+ * @param name 驱动程序向系统公开的名称。
+ * @param init_fn 驱动程序的初始化函数地址。
+ * @param pm 与设备关联的pm_device结构的引用。（可选）。
+ * @param data* 指向设备私有数据的指针。
+ * @param config 包含此驱动程序实例的配置信息的结构地址。
+ * @param prio 配置发生的初始化级别。
+ * @param api 提供指向驱动程序使用的API函数结构的初始指针。可以为NULL。
+ * @param mtu 此网络接口的最大传输单元（字节）。
  */
 #define ETH_NET_DEVICE_INIT(dev_id, name, init_fn, pm, data, config,	\
 			    prio, api, mtu)				\
 	Z_ETH_NET_DEVICE_INIT(DT_INVALID_NODE, dev_id, name, init_fn,	\
 			      pm, data, config, prio, api, mtu)
-
 /**
- * @brief Create multiple Ethernet network interfaces and bind them to network
- * devices.
- * If your network device needs more than one instance of a network interface,
- * use this macro below and provide a different instance suffix each time
- * (0, 1, 2, ... or a, b, c ... whatever works for you)
+ * @brief 创建多个以太网网络接口并将其绑定到网络设备。
+ * 如果您的网络设备需要多个网络接口实例，请使用以下宏并每次提供不同的实例后缀（0、1、2...或a、b、c...任何适合您的）。
  *
- * @param dev_id Network device id.
- * @param name The name this instance of the driver exposes to
- * the system.
- * @param instance Instance identifier.
- * @param init_fn Address to the init function of the driver.
- * @param pm Reference to struct pm_device associated with the device.
- * (optional).
- * @param data Pointer to the device's private data.
- * @param config The address to the structure containing the
- * configuration information for this instance of the driver.
- * @param prio The initialization level at which configuration occurs.
- * @param api Provides an initial pointer to the API function struct
- * used by the driver. Can be NULL.
- * @param mtu Maximum transfer unit in bytes for this network interface.
+ * @param dev_id 网络设备ID。
+ * @param name 驱动程序向系统公开的名称。
+ * @param instance 实例标识符。
+ * @param init_fn 驱动程序的初始化函数地址。
+ * @param pm 与设备关联的pm_device结构的引用。（可选）。
+ * @param data 指向设备私有数据的指针。
+ * @param config 包含此驱动程序实例的配置信息的结构地址。
+ * @param prio 配置发生的初始化级别。
+ * @param api 提供指向驱动程序使用的API函数结构的初始指针。可以为NULL。
+ * @param mtu 此网络接口的最大传输单元（字节）。
  */
 #define ETH_NET_DEVICE_INIT_INSTANCE(dev_id, name, instance, init_fn,	\
 				     pm, data, config, prio, api, mtu)	\
 	Z_ETH_NET_DEVICE_INIT_INSTANCE(DT_INVALID_NODE, dev_id, name,	\
 				       instance, init_fn, pm, data,	\
 				       config, prio, api, mtu)
-
 /**
- * @brief Like ETH_NET_DEVICE_INIT but taking metadata from a devicetree.
- * Create an Ethernet network interface and bind it to network device.
+ * @brief 类似于ETH_NET_DEVICE_INIT，但从设备树中获取元数据。
+ * 创建以太网网络接口并将其绑定到网络设备。
  *
- * @param node_id The devicetree node identifier.
- * @param init_fn Address to the init function of the driver.
- * @param pm Reference to struct pm_device associated with the device.
- * (optional).
- * @param data Pointer to the device's private data.
- * @param config The address to the structure containing the
- * configuration information for this instance of the driver.
- * @param prio The initialization level at which configuration occurs.
- * @param api Provides an initial pointer to the API function struct
- * used by the driver. Can be NULL.
- * @param mtu Maximum transfer unit in bytes for this network interface.
+ * @param node_id 设备树节点标识符。
+ * @param init_fn 驱动程序的初始化函数地址。
+ * @param pm 与设备关联的pm_device结构的引用。（可选）。
+ * @param data 指向设备私有数据的指针。
+ * @param config 包含此驱动程序实例的配置信息的结构地址。
+ * @param prio 配置发生的初始化级别。
+ * @param api 提供指向驱动程序使用的API函数结构的初始指针。可以为NULL。
+ * @param mtu 此网络接口的最大传输单元（字节）。
  */
 #define ETH_NET_DEVICE_DT_DEFINE(node_id, init_fn, pm, data, config,	\
 				 prio, api, mtu)			\
 	Z_ETH_NET_DEVICE_INIT(node_id, Z_DEVICE_DT_DEV_ID(node_id),	\
 			      DEVICE_DT_NAME(node_id), init_fn, pm,	\
 			      data, config, prio, api, mtu)
-
 /**
- * @brief Like ETH_NET_DEVICE_DT_DEFINE for an instance of a DT_DRV_COMPAT
- * compatible
+ * @brief 类似于ETH_NET_DEVICE_DT_DEFINE，用于DT_DRV_COMPAT兼容的实例
  *
- * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to ETH_NET_DEVICE_DT_DEFINE.
+ * @param inst 实例编号。这在调用ETH_NET_DEVICE_DT_DEFINE时替换为<tt>DT_DRV_COMPAT(inst)</tt>。
  *
- * @param ... other parameters as expected by ETH_NET_DEVICE_DT_DEFINE.
+ * @param ... ETH_NET_DEVICE_DT_DEFINE预期的其他参数。
  */
 #define ETH_NET_DEVICE_DT_INST_DEFINE(inst, ...) \
 	ETH_NET_DEVICE_DT_DEFINE(DT_DRV_INST(inst), __VA_ARGS__)
-
 /**
- * @brief Inform ethernet L2 driver that ethernet carrier is detected.
- * This happens when cable is connected.
+ * @brief 通知以太网L2驱动程序检测到以太网载波。这发生在连接电缆时。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  */
 void net_eth_carrier_on(struct net_if *iface);
-
 /**
- * @brief Inform ethernet L2 driver that ethernet carrier was lost.
- * This happens when cable is disconnected.
+ * @brief 通知以太网L2驱动程序以太网载波丢失。这发生在断开电缆时。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  */
 void net_eth_carrier_off(struct net_if *iface);
-
 /**
- * @brief Set promiscuous mode either ON or OFF.
+ * @brief 设置混杂模式为ON或OFF。
  *
- * @param iface Network interface
+ * @param iface 网络接口
+ * @param enable 开（true）或关（false）
  *
- * @param enable on (true) or off (false)
- *
- * @return 0 if mode set or unset was successful, <0 otherwise.
+ * @return 如果模式设置或取消设置成功，则返回0，否则返回<0。
  */
 int net_eth_promisc_mode(struct net_if *iface, bool enable);
-
 /**
- * @brief Set TX-Injection mode either ON or OFF.
+ * @brief 设置TX-Injection模式为ON或OFF。
  *
- * @param iface Network interface
+ * @param iface 网络接口
+ * @param enable 开（true）或关（false）
  *
- * @param enable on (true) or off (false)
- *
- * @return 0 if mode set or unset was successful, <0 otherwise.
+ * @return 如果模式设置或取消设置成功，则返回0，否则返回<0。
  */
 int net_eth_txinjection_mode(struct net_if *iface, bool enable);
-
 /**
- * @brief Set or unset HW filtering for MAC address @p mac.
+ * @brief 为MAC地址@p mac设置或取消设置HW过滤。
  *
- * @param iface Network interface
- * @param mac Pointer to an ethernet MAC address
- * @param type Filter type, either source or destination
- * @param enable Set (true) or unset (false)
+ * @param iface 网络接口
+ * @param mac 指向以太网MAC地址的指针
+ * @param type 过滤器类型，源或目标
+ * @param enable 设置（true）或取消设置（false）
  *
- * @return 0 if filter set or unset was successful, <0 otherwise.
+ * @return 如果过滤器设置或取消设置成功，则返回0，否则返回<0。
  */
 int net_eth_mac_filter(struct net_if *iface, struct net_eth_addr *mac,
 		       enum ethernet_filter_type type, bool enable);
 /**
- * @brief Return PTP clock that is tied to this ethernet network interface.
+ * @brief 返回与此以太网网络接口绑定的PTP时钟。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return Pointer to PTP clock if found, NULL if not found or if this
- * ethernet interface does not support PTP.
+ * @return 如果找到PTP时钟，则返回指向PTP时钟的指针，如果未找到或此以太网接口不支持PTP，则返回NULL。
  */
 #if defined(CONFIG_PTP_CLOCK)
 const struct device *net_eth_get_ptp_clock(struct net_if *iface);
@@ -1310,28 +1228,23 @@ const struct device *net_eth_get_ptp_clock(struct net_if *iface);
 static inline const struct device *net_eth_get_ptp_clock(struct net_if *iface)
 {
 	ARG_UNUSED(iface);
-
 	return NULL;
 }
 #endif
-
 /**
- * @brief Return PTP clock that is tied to this ethernet network interface
- * index.
+ * @brief 返回与此以太网网络接口索引绑定的PTP时钟。
  *
- * @param index Network interface index
+ * @param index 网络接口索引
  *
- * @return Pointer to PTP clock if found, NULL if not found or if this
- * ethernet interface index does not support PTP.
+ * @return 如果找到PTP时钟，则返回指向PTP时钟的指针，如果未找到或此以太网接口索引不支持PTP，则返回NULL。
  */
 __syscall const struct device *net_eth_get_ptp_clock_by_index(int index);
-
 /**
- * @brief Return PTP port number attached to this interface.
+ * @brief 返回与此接口关联的PTP端口号。
  *
- * @param iface Network interface
+ * @param iface 网络接口
  *
- * @return Port number, no such port if < 0
+ * @return 端口号，如果<0则表示没有此类端口
  */
 #if defined(CONFIG_NET_L2_PTP)
 int net_eth_get_ptp_port(struct net_if *iface);
@@ -1339,16 +1252,14 @@ int net_eth_get_ptp_port(struct net_if *iface);
 static inline int net_eth_get_ptp_port(struct net_if *iface)
 {
 	ARG_UNUSED(iface);
-
 	return -ENODEV;
 }
 #endif /* CONFIG_NET_L2_PTP */
-
 /**
- * @brief Set PTP port number attached to this interface.
+ * @brief 设置与此接口关联的PTP端口号。
  *
- * @param iface Network interface
- * @param port Port number to set
+ * @param iface 网络接口
+ * @param port 要设置的端口号
  */
 #if defined(CONFIG_NET_L2_PTP)
 void net_eth_set_ptp_port(struct net_if *iface, int port);
@@ -1359,30 +1270,25 @@ static inline void net_eth_set_ptp_port(struct net_if *iface, int port)
 	ARG_UNUSED(port);
 }
 #endif /* CONFIG_NET_L2_PTP */
-
 /**
- * @brief Check if the Ethernet L2 network interface can perform Wi-Fi.
+ * @brief 检查以太网L2网络接口是否可以执行Wi-Fi。
  *
- * @param iface Pointer to network interface
+ * @param iface 指向网络接口的指针
  *
- * @return True if interface supports Wi-Fi, False otherwise.
+ * @return 如果接口支持Wi-Fi，则返回true，否则返回false。
  */
 static inline bool net_eth_type_is_wifi(struct net_if *iface)
 {
 	const struct ethernet_context *ctx = (struct ethernet_context *)
 		net_if_l2_data(iface);
-
 	return ctx->eth_if_type == L2_ETH_IF_TYPE_WIFI;
 }
-
 /**
  * @}
  */
-
 #ifdef __cplusplus
 }
 #endif
-
 #include <zephyr/syscalls/ethernet.h>
-
 #endif /* ZEPHYR_INCLUDE_NET_ETHERNET_H_ */
+// By GST @Data

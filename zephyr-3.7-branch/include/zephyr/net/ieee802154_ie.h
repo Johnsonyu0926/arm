@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2023 Florian Grandel, Zephyr Project.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/ieee802154_ie.h
 
 /**
  * @file
@@ -165,7 +161,6 @@ struct ieee802154_header_ie {
 /** @brief The header IE's header length (2 bytes). */
 #define IEEE802154_HEADER_IE_HEADER_LENGTH sizeof(uint16_t)
 
-
 /** @cond INTERNAL_HIDDEN */
 #define IEEE802154_DEFINE_HEADER_IE(_element_id, _length, _content, _content_type)                 \
 	(struct ieee802154_header_ie) {                                                            \
@@ -285,7 +280,7 @@ struct ieee802154_header_ie {
 /**
  * @brief Define a Time Correction IE, see section 7.4.2.7.
  *
- * @details Example usage (parameter in CPU byte order):
+ * @details Example usage (参数 in CPU byte order):
  *
  * @code{.c}
  *   uint16_t time_sync_info = ...;
@@ -364,3 +359,5 @@ static inline uint8_t ieee802154_header_ie_get_element_id(struct ieee802154_head
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_IEEE802154_IE_H_ */
+
+// By GST @Data

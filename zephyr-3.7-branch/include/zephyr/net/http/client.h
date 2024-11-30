@@ -1,14 +1,4 @@
-/** @file
- * @brief HTTP client API
- *
- * An API for applications do HTTP requests
- */
-
-/*
- * Copyright (c) 2019 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/http/CLIENT.h
 
 #ifndef ZEPHYR_INCLUDE_NET_HTTP_CLIENT_H_
 #define ZEPHYR_INCLUDE_NET_HTTP_CLIENT_H_
@@ -339,3 +329,4 @@ int http_client_req(int sock, struct http_request *req,
  */
 
 #endif /* ZEPHYR_INCLUDE_NET_HTTP_CLIENT_H_ */
+//GST

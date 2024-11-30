@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022, Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//lib/hash/ash_func32_murmur3.c
 
 #include <stddef.h>
 #include <stdint.h>
@@ -46,3 +42,4 @@ uint32_t sys_hash32_murmur3(const char *str, size_t n)
 
 	return h;
 }
+//GST

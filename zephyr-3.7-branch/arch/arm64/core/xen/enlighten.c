@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2021 EPAM Systems
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
+//arch/arc/core/xen/enlighten.c
 #include <zephyr/arch/arm64/hypercall.h>
 #include <zephyr/xen/events.h>
 #include <zephyr/xen/generic.h>
@@ -30,6 +25,12 @@ static uint8_t shared_info_buf[XEN_PAGE_SIZE] __aligned(XEN_PAGE_SIZE);
 /* Remains NULL until mapping will be finished by Xen */
 shared_info_t *HYPERVISOR_shared_info;
 
+/**
+ * @brief Map the shared_info page provided by Xen hypervisor.
+ *
+ * @param shared_page Pointer to the shared_info page.
+ * @return 0 on success, negative error code on failure.
+ */
 static int xen_map_shared_info(const shared_info_t *shared_page)
 {
 	struct xen_add_to_physmap xatp;
@@ -42,6 +43,13 @@ static int xen_map_shared_info(const shared_info_t *shared_page)
 	return HYPERVISOR_memory_op(XENMEM_add_to_physmap, &xatp);
 }
 
+/**
+ * @brief Initialize Xen Enlighten.
+ *
+ * This function maps the shared_info page and initializes Xen event channels.
+ *
+ * @return 0 on success, negative error code on failure.
+ */
 static int xen_enlighten_init(void)
 {
 	int ret = 0;
@@ -67,4 +75,6 @@ static int xen_enlighten_init(void)
 	return 0;
 }
 
+/* Register the Xen Enlighten initialization function to be called at PRE_KERNEL_1 stage */
 SYS_INIT(xen_enlighten_init, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEVICE);
+//GST

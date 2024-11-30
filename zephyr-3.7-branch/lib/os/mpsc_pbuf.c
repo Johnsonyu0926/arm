@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2021 Nordic Semiconductor
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/os/mpsc_pbuf.c
 #include <zephyr/sys/mpsc_pbuf.h>
 
 #define MPSC_PBUF_DEBUG 0
@@ -25,6 +21,12 @@ static inline void mpsc_state_print(struct mpsc_pbuf_buffer *buffer)
 	}
 }
 
+/**
+ * @brief Initialize the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param cfg Pointer to the buffer configuration
+ */
 void mpsc_pbuf_init(struct mpsc_pbuf_buffer *buffer,
 		    const struct mpsc_pbuf_buffer_config *cfg)
 {
@@ -146,7 +148,6 @@ static inline uint32_t get_skip(union mpsc_pbuf_generic *item)
 	return 0;
 }
 
-
 static ALWAYS_INLINE void tmp_wr_idx_inc(struct mpsc_pbuf_buffer *buffer, int32_t wlen)
 {
 	buffer->tmp_wr_idx = idx_inc(buffer, buffer->tmp_wr_idx, wlen);
@@ -201,7 +202,7 @@ static bool drop_item_locked(struct mpsc_pbuf_buffer *buffer,
 
 	uint32_t rd_wlen = buffer->get_wlen(item);
 
-	/* If packet is busy need to be ommited. */
+	/* If packet is busy need to be omitted. */
 	if (!is_valid(item)) {
 		return false;
 	} else if (item->hdr.busy) {
@@ -215,7 +216,7 @@ static bool drop_item_locked(struct mpsc_pbuf_buffer *buffer,
 		buffer->wr_idx = idx_inc(buffer, buffer->wr_idx, rd_wlen);
 
 		/* If allocation wrapped around the buffer and found busy packet
-		 * that was already ommited, skip it again.
+		 * that was already omitted, skip it again.
 		 */
 		if (buffer->rd_idx == buffer->tmp_rd_idx) {
 			buffer->tmp_rd_idx = idx_inc(buffer, buffer->tmp_rd_idx, rd_wlen);
@@ -287,6 +288,12 @@ static void post_drop_action(struct mpsc_pbuf_buffer *buffer,
 	/* full flag? */
 }
 
+/**
+ * @brief Put a word into the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param item Item to put into the buffer
+ */
 void mpsc_pbuf_put_word(struct mpsc_pbuf_buffer *buffer,
 			const union mpsc_pbuf_generic item)
 {
@@ -333,6 +340,14 @@ void mpsc_pbuf_put_word(struct mpsc_pbuf_buffer *buffer,
 	} while (cont);
 }
 
+/**
+ * @brief Allocate space in the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param wlen Number of words to allocate
+ * @param timeout Timeout for allocation
+ * @return Pointer to the allocated space, or NULL on failure
+ */
 union mpsc_pbuf_generic *mpsc_pbuf_alloc(struct mpsc_pbuf_buffer *buffer,
 					 size_t wlen, k_timeout_t timeout)
 {
@@ -396,7 +411,6 @@ union mpsc_pbuf_generic *mpsc_pbuf_alloc(struct mpsc_pbuf_buffer *buffer,
 		}
 	} while (cont);
 
-
 	MPSC_PBUF_DBG(buffer, "allocated %p", item);
 
 	if (IS_ENABLED(CONFIG_MPSC_CLEAR_ALLOCATED) && item) {
@@ -407,6 +421,12 @@ union mpsc_pbuf_generic *mpsc_pbuf_alloc(struct mpsc_pbuf_buffer *buffer,
 	return item;
 }
 
+/**
+ * @brief Commit an item to the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param item Pointer to the item to commit
+ */
 void mpsc_pbuf_commit(struct mpsc_pbuf_buffer *buffer,
 		       union mpsc_pbuf_generic *item)
 {
@@ -421,6 +441,13 @@ void mpsc_pbuf_commit(struct mpsc_pbuf_buffer *buffer,
 	MPSC_PBUF_DBG(buffer, "committed %p", item);
 }
 
+/**
+ * @brief Put a word with extended data into the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param item Item to put into the buffer
+ * @param data Pointer to the extended data
+ */
 void mpsc_pbuf_put_word_ext(struct mpsc_pbuf_buffer *buffer,
 			    const union mpsc_pbuf_generic item,
 			    const void *data)
@@ -477,6 +504,13 @@ void mpsc_pbuf_put_word_ext(struct mpsc_pbuf_buffer *buffer,
 	} while (cont);
 }
 
+/**
+ * @brief Put data into the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param data Pointer to the data
+ * @param wlen Number of words to put
+ */
 void mpsc_pbuf_put_data(struct mpsc_pbuf_buffer *buffer, const uint32_t *data,
 			size_t wlen)
 {
@@ -528,6 +562,12 @@ void mpsc_pbuf_put_data(struct mpsc_pbuf_buffer *buffer, const uint32_t *data,
 	} while (cont);
 }
 
+/**
+ * @brief Claim an item from the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @return Pointer to the claimed item, or NULL if no item is available
+ */
 const union mpsc_pbuf_generic *mpsc_pbuf_claim(struct mpsc_pbuf_buffer *buffer)
 {
 	union mpsc_pbuf_generic *item;
@@ -574,6 +614,12 @@ const union mpsc_pbuf_generic *mpsc_pbuf_claim(struct mpsc_pbuf_buffer *buffer)
 	return item;
 }
 
+/**
+ * @brief Free a claimed item from the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param item Pointer to the claimed item
+ */
 void mpsc_pbuf_free(struct mpsc_pbuf_buffer *buffer,
 		     const union mpsc_pbuf_generic *item)
 {
@@ -608,6 +654,12 @@ void mpsc_pbuf_free(struct mpsc_pbuf_buffer *buffer,
 	}
 }
 
+/**
+ * @brief Check if there are pending items in the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @return true if there are pending items, false otherwise
+ */
 bool mpsc_pbuf_is_pending(struct mpsc_pbuf_buffer *buffer)
 {
 	uint32_t a;
@@ -617,6 +669,13 @@ bool mpsc_pbuf_is_pending(struct mpsc_pbuf_buffer *buffer)
 	return a ? true : false;
 }
 
+/**
+ * @brief Get the current utilization of the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param size Pointer to store the total size of the buffer
+ * @param now Pointer to store the current utilization
+ */
 void mpsc_pbuf_get_utilization(struct mpsc_pbuf_buffer *buffer,
 			       uint32_t *size, uint32_t *now)
 {
@@ -625,9 +684,15 @@ void mpsc_pbuf_get_utilization(struct mpsc_pbuf_buffer *buffer,
 	*now = get_usage(buffer) * sizeof(int);
 }
 
+/**
+ * @brief Get the maximum utilization of the MPSC buffer
+ *
+ * @param buffer Pointer to the buffer structure
+ * @param max Pointer to store the maximum utilization
+ * @return 0 on success, or -ENOTSUP if maximum utilization tracking is not enabled
+ */
 int mpsc_pbuf_get_max_utilization(struct mpsc_pbuf_buffer *buffer, uint32_t *max)
 {
-
 	if (!(buffer->flags & MPSC_PBUF_MAX_UTILIZATION)) {
 		return -ENOTSUP;
 	}
@@ -635,3 +700,4 @@ int mpsc_pbuf_get_max_utilization(struct mpsc_pbuf_buffer *buffer, uint32_t *max
 	*max = buffer->max_usage * sizeof(int);
 	return 0;
 }
+//GST

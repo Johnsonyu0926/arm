@@ -1,14 +1,4 @@
-/*
- * Copyright (c) 2023, Meta
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file
- * @brief Private header for the software-managed ISR table's functions
- */
-
+//arch/arc/common/include/sw_isr_common.h
 #ifndef ZEPHYR_ARCH_COMMON_INCLUDE_SW_ISR_COMMON_H_
 #define ZEPHYR_ARCH_COMMON_INCLUDE_SW_ISR_COMMON_H_
 
@@ -20,31 +10,35 @@ extern "C" {
 #endif
 
 /**
- * @brief Helper function used to compute the index in _sw_isr_table
- * based on passed IRQ.
+ * @brief Compute the index in _sw_isr_table based on the passed IRQ
  *
- * @param irq IRQ number in its zephyr format
+ * This helper function computes the index in the _sw_isr_table based on the
+ * passed IRQ number.
  *
- * @return corresponding index in _sw_isr_table
+ * @param irq IRQ number in its Zephyr format
+ * @return Corresponding index in _sw_isr_table
  */
 unsigned int z_get_sw_isr_table_idx(unsigned int irq);
 
 /**
- * @brief Helper function used to get the parent interrupt controller device based on passed IRQ.
+ * @brief Get the parent interrupt controller device based on the passed IRQ
  *
- * @param irq IRQ number in its zephyr format
+ * This helper function retrieves the parent interrupt controller device based
+ * on the passed IRQ number.
  *
- * @return corresponding interrupt controller device in _sw_isr_table
+ * @param irq IRQ number in its Zephyr format
+ * @return Corresponding interrupt controller device in _sw_isr_table
  */
 const struct device *z_get_sw_isr_device_from_irq(unsigned int irq);
 
 /**
- * @brief Helper function used to get the IRQN of the passed in parent interrupt
+ * @brief Get the IRQ number of the parent interrupt controller device
+ *
+ * This helper function retrieves the IRQ number of the passed parent interrupt
  * controller device.
  *
- * @param dev parent interrupt controller device
- *
- * @return IRQN of the interrupt controller
+ * @param dev Parent interrupt controller device
+ * @return IRQ number of the interrupt controller
  */
 unsigned int z_get_sw_isr_irq_from_device(const struct device *dev);
 
@@ -55,3 +49,4 @@ unsigned int z_get_sw_isr_irq_from_device(const struct device *dev);
 #endif /* _ASMLANGUAGE */
 
 #endif /* ZEPHYR_ARCH_COMMON_INCLUDE_SW_ISR_COMMON_H_ */
+//GST

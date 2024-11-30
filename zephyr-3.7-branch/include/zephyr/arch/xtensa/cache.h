@@ -1,7 +1,5 @@
-/*
- * Copyright 2021 Intel Corporation
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/cache.h
+
 #ifndef ZEPHYR_INCLUDE_ARCH_XTENSA_CACHE_H_
 #define ZEPHYR_INCLUDE_ARCH_XTENSA_CACHE_H_
 
@@ -337,3 +335,4 @@ static inline void *arch_cache_uncached_ptr_get(void *ptr)
 #endif
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_CACHE_H_ */
+//GST

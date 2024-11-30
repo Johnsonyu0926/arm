@@ -1,3 +1,5 @@
+// zephyr-3.7-branch/include/zephyr/net/http/hpack.h
+
 /** @file
  * @brief HTTP HPACK
  */
@@ -146,4 +148,5 @@ int http_hpack_encode_header(uint8_t *buf, size_t buflen,
  * @}
  */
 
-#endif
+#endif /* ZEPHYR_INCLUDE_NET_HTTP_SERVER_HPACK_H_ */
+//GST

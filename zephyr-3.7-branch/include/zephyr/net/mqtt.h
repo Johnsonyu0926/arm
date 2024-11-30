@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2018 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/include/zephyr/net/mqtt.h
 
 /** @file mqtt.h
  *

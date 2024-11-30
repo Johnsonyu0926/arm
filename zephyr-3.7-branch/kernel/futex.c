@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Intel corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// kernel/futex.c
 
 #include <zephyr/kernel.h>
 #include <zephyr/kernel_structs.h>
@@ -12,6 +8,12 @@
 #include <zephyr/init.h>
 #include <ksched.h>
 
+/**
+ * @brief Find futex data associated with a futex
+ *
+ * @param futex Pointer to the futex
+ * @return Pointer to the futex data, or NULL if not found
+ */
 static struct z_futex_data *k_futex_find_data(struct k_futex *futex)
 {
 	struct k_object *obj;
@@ -24,6 +26,13 @@ static struct z_futex_data *k_futex_find_data(struct k_futex *futex)
 	return obj->data.futex_data;
 }
 
+/**
+ * @brief Wake threads waiting on a futex
+ *
+ * @param futex Pointer to the futex
+ * @param wake_all Whether to wake all waiting threads or just one
+ * @return Number of threads woken, or an error code on failure
+ */
 int z_impl_k_futex_wake(struct k_futex *futex, bool wake_all)
 {
 	k_spinlock_key_t key;
@@ -62,6 +71,14 @@ static inline int z_vrfy_k_futex_wake(struct k_futex *futex, bool wake_all)
 }
 #include <zephyr/syscalls/k_futex_wake_mrsh.c>
 
+/**
+ * @brief Wait on a futex
+ *
+ * @param futex Pointer to the futex
+ * @param expected Expected value of the futex
+ * @param timeout Timeout value
+ * @return 0 on success, or an error code on failure
+ */
 int z_impl_k_futex_wait(struct k_futex *futex, int expected,
 			k_timeout_t timeout)
 {
@@ -99,3 +116,4 @@ static inline int z_vrfy_k_futex_wait(struct k_futex *futex, int expected,
 	return z_impl_k_futex_wait(futex, expected, timeout);
 }
 #include <zephyr/syscalls/k_futex_wait_mrsh.c>
+//GST

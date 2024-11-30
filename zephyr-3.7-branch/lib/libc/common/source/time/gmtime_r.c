@@ -1,15 +1,4 @@
-/*
- * Copyright (c) 2019 Peter Bigot Consulting, LLC
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
- * The time_civil_from_days function is derived directly from public
- * domain content written by Howard Hinnant and available at:
- * http://howardhinnant.github.io/date_algorithms.html#civil_from_days
- */
-
+//zephyr-3.7-branch/lib/libc/common/source/thrd/gmtime_r.c
 #include <time.h>
 
 /* A signed type with the representation of time_t without its
@@ -17,30 +6,27 @@
  */
 typedef time_t bigint_type;
 
-/** Convert a UNIX time to civil time.
+/**
+ * @brief Convert a UNIX time to civil time.
  *
  * This converts integral seconds since (before) 1970-01-01T00:00:00
- * to the POSIX standard civil time representation.  Any adjustments
+ * to the POSIX standard civil time representation. Any adjustments
  * due to time zone, leap seconds, or a different epoch must be
  * applied to @p time before invoking this function.
  *
- * @param time the time represented as seconds.
- *
- * @return the time information for corresponding to the provided
- * instant.
+ * @param z The time represented as days.
+ * @param tp Pointer to the tm structure to store the result.
  *
  * @see http://howardhinnant.github.io/date_algorithms.html#civil_from_days
  */
-static void time_civil_from_days(bigint_type z,
-				 struct tm *ZRESTRICT tp)
+static void time_civil_from_days(bigint_type z, struct tm *ZRESTRICT tp)
 {
 	tp->tm_wday = (z >= -4) ? ((z + 4) % 7) : ((z + 5) % 7 + 6);
 	z += 719468;
 
 	bigint_type era = ((z >= 0) ? z : (z - 146096)) / 146097;
 	unsigned int doe = (z - era * (bigint_type)146097);
-	unsigned int yoe = (doe - doe / 1460U + doe / 36524U - doe / 146096U)
-		/ 365U;
+	unsigned int yoe = (doe - doe / 1460U + doe / 36524U - doe / 146096U) / 365U;
 	bigint_type y = (time_t)yoe + era * 400;
 	unsigned int doy = doe - (365U * yoe + yoe / 4U - yoe / 100U);
 	unsigned int mp = (5U * doy + 2U) / 153U;
@@ -70,15 +56,19 @@ static void time_civil_from_days(bigint_type z,
 	}
 }
 
-/* Convert a UNIX time to civil time.
+/**
+ * @brief Convert a UNIX time to civil time.
  *
  * This converts integral seconds since (before) 1970-01-01T00:00:00
- * to the POSIX standard civil time representation.  Any adjustments
+ * to the POSIX standard civil time representation. Any adjustments
  * due to time zone, leap seconds, or a different epoch must be
  * applied to @p time before invoking this function.
+ *
+ * @param timep Pointer to the time represented as seconds.
+ * @param result Pointer to the tm structure to store the result.
+ * @return Pointer to the tm structure with the result.
  */
-struct tm *gmtime_r(const time_t *ZRESTRICT timep,
-		    struct tm *ZRESTRICT result)
+struct tm *gmtime_r(const time_t *ZRESTRICT timep, struct tm *ZRESTRICT result)
 {
 	time_t z = *timep;
 	bigint_type days = (z >= 0 ? z : z - 86399) / 86400;
@@ -95,3 +85,5 @@ struct tm *gmtime_r(const time_t *ZRESTRICT timep,
 
 	return result;
 }
+//GST
+

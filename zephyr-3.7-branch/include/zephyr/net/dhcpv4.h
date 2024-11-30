@@ -1,12 +1,4 @@
-/** @file
- *  @brief DHCPv4 Client Handler
- */
-
-/*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/dhcpv4.h
 
 #ifndef ZEPHYR_INCLUDE_NET_DHCPV4_H_
 #define ZEPHYR_INCLUDE_NET_DHCPV4_H_
@@ -259,3 +251,4 @@ const char *net_dhcpv4_msg_type_name(enum net_dhcpv4_msg_type msg_type);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_DHCPV4_H_ */
+//GST

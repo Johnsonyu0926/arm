@@ -1,12 +1,4 @@
-/** @file
- * @brief Loopback control interface
- */
-
-/*
- * Copyright (c) 2022 Radarxense B.V.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/net/loopback.h
 
 #ifndef ZEPHYR_INCLUDE_NET_LOOPBACK_H_
 #define ZEPHYR_INCLUDE_NET_LOOPBACK_H_
@@ -17,18 +9,18 @@ extern "C" {
 
 #ifdef CONFIG_NET_LOOPBACK_SIMULATE_PACKET_DROP
 /**
- * @brief Set the packet drop rate
+ * @brief 设置数据包丢弃率
  *
- * @param[in] ratio Value between 0 = no packet loss and 1 = all packets dropped
+ * @param[in] ratio 值在0到1之间，0表示无数据包丢失，1表示所有数据包丢弃
  *
- * @return 0 on success, otherwise a negative integer.
+ * @return 成功返回0，否则返回负整数。
  */
 int loopback_set_packet_drop_ratio(float ratio);
 
 /**
- * @brief Get the number of dropped packets
+ * @brief 获取丢弃的数据包数量
  *
- * @return number of packets dropped by the loopback interface
+ * @return 回环接口丢弃的数据包数量
  */
 int loopback_get_num_dropped_packets(void);
 #endif
@@ -38,3 +30,5 @@ int loopback_get_num_dropped_packets(void);
 #endif
 
 #endif /* ZEPHYR_INCLUDE_NET_LOOPBACK_H_ */
+
+// By GST @Data

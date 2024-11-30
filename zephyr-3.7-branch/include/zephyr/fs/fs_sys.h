@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2020 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/fs_sys.h
 
 #ifndef ZEPHYR_INCLUDE_FS_FS_SYS_H_
 #define ZEPHYR_INCLUDE_FS_FS_SYS_H_
@@ -212,3 +208,4 @@ struct fs_file_system_t {
 #endif
 
 #endif /* ZEPHYR_INCLUDE_FS_FS_SYS_H_ */
+//GST

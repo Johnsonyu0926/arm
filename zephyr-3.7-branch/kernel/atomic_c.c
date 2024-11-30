@@ -1,22 +1,4 @@
-/*
- * Copyright (c) 2016 Intel Corporation
- * Copyright (c) 2011-2014 Wind River Systems, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @file Atomic ops in pure C
- *
- * This module provides the atomic operators for processors
- * which do not support native atomic operations.
- *
- * The atomic operations are guaranteed to be atomic with respect
- * to interrupt service routines, and to operations performed by peer
- * processors.
- *
- * (originally from x86's atomic.c)
- */
+// kernel/atomic_c.c
 
 #include <zephyr/toolchain.h>
 #include <zephyr/arch/cpu.h>
@@ -24,9 +6,9 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/kernel_structs.h>
 
-/* Single global spinlock for atomic operations.  This is fallback
- * code, not performance sensitive.  At least by not using irq_lock()
- * in SMP contexts we won't content with legitimate users of the
+/* Single global spinlock for atomic operations. This is fallback
+ * code, not performance sensitive. At least by not using irq_lock()
+ * in SMP contexts we won't contend with legitimate users of the
  * global lock.
  */
 static struct k_spinlock lock;
@@ -59,7 +41,6 @@ static struct k_spinlock lock;
 #endif /* CONFIG_USERSPACE */
 
 /**
- *
  * @brief Atomic compare-and-set primitive
  *
  * This routine provides the compare-and-set operator. If the original value at
@@ -115,6 +96,14 @@ bool z_vrfy_atomic_cas(atomic_t *target, atomic_val_t old_value,
 #include <zephyr/syscalls/atomic_cas_mrsh.c>
 #endif /* CONFIG_USERSPACE */
 
+/**
+ * @brief Atomic pointer compare-and-set primitive
+ *
+ * @param target address to be tested
+ * @param old_value value to compare against
+ * @param new_value value to compare against
+ * @return Returns true if <new_value> is written, false otherwise.
+ */
 bool z_impl_atomic_ptr_cas(atomic_ptr_t *target, atomic_ptr_val_t old_value,
 			   atomic_ptr_val_t new_value)
 {
@@ -146,7 +135,6 @@ static inline bool z_vrfy_atomic_ptr_cas(atomic_ptr_t *target,
 #endif /* CONFIG_USERSPACE */
 
 /**
- *
  * @brief Atomic addition primitive
  *
  * This routine provides the atomic addition operator. The <value> is
@@ -176,7 +164,6 @@ atomic_val_t z_impl_atomic_add(atomic_t *target, atomic_val_t value)
 ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_add);
 
 /**
- *
  * @brief Atomic subtraction primitive
  *
  * This routine provides the atomic subtraction operator. The <value> is
@@ -206,13 +193,12 @@ atomic_val_t z_impl_atomic_sub(atomic_t *target, atomic_val_t value)
 ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_sub);
 
 /**
- *
  * @brief Atomic get primitive
  *
  * @param target memory location to read from
  *
  * This routine provides the atomic get primitive to atomically read
- * a value from <target>. It simply does an ordinary load.  Note that <target>
+ * a value from <target>. It simply does an ordinary load. Note that <target>
  * is expected to be aligned to a 4-byte boundary.
  *
  * @return The value read from <target>
@@ -228,7 +214,6 @@ atomic_ptr_val_t atomic_ptr_get(const atomic_ptr_t *target)
 }
 
 /**
- *
  * @brief Atomic get-and-set primitive
  *
  * This routine provides the atomic set operator. The <value> is atomically
@@ -284,7 +269,6 @@ static inline atomic_ptr_val_t z_vrfy_atomic_ptr_set(atomic_ptr_t *target,
 #endif /* CONFIG_USERSPACE */
 
 /**
- *
  * @brief Atomic bitwise inclusive OR primitive
  *
  * This routine provides the atomic bitwise inclusive OR operator. The <value>
@@ -314,7 +298,6 @@ atomic_val_t z_impl_atomic_or(atomic_t *target, atomic_val_t value)
 ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_or);
 
 /**
- *
  * @brief Atomic bitwise exclusive OR (XOR) primitive
  *
  * This routine provides the atomic bitwise exclusive OR operator. The <value>
@@ -344,7 +327,6 @@ atomic_val_t z_impl_atomic_xor(atomic_t *target, atomic_val_t value)
 ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_xor);
 
 /**
- *
  * @brief Atomic bitwise AND primitive
  *
  * This routine provides the atomic bitwise AND operator. The <value> is
@@ -374,7 +356,6 @@ atomic_val_t z_impl_atomic_and(atomic_t *target, atomic_val_t value)
 ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_and);
 
 /**
- *
  * @brief Atomic bitwise NAND primitive
  *
  * This routine provides the atomic bitwise NAND operator. The <value> is
@@ -412,3 +393,4 @@ ATOMIC_SYSCALL_HANDLER_TARGET_VALUE(atomic_nand);
 #include <zephyr/syscalls/atomic_and_mrsh.c>
 #include <zephyr/syscalls/atomic_nand_mrsh.c>
 #endif /* CONFIG_USERSPACE */
+//GST

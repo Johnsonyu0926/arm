@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2019 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+//zephyr-3.7-branch/lib/libc/newlib/include/stdint.h
 
 #ifndef ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STDINT_H_
 #define ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STDINT_H_
@@ -28,3 +24,4 @@
 #include_next <stdint.h>
 
 #endif /* ZEPHYR_LIB_LIBC_NEWLIB_INCLUDE_STDINT_H_ */
+//GST

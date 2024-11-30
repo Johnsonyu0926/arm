@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2022 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/arch/xtensa/xtensa_mmu.h
 
 #include <stdint.h>
 
@@ -21,19 +17,19 @@
  */
 
 /** Memory region is executable. */
-#define XTENSA_MMU_PERM_X		BIT(0)
+#define XTENSA_MMU_PERM_X        BIT(0)
 
 /** Memory region is writable. */
-#define XTENSA_MMU_PERM_W		BIT(1)
+#define XTENSA_MMU_PERM_W        BIT(1)
 
 /** Memory region is both executable and writable */
-#define XTENSA_MMU_PERM_WX		(XTENSA_MMU_PERM_W | XTENSA_MMU_PERM_X)
+#define XTENSA_MMU_PERM_WX       (XTENSA_MMU_PERM_W | XTENSA_MMU_PERM_X)
 
 /** Memory region has write-back cache. */
-#define XTENSA_MMU_CACHED_WB		BIT(2)
+#define XTENSA_MMU_CACHED_WB     BIT(2)
 
 /** Memory region has write-through cache. */
-#define XTENSA_MMU_CACHED_WT		BIT(3)
+#define XTENSA_MMU_CACHED_WT     BIT(3)
 
 /**
  * @}
@@ -46,25 +42,25 @@
 
 typedef uint32_t k_mem_partition_attr_t;
 
-#define K_MEM_PARTITION_IS_EXECUTABLE(attr)	(((attr) & XTENSA_MMU_PERM_X) != 0)
-#define K_MEM_PARTITION_IS_WRITABLE(attr)	(((attr) & XTENSA_MMU_PERM_W) != 0)
-#define K_MEM_PARTITION_IS_USER(attr)		(((attr) & XTENSA_MMU_MAP_USER) != 0)
+#define K_MEM_PARTITION_IS_EXECUTABLE(attr)   (((attr) & XTENSA_MMU_PERM_X) != 0)
+#define K_MEM_PARTITION_IS_WRITABLE(attr)     (((attr) & XTENSA_MMU_PERM_W) != 0)
+#define K_MEM_PARTITION_IS_USER(attr)         (((attr) & XTENSA_MMU_MAP_USER) != 0)
 
 /* Read-Write access permission attributes */
 #define K_MEM_PARTITION_P_RW_U_RW \
-	((k_mem_partition_attr_t) {XTENSA_MMU_PERM_W | XTENSA_MMU_MAP_USER})
+    ((k_mem_partition_attr_t) {XTENSA_MMU_PERM_W | XTENSA_MMU_MAP_USER})
 #define K_MEM_PARTITION_P_RW_U_NA \
-	((k_mem_partition_attr_t) {0})
+    ((k_mem_partition_attr_t) {0})
 #define K_MEM_PARTITION_P_RO_U_RO \
-	((k_mem_partition_attr_t) {XTENSA_MMU_MAP_USER})
+    ((k_mem_partition_attr_t) {XTENSA_MMU_MAP_USER})
 #define K_MEM_PARTITION_P_RO_U_NA \
-	((k_mem_partition_attr_t) {0})
+    ((k_mem_partition_attr_t) {0})
 #define K_MEM_PARTITION_P_NA_U_NA \
-	((k_mem_partition_attr_t) {0})
+    ((k_mem_partition_attr_t) {0})
 
 /* Execution-allowed attributes */
 #define K_MEM_PARTITION_P_RX_U_RX \
-	((k_mem_partition_attr_t) {XTENSA_MMU_PERM_X})
+    ((k_mem_partition_attr_t) {XTENSA_MMU_PERM_X})
 
 /**
  * @}
@@ -75,7 +71,7 @@ typedef uint32_t k_mem_partition_attr_t;
  *
  * This BIT tells the mapping code which ring PTE entries to use.
  */
-#define XTENSA_MMU_MAP_USER		BIT(4)
+#define XTENSA_MMU_MAP_USER      BIT(4)
 
 /**
  * @brief Software only bit to indicate a memory region is shared by all threads.
@@ -87,23 +83,23 @@ typedef uint32_t k_mem_partition_attr_t;
  * The PTE mapping this memory will use an ASID that is set in the
  * ring 4 spot in RASID.
  */
-#define XTENSA_MMU_MAP_SHARED		BIT(30)
+#define XTENSA_MMU_MAP_SHARED    BIT(30)
 
 /**
  * Struct used to map a memory region.
  */
 struct xtensa_mmu_range {
-	/** Name of the memory region. */
-	const char *name;
+    /** Name of the memory region. */
+    const char *name;
 
-	/** Start address of the memory region. */
-	const uint32_t start;
+    /** Start address of the memory region. */
+    const uint32_t start;
 
-	/** End address of the memory region. */
-	const uint32_t end;
+    /** End address of the memory region. */
+    const uint32_t end;
 
-	/** Attributes for the memory region. */
-	const uint32_t attrs;
+    /** Attributes for the memory region. */
+    const uint32_t attrs;
 };
 
 /**
@@ -158,3 +154,4 @@ void xtensa_mmu_tlb_shootdown(void);
  */
 
 #endif /* ZEPHYR_INCLUDE_ARCH_XTENSA_XTENSA_MMU_H */
+//GST

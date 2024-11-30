@@ -1,9 +1,5 @@
-/*
- * Copyright (c) 2017-2023 Nordic Semiconductor ASA
- * Copyright (c) 2015 Runtime Inc
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// zephyr-3.7-branch/include/zephyr/fs/fcb.h
+
 #ifndef ZEPHYR_INCLUDE_FS_FCB_H_
 #define ZEPHYR_INCLUDE_FS_FCB_H_
 
@@ -12,10 +8,8 @@
  */
 #include <inttypes.h>
 #include <limits.h>
-
 #include <zephyr/storage/flash_map.h>
 #include <zephyr/sys/util_macro.h>
-
 #include <zephyr/kernel.h>
 
 #ifdef __cplusplus
@@ -351,3 +345,4 @@ int fcb_flash_write(const struct fcb *fcbp, const struct flash_sector *sector, o
 #endif
 
 #endif /* ZEPHYR_INCLUDE_FS_FCB_H_ */
+//GST
