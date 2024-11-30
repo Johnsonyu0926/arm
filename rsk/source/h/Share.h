@@ -1,66 +1,59 @@
-// share.h
-#ifndef _SHARE_H__
-#define _SHARE_H__
+#ifndef SHARE_H
+#define SHARE_H
 
 #include "doorsbase.h"
-#include <string>
-#include <memory>
+#include <stdint.h>
+#include <stdbool.h>
 
-inline constexpr int MAX_ATTACH_COUNT = 1024;
+#define MAX_ATTACH_COUNT 1024
 
-enum class DsCharsetType {
-    None = 1,
-    GB2312 = 2
-};
+typedef enum {
+    DsCharsetType_None = 1,
+    DsCharsetType_GB2312 = 2
+} DsCharsetType;
 
-enum class DsEncodingMethod {
-    None = 1,
-    Bit8 = 2,
-    Base64 = 3,
-    Bit7 = 4,
-    QP = 5
-};
+typedef enum {
+    DsEncodingMethod_None = 1,
+    DsEncodingMethod_Bit8 = 2,
+    DsEncodingMethod_Base64 = 3,
+    DsEncodingMethod_Bit7 = 4,
+    DsEncodingMethod_QP = 5
+} DsEncodingMethod;
 
-enum class DsContextType {
-    None = 1,
-    TextPlain = 2,
-    TextHtml = 3,
-    AppOct = 4,
-    AppMsWord = 5
-};
+typedef enum {
+    DsContextType_None = 1,
+    DsContextType_TextPlain = 2,
+    DsContextType_TextHtml = 3,
+    DsContextType_AppOct = 4,
+    DsContextType_AppMsWord = 5
+} DsContextType;
 
-enum class DsDisposition {
-    None = 1,
-    Attachment = 2
-};
+typedef enum {
+    DsDisposition_None = 1,
+    DsDisposition_Attachment = 2
+} DsDisposition;
 
-enum class DsAuditStatus {
-    Succeeded = 1,
-    Failed = 2,
-    FailSubject = 3,
-    FailBody = 4,
-    FailAttachment = 5
-};
+typedef enum {
+    DsAuditStatus_Succeeded = 1,
+    DsAuditStatus_Failed = 2,
+    DsAuditStatus_FailSubject = 3,
+    DsAuditStatus_FailBody = 4,
+    DsAuditStatus_FailAttachment = 5
+} DsAuditStatus;
 
-struct BodyPart {
-    DsEncodingMethod encoding = DsEncodingMethod::None;
-    DsContextType contentType = DsContextType::None;
-    int part = 0;
-    int bodyLen = 0;
-    std::unique_ptr<char[]> body;
-    DsDisposition disposition = DsDisposition::None;
-    std::unique_ptr<char[]> attachFileName;
-    std::unique_ptr<BodyPart> next;
+typedef struct BodyPart {
+    DsEncodingMethod encoding;
+    DsContextType contentType;
+    int part;
+    int bodyLen;
+    char* body;
+    DsDisposition disposition;
+    char* attachFileName;
+    struct BodyPart* next;
+} BodyPart;
 
-    BodyPart() = default;
-    BodyPart(const BodyPart&) = delete;
-    BodyPart& operator=(const BodyPart&) = delete;
-    BodyPart(BodyPart&&) noexcept = default;
-    BodyPart& operator=(BodyPart&&) noexcept = default;
-};
+const char* GetEncodingMethodName(DsEncodingMethod method);
+const char* GetContextTypeName(DsContextType type);
+void PrintBodyPartInfo(const BodyPart* part);
 
-using Gap_BodyPart_t = std::unique_ptr<BodyPart>;
-
-#endif // _SHARE_H__
-
-//BY GST ARMV8 GCC 13.2
+#endif // SHARE_H

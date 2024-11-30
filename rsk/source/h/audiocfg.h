@@ -1,32 +1,19 @@
 #ifndef AUDIOCFG_H
 #define AUDIOCFG_H
 
-typedef struct {
-    char serverPassword[64];
-} CAudioCfgData;
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <jansson.h>
 
 typedef struct {
-    CAudioCfgData *business;
-    int business_count;
+    json_t* config_json;
 } CAudioCfgBusiness;
 
-void CAudioCfgBusiness_load(CAudioCfgBusiness *self);
-void CAudioCfgBusiness_saveToJson(CAudioCfgBusiness *self);
-
-
-typedef struct {
-    char deviceID[64];
-    char server[64];
-    int port;
-    char password[64];
-} CAudioCfgData;
-
-typedef struct {
-    CAudioCfgData *business;
-    int business_count;
-} CAudioCfgBusiness;
-
-void CAudioCfgBusiness_load(CAudioCfgBusiness *self);
-void CAudioCfgBusiness_saveToJson(CAudioCfgBusiness *self);
+void init_audio_cfg_business(CAudioCfgBusiness* cfg);
+void free_audio_cfg_business(CAudioCfgBusiness* cfg);
+bool load_audio_cfg_business(CAudioCfgBusiness* cfg);
+const char* get_audio_file_path(const CAudioCfgBusiness* cfg);
 
 #endif // AUDIOCFG_H
