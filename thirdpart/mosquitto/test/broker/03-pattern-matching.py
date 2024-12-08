@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 
 def helper(port, pub_topic):
     connect_packet = mosq_test.gen_connect("test-helper", keepalive=60)
@@ -59,6 +58,7 @@ def pattern_test(sub_topic, pub_topic):
 
     return rc
 
+
 pattern_test("#", "test/topic")
 pattern_test("#", "/test/topic")
 pattern_test("foo/#", "foo/bar/baz")
@@ -85,4 +85,3 @@ pattern_test("foo/foo/baz/#", "foo/foo/baz/bar")
 pattern_test("/#", "////foo///bar")
 
 exit(0)
-

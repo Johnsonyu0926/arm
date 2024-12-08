@@ -1,22 +1,24 @@
 #pragma once
 
+#include <string>
 #include "json.hpp"
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "add_custom_audio_file.hpp"
+#include "spdlog/spdlog.h"
 
 namespace asns {
     class CAudioPlayResult {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioPlayResult, cmd, resultId, msg)
 
-        int do_success() {
+        void do_success() {
             cmd = "AudioPlay";
             resultId = 1;
             msg = "play success";
         }
 
-        int do_fail(std::string str) {
+        void do_fail(const std::string& str) {
             cmd = "AudioPlay";
             resultId = 2;
             msg = str;
@@ -24,9 +26,8 @@ namespace asns {
 
     private:
         std::string cmd;
-        int resultId;
+        int resultId{0};
         std::string msg;
-
     };
 
     class CAudioPlay {
@@ -35,60 +36,67 @@ namespace asns {
 
         int do_req(CSocket *pClient) {
             CAudioCfgBusiness cfg;
-            cfg.load();
+            if (cfg.load() != 0) {
+                return send_failure(pClient, "Failed to load audio configuration");
+            }
+
             CAudioPlayResult audioPlayResult;
             CUtils utils;
-            if (utils.get_process_status("madplay")) {
-                audioPlayResult.do_fail("Existing playback task");
-                json js = audioPlayResult;
-                std::string str = js.dump();
-                pClient->Send(str.c_str(), str.length());
-                return 1;
+
+            if (CUtils::get_process_status("madplay")) {
+                return send_failure(pClient, "Existing playback task");
             }
+
             CAddCustomAudioFileBusiness business;
-            if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
-                audioPlayResult.do_fail("no file");
-            } else if (business.exist(audioName) == false &&
-                       utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
-                audioPlayResult.do_fail("no file");
-            } else if (business.exist(audioName) == false &&
-                       utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName) == false) {
-                audioPlayResult.do_fail("no file");
-            } else if (business.exist(audioName) && utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
-                if (utils.get_process_status("aplay")) {
-                    utils.audio_stop();
-                }
-                switch (playType) {
-                    case 0:
-                        utils.audio_loop_play(cfg.getAudioFilePath() + audioName, ASYNC_START);
-                        break;
-                    case 1: {
-                        if (duration < 1) {
-                            audioPlayResult.do_fail("parameter cannot be less than 1");
-                            break;
-                        }
-                        utils.audio_num_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
-                        break;
-                    }
-                    case 2: {
-                        if (duration < 1) {
-                            audioPlayResult.do_fail("parameter cannot be less than 1");
-                            break;
-                        }
-                        utils.audio_time_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
-                        break;
-                    }
-                }
+            if (!business.exist(audioName) || !utils.find_dir_file_exists(cfg.getAudioFilePath(), audioName)) {
+                return send_failure(pClient, "no file");
             }
-            json js = audioPlayResult;
-            std::string str = js.dump();
-            pClient->Send(str.c_str(), str.length());
+
+            if (CUtils::get_process_status("ffplay")) {
+                AudioPlayUtil::audio_stop();
+            }
+
+            switch (playType) {
+                case 0:
+                    AudioPlayUtil::audio_loop_play(cfg.getAudioFilePath() + audioName, ASYNC_START);
+                    break;
+                case 1:
+                    if (duration < 1) {
+                        return send_failure(pClient, "parameter cannot be less than 1");
+                    }
+                    AudioPlayUtil::audio_num_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
+                    break;
+                case 2:
+                    if (duration < 1) {
+                        return send_failure(pClient, "parameter cannot be less than 1");
+                    }
+                    AudioPlayUtil::audio_time_play(duration, cfg.getAudioFilePath() + audioName, ASYNC_START);
+                    break;
+                default:
+                    return send_failure(pClient, "Invalid play type");
+            }
+
+            audioPlayResult.do_success();
+            return send_response(pClient, audioPlayResult);
         }
 
     private:
         std::string cmd;
         std::string audioName;
-        int playType;
-        int duration;
+        int playType{0};
+        int duration{0};
+
+        int send_failure(CSocket *pClient, const std::string& msg) {
+            CAudioPlayResult audioPlayResult;
+            audioPlayResult.do_fail(msg);
+            return send_response(pClient, audioPlayResult);
+        }
+
+        int send_response(CSocket *pClient, const CAudioPlayResult& result) {
+            json js = result;
+            std::string str = js.dump();
+            spdlog::info("return json: {}", str);
+            return pClient->Send(str.c_str(), str.length());
+        }
     };
-}
+} // namespace asns

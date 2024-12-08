@@ -5,6 +5,7 @@
 
 from mosq_test_helper import *
 
+
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
@@ -19,7 +20,8 @@ def do_test(proto_ver):
 
     rc = 1
     keepalive = 10
-    connect_packet = mosq_test.gen_connect("connect-uname-pwd-test", keepalive=keepalive, username="user", password="password", proto_ver=proto_ver)
+    connect_packet = mosq_test.gen_connect("connect-uname-pwd-test", keepalive=keepalive, username="user",
+                                           password="password", proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), use_conf=True, port=port)

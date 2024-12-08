@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # Test the anonymous group support by adding a group, setting the anon group, adding a role to the group and checking a subscription.
-from mosq_test_helper import *
 import json
 import shutil
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -12,8 +12,10 @@ def write_config(filename, port):
         f.write("plugin ../../plugins/dynamic-security/mosquitto_dynamic_security.so\n")
         f.write("plugin_opt_config_file %d/dynamic-security.json\n" % (port))
 
+
 def command_check(sock, command_payload, expected_response):
-    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0, payload=json.dumps(command_payload))
+    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0,
+                                           payload=json.dumps(command_payload))
     sock.send(command_packet)
     response = json.loads(mosq_test.read_publish(sock))
     if response != expected_response:
@@ -22,64 +24,58 @@ def command_check(sock, command_payload, expected_response):
         raise ValueError(response)
 
 
-
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port)
 
-get_anon_group_none_command = { "commands": [{
+get_anon_group_none_command = {"commands": [{
     "command": "getAnonymousGroup",
-    "correlationData": "2" }]
+    "correlationData": "2"}]
 }
 get_anon_group_none_response = {'responses': [{'command': 'getAnonymousGroup',
-    'data': {'group': {'groupname': ''}},
-    'correlationData': '2'}]}
+                                               'data': {'group': {'groupname': ''}},
+                                               'correlationData': '2'}]}
 
-create_group_set_anon_command = { "commands": [
-    { "command": "createGroup", "groupname": "anon-clients", "correlationData": "3" },
-    { "command": "setAnonymousGroup", "groupname": "anon-clients", "correlationData": "4" }
-    ]
+create_group_set_anon_command = {"commands": [
+    {"command": "createGroup", "groupname": "anon-clients", "correlationData": "3"},
+    {"command": "setAnonymousGroup", "groupname": "anon-clients", "correlationData": "4"}
+]
 }
 create_group_set_anon_response = {'responses': [
     {'command': 'createGroup', 'correlationData': '3'},
     {'command': 'setAnonymousGroup', 'correlationData': '4'},
-    ]}
+]}
 
-
-get_anon_group_command = { "commands": [{
+get_anon_group_command = {"commands": [{
     "command": "getAnonymousGroup",
-    "correlationData": "3" }]
+    "correlationData": "3"}]
 }
 get_anon_group_response = {'responses': [{'command': 'getAnonymousGroup',
-    'data': {'group': {'groupname': 'anon-clients'}},
-    'correlationData': '3'}]}
+                                          'data': {'group': {'groupname': 'anon-clients'}},
+                                          'correlationData': '3'}]}
 
-
-create_role_apply_command = { "commands": [
-    { "command": "createRole", "rolename": "anon", "correlationData": "4" },
-    { "command": "addRoleACL", "rolename": "anon",
-		"acltype": "subscribeLiteral", "topic": "anon/topic", "allow": True,
-        "correlationData": "5" },
-    { "command": "addGroupRole", "groupname": "anon-clients",
-        "rolename": "anon", "correlationData": "6"}
-    ]
+create_role_apply_command = {"commands": [
+    {"command": "createRole", "rolename": "anon", "correlationData": "4"},
+    {"command": "addRoleACL", "rolename": "anon",
+     "acltype": "subscribeLiteral", "topic": "anon/topic", "allow": True,
+     "correlationData": "5"},
+    {"command": "addGroupRole", "groupname": "anon-clients",
+     "rolename": "anon", "correlationData": "6"}
+]
 }
 create_role_apply_response = {'responses': [
     {'command': 'createRole', 'correlationData': '4'},
     {'command': 'addRoleACL', 'correlationData': '5'},
     {'command': 'addGroupRole', 'correlationData': '6'}
-    ]}
+]}
 
-
-delete_anon_group_command = { "commands": [
-    { "command": "deleteGroup", "groupname": "anon-clients", "correlationData": "40" }
-    ]
+delete_anon_group_command = {"commands": [
+    {"command": "deleteGroup", "groupname": "anon-clients", "correlationData": "40"}
+]
 }
 delete_anon_group_response = {'responses': [
-    {'command': 'deleteGroup', "error":'Deleting the anonymous group is forbidden', 'correlationData': '40'}
-    ]}
-
-
+    {'command': 'deleteGroup', "error": 'Deleting the anonymous group is forbidden', 'correlationData': '40'}
+]}
 
 rc = 1
 keepalive = 10
@@ -165,6 +161,5 @@ finally:
     (stdo, stde) = broker.communicate()
     if rc:
         print(stde.decode('utf-8'))
-
 
 exit(rc)

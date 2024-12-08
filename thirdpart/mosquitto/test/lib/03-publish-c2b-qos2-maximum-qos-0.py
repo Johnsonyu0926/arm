@@ -2,8 +2,6 @@
 
 # Test whether a client correctly handles sending a message with QoS > maximum QoS.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
@@ -25,7 +23,6 @@ sock.settimeout(10)
 sock.bind(('', port))
 sock.listen(5)
 
-
 client_args = sys.argv[1:]
 env = dict(os.environ)
 env['LD_LIBRARY_PATH'] = '../../lib:../../lib/cpp'
@@ -33,9 +30,8 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
-
 
 try:
     (conn, address) = sock.accept()

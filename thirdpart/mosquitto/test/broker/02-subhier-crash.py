@@ -2,8 +2,6 @@
 
 # Test related to https://github.com/eclipse/mosquitto/issues/505
 
-from mosq_test_helper import *
-
 rc = 1
 keepalive = 60
 connect_packet = mosq_test.gen_connect("subhier-crash", keepalive=keepalive)
@@ -23,9 +21,9 @@ unsuback1_packet = mosq_test.gen_unsuback(mid)
 
 disconnect_packet = mosq_test.gen_disconnect()
 
-
 port = mosq_test.get_port()
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)
+
 
 def test():
     sock = mosq_test.do_client_connect(connect_packet, connack_packet, port=port)
@@ -56,4 +54,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

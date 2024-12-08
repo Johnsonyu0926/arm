@@ -5,10 +5,11 @@ import gtk
 import mosquitto
 import sys
 
+
 class CurrentCostMQTT(gnomeapplet.Applet):
     def on_message(self, mosq, obj, msg):
         # Message format is "power"
-        self.label.set_text(msg.payload+"W")
+        self.label.set_text(msg.payload + "W")
 
     def set_label(self, val):
         self.label.set_text(val)
@@ -25,7 +26,8 @@ class CurrentCostMQTT(gnomeapplet.Applet):
             applet.set_style(style)
 
     def show_menu(self, widget, event):
-        print "menu"
+        print
+        "menu"
 
     def __init__(self, applet, iid):
         self.applet = applet
@@ -44,22 +46,24 @@ class CurrentCostMQTT(gnomeapplet.Applet):
         self.mosq.subscribe("sensors/cc128/ch1", 0)
         self.applet.connect('change-background', self.on_change_background)
 
+
 def CurrentCostMQTT_factory(applet, iid):
     CurrentCostMQTT(applet, iid)
     return gtk.TRUE
 
+
 if len(sys.argv) == 2:
-    if sys.argv[1] == "-d": #Debug mode
+    if sys.argv[1] == "-d":  # Debug mode
         main_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         main_window.set_title("Python Applet")
         main_window.connect("destroy", gtk.main_quit)
         app = gnomeapplet.Applet()
-        CurrentCostMQTT_factory(app,None)
+        CurrentCostMQTT_factory(app, None)
         app.reparent(main_window)
         main_window.show_all()
         gtk.main()
         sys.exit()
 
 if __name__ == '__main__':
-    gnomeapplet.bonobo_factory("OAFIID:CurrentCostMQTT_Factory", gnomeapplet.Applet.__gtype__, "MQTT", "0", CurrentCostMQTT_factory)
-
+    gnomeapplet.bonobo_factory("OAFIID:CurrentCostMQTT_Factory", gnomeapplet.Applet.__gtype__, "MQTT", "0",
+                               CurrentCostMQTT_factory)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
-
 port = mosq_test.get_port()
 
 rc = 1

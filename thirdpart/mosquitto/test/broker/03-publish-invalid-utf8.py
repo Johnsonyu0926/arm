@@ -2,7 +2,6 @@
 
 # Test whether a PUBLISH to a topic with an invalid UTF-8 topic fails
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -12,9 +11,9 @@ def do_test(proto_ver):
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     publish_packet = mosq_test.gen_publish("invalid/utf8", 1, mid=mid, proto_ver=proto_ver)
-    b = list(struct.unpack("B"*len(publish_packet), publish_packet))
-    b[11] = 0 # Topic should never have a 0x0000
-    publish_packet = struct.pack("B"*len(b), *b)
+    b = list(struct.unpack("B" * len(publish_packet), publish_packet))
+    b[11] = 0  # Topic should never have a 0x0000
+    publish_packet = struct.pack("B" * len(b), *b)
 
     puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver)
 
@@ -49,4 +48,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

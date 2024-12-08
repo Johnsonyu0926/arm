@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/time.h>
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
@@ -210,7 +210,7 @@ BOOL CSocket::Create(IN SOCKTYPE nSockType)
 		m_hSocket = socket(AF_INET, SOCK_DGRAM, 0);
 		break;
 	case ARP:
-		m_hSocket = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ARP));
+		m_hSocket = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ARP));    // NOLINT
 		if (m_hSocket > 0)
 		{
 			int optval = 1;
@@ -223,7 +223,7 @@ BOOL CSocket::Create(IN SOCKTYPE nSockType)
 		}
 		break;
 	case ALL:
-		m_hSocket = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ALL));
+		m_hSocket = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ALL));  // NOLINT
 		if (m_hSocket > 0)
 		{
 			int optval = 1;
@@ -286,7 +286,7 @@ BOOL CSocket::Connect(DWORD dwIp, int nPort)
 	if (nErrorCode < 0)
 	{
 		m_bConnected = FALSE;
-		int nError = errno;
+		int nError = (*__error());
 		DS_TRACE("[ERROR/CSocket::Create] Connect failed. errno=" << nError << ",strerror()=" << strerror(nError));
 		return FALSE;
 	}
@@ -320,7 +320,7 @@ BOOL CSocket::ConnectTimeOut(const char *szIp, unsigned short nPort, long timeou
 
 	int n;
 	struct sockaddr_in server;
-	//Á¬½Ó
+	//ï¿½ï¿½ï¿½ï¿½
 	server.sin_family = AF_INET;
 	server.sin_port = htons(nPort);
 	server.sin_addr.s_addr = inet_addr(szAddress);
@@ -1112,7 +1112,7 @@ BOOL CDsList::SetSize(int nNewSize)
 
 	if (nNewSize == 0)
 	{
-		//±íÊ¾È«Çå¿Õ
+		//ï¿½ï¿½Ê¾È«ï¿½ï¿½ï¿½
 		// DS_TRACE("[CDsList::CDsList] SetSize begin... nNewSize ==0 delete all node. ");
 		if (m_pData)
 			free(m_pData);
@@ -3211,14 +3211,14 @@ unsigned char HexToDec(char szHex)
 }
 
 /*
-** º¯Êý£ºAscIIToBin()
-** ×÷ÓÃ£º
-** ½«asciiÐÎÊ½µÄ×Ö·û´®1f×ª³É¶þ½øÖÆbin¸ñÊ½£º0x1f
+** ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½AscIIToBin()
+** ï¿½ï¿½ï¿½Ã£ï¿½
+** ï¿½ï¿½asciiï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½1f×ªï¿½É¶ï¿½ï¿½ï¿½ï¿½ï¿½binï¿½ï¿½Ê½ï¿½ï¿½0x1f
 */
 
 unsigned char AscIIToBin(char *szAscII)
 {
-	/*assert(strlen(szAscII)==2);*/ /*È·±£ÎªÁ½¸ö×Ö½ÚµÄ×Ö·û´®*/
+	/*assert(strlen(szAscII)==2);*/ /*È·ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ö½Úµï¿½ï¿½Ö·ï¿½ï¿½ï¿½*/
 
 	return HexToDec(szAscII[0]) * 16 + HexToDec(szAscII[1]);
 }

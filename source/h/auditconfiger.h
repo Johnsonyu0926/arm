@@ -1,65 +1,52 @@
 #ifndef __CAUDIT_CONFIGER_H__
 #define __CAUDIT_CONFIGER_H__
 
-class CAuditConfiger
-{
+#include <memory>
+#include "CDsList.h"
+#include "spdlog/spdlog.h"
+
+class CAuditConfiger {
 public:
-	CDsList* GetAttaList(){
-		return m_pAttaList;
-	}
+    CAuditConfiger() 
+        : m_pAttaList(std::make_unique<CDsList>()), 
+          m_pContList(std::make_unique<CDsList>()) {
+        spdlog::info("CAuditConfiger initialized");
+    }
 
-	CDsList* GetContList(){
-		return m_pContList;
-	}
-	int GetAttaCheckMode() {
-		return m_nAttaCheckMode;
-	}
+    ~CAuditConfiger() = default;
 
-	int GetContCheckMode(){
-		return m_nContCheckMode;
-	}
+    CDsList* GetAttaList() const {
+        return m_pAttaList.get();
+    }
 
-public:
-	CAuditConfiger(){
-		m_pAttaList = new CDsList();
-		m_pContList = new CDsList();
-	}
-	~CAuditConfiger(){
-		if(m_pAttaList)
-		{
-			for(int i=0;i<m_pAttaList->GetCount();i++)	
-			{
-				char* pAtta = (char*)m_pAttaList->ElementAt(i);
-				delete []pAtta;
-	
-			}	
-			m_pAttaList->RemoveAll();
-			delete m_pAttaList;	
-			m_pAttaList = NULL;
-		}
-		if(m_pContList)	
-		{
-			for(int i=0;i<m_pContList->GetCount();i++)	
-			{
-				char* pCont = (char*)m_pContList->ElementAt(i);
-				delete []pCont;
-	
-			}	
-			m_pContList->RemoveAll();
-			delete m_pContList;	
-			m_pContList = NULL;
-			
-		}
-	}
+    CDsList* GetContList() const {
+        return m_pContList.get();
+    }
+
+    int GetAttaCheckMode() const {
+        return m_nAttaCheckMode;
+    }
+
+    int GetContCheckMode() const {
+        return m_nContCheckMode;
+    }
 
 private:
-	CDsList* m_pAttaList;
-	CDsList* m_pContList;
-	int m_nAttaCheckMode;
-	int m_nContCheckMode;
-	
+    void clearList(std::unique_ptr<CDsList>& list) {
+        if (list) {
+            for (int i = 0; i < list->GetCount(); ++i) {
+                char* item = static_cast<char*>(list->ElementAt(i));
+                delete[] item;
+            }
+            list->RemoveAll();
+            spdlog::info("List cleared");
+        }
+    }
 
-public:
-	BOOL Init(char* szConf);
+    std::unique_ptr<CDsList> m_pAttaList;
+    std::unique_ptr<CDsList> m_pContList;
+    int m_nAttaCheckMode{0};
+    int m_nContCheckMode{0};
 };
-#endif
+
+#endif // __CAUDIT_CONFIGER_H__

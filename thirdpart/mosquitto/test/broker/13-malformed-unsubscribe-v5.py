@@ -3,9 +3,8 @@
 # Test whether the broker handles malformed packets correctly - UNSUBSCRIBE
 # MQTTv5
 
-from mosq_test_helper import *
-
 rc = 1
+
 
 def do_test(unsubscribe_packet, reason_code, error_string):
     global rc
@@ -55,7 +54,8 @@ try:
 
     # Truncated packet, with properties field, empty topic
     unsubscribe_packet = struct.pack("!BBHHH", 162, 5, 1, 0, 0)
-    do_test(unsubscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with properties field, empty topic")
+    do_test(unsubscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET,
+            "Truncated packet, with properties field, empty topic")
 
     # Bad topic
     unsubscribe_packet = mosq_test.gen_unsubscribe(topic="#/test/topic", mid=1, proto_ver=5)

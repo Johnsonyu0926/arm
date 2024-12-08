@@ -5,12 +5,12 @@
 # received.
 # https://github.com/eclipse/mosquitto/issues/1402
 
-from mosq_test_helper import *
 import signal
 
 if sys.version < '2.7':
     print("WARNING: SSL not supported on Python 2.6")
     exit(0)
+
 
 def write_config(filename, pw_file, port, option):
     with open(filename, 'w') as f:
@@ -22,10 +22,13 @@ def write_config(filename, pw_file, port, option):
         f.write("%s true\n" % (option))
         f.write("password_file %s\n" % (pw_file))
 
+
 def write_pwfile(filename):
     with open(filename, 'w') as f:
         # Username "test client", password test
-        f.write('test client:$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==\n')
+        f.write(
+            'test client:$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==\n')
+
 
 def do_test(option):
     port = mosq_test.get_port()
@@ -70,7 +73,7 @@ def do_test(option):
             print(stde.decode('utf-8'))
             exit(rc)
 
+
 do_test("use_identity_as_username")
 do_test("use_subject_as_username")
 exit(0)
-

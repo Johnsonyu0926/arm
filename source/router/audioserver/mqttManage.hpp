@@ -1,16 +1,17 @@
+//mqttmanage.hpp
 #pragma once
 
 #include "mqtt.hpp"
 #include <thread>
 #include "audiocfg.hpp"
-#include "volume.hpp"
+#include "MqttConfig.hpp"
 
 class MqttManage {
 public:
-    MqttManage() {}
+    MqttManage() = default;
 
     void start() {
-        DS_TRACE("------------------mqtt start----------------------");
+        LOG(INFO) << "------------------mqtt start----------------------";
         asns::CAudioCfgBusiness cfg;
         cfg.load();
         name = cfg.business[0].devName;
@@ -20,42 +21,44 @@ public:
         imei = cfg.business[0].serial;
         env = cfg.business[0].env;
 
-        DS_TRACE("env:" << env.c_str() << " imei:" << imei.c_str());
-        CVolumeSet volumeSet;
-        volumeSet.setVolume(3);
-        volumeSet.addj(3);
-        volumeSet.saveToJson();
+        LOG(INFO) << "env:" << env.c_str() << " imei:" << imei;
 
         mosqpp::lib_init();
 
         MQTT mqtt;
+        MqttConfig mqtt_config;
+        if (mqtt_config.load_file()) {
+            mqtt.publish_topic = mqtt_config.get_publish_topic();
+            mqtt.request_topic = mqtt_config.get_request_topic();
+        }
         mqtt.publish_topic += env;
         mqtt.publish_topic += "/";
         mqtt.publish_topic += imei;
         mqtt.username_pw_set(name.c_str(), pwd.c_str());
 
-        DS_TRACE("begin connectting mqtt server :" << server.c_str() << ", port:" << port);
+        LOG(INFO) << "begin connectting mqtt server :" << server << ", port:" << port;
         int rc;
         while (true) {
             rc = mqtt.connect(server.c_str(), port);
             if (MOSQ_ERR_ERRNO == rc) {
-                DS_TRACE("mqtt connect error: " << mosqpp::strerror(rc));
+                LOG(INFO) << "mqtt connect error: " << mosqpp::strerror(rc);
                 std::this_thread::sleep_for(std::chrono::seconds(10));
             } else if (MOSQ_ERR_SUCCESS == rc) {
                 break;
             }
         }
         if (MOSQ_ERR_SUCCESS == rc) {
-            std::string reStr = ServiceManage::instance().boot();
-            mqtt.publish(nullptr, mqtt.publish_topic.c_str(), reStr.length(), reStr.c_str());
-            DS_TRACE("publish_topic:" << mqtt.publish_topic.c_str());
-            mqtt.heartBeat();
-            //订阅主题
             mqtt.request_topic += env;
             mqtt.request_topic += "/";
+            asns::REQUEST_TOPIC = mqtt.request_topic;
             mqtt.request_topic += imei;
+            std::string reStr = ServiceManage::instance().boot();
+            mqtt.publish(nullptr, mqtt.publish_topic.c_str(), reStr.length(), reStr.c_str());
+            LOG(INFO) << "publish_topic:" << mqtt.publish_topic;
+            mqtt.heartBeat();
+            //订阅主题
             mqtt.subscribe(nullptr, mqtt.request_topic.c_str());
-            DS_TRACE("Subscribe to:" << mqtt.request_topic.c_str());
+            LOG(INFO) << "Subscribe to:" << mqtt.request_topic;
             //此函数在无限阻塞循环中为您调用 loop（）。但不能在回调中调用它。
             mqtt.loop_forever();
         }

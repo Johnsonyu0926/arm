@@ -2,15 +2,12 @@
 
 # Check whether the v5 message callback gets the properties
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
 keepalive = 60
 connect_packet = mosq_test.gen_connect("prop-test", keepalive=keepalive, proto_ver=5)
 connack_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
-
 
 mid = 1
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_CONTENT_TYPE, "plain/text")
@@ -37,7 +34,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:

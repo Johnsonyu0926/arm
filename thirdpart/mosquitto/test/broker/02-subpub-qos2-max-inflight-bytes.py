@@ -5,7 +5,6 @@
 # RECEIVE-MAXIMUM and max_inflight_bytes are set.
 # MQTT v5
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -22,8 +21,8 @@ def send_small(port):
     sock = mosq_test.do_client_connect(connect_packet, connack_packet, port=port)
 
     for i in range(0, 10):
-        mid = 1+i
-        publish_packet = mosq_test.gen_publish("subpub/qos2", qos=2, mid=mid, payload=str(i+1))
+        mid = 1 + i
+        publish_packet = mosq_test.gen_publish("subpub/qos2", qos=2, mid=mid, payload=str(i + 1))
         pubrec_packet = mosq_test.gen_pubrec(mid)
         pubrel_packet = mosq_test.gen_pubrel(mid)
         pubcomp_packet = mosq_test.gen_pubcomp(mid)
@@ -59,7 +58,8 @@ def do_test(proto_ver):
         # Repeat many times to stress the send quota
         mid = 0
         for i in range(0, 12):
-            pub = subprocess.Popen(['./02-subpub-qos2-receive-maximum-helper.py', str(port)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            pub = subprocess.Popen(['./02-subpub-qos2-receive-maximum-helper.py', str(port)], stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
             pub.wait()
             (stdo, stde) = pub.communicate()
 
@@ -80,7 +80,6 @@ def do_test(proto_ver):
             pubrec_packet3 = mosq_test.gen_pubrec(mid, proto_ver=5)
             pubrel_packet3 = mosq_test.gen_pubrel(mid, proto_ver=5)
             pubcomp_packet3 = mosq_test.gen_pubcomp(mid, proto_ver=5)
-
 
             mosq_test.expect_packet(sock, "publish1", publish_packet1)
             mosq_test.expect_packet(sock, "publish2", publish_packet2)
@@ -133,7 +132,7 @@ def do_test(proto_ver):
         mosq_test.expect_packet(sock, "publish3s", publish_packet3)
         mosq_test.expect_packet(sock, "publish4s", publish_packet4)
         mosq_test.expect_packet(sock, "publish5s", publish_packet5)
-        
+
         mosq_test.do_send_receive(sock, pubrec_packet1, pubrel_packet1, "pubrel1s")
         mosq_test.do_send_receive(sock, pubrec_packet2, pubrel_packet2, "pubrel2s")
         mosq_test.do_send_receive(sock, pubrec_packet3, pubrel_packet3, "pubrel3s")
@@ -153,7 +152,7 @@ def do_test(proto_ver):
         broker.wait()
         (stdo, stde) = broker.communicate()
         if rc:
-            #print(stde.decode('utf-8'))
+            # print(stde.decode('utf-8'))
             print("proto_ver=%d" % (proto_ver))
             exit(rc)
 

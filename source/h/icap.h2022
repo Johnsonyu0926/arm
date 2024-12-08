@@ -1,0 +1,78 @@
+#ifndef __ICAP_H__
+#define __ICAP_H__
+
+#include "doorsbase.h"
+#include <cstring>
+
+struct ContentList {
+    char* Content{nullptr};
+    int ContentLen{0};
+    int id{0};
+    ContentList* Next{nullptr};
+};
+
+class CIcap {
+public:
+    CIcap() {
+        MyList = new ContentList;
+        pList = MyList;
+    }
+
+    ~CIcap() {
+        if (m_pContent) {
+            delete[] m_pContent;
+            m_pContent = nullptr;
+        }
+        ReleaseList();
+    }
+
+    void AddContent(char* szContent, int nLen) {
+        DS_TRACE("ADD CONTENT \n" << count);
+        count++;
+        auto* NewNode = new ContentList;
+        NewNode->Content = szContent;
+        NewNode->ContentLen = nLen;
+        NewNode->id = count;
+        NewNode->Next = nullptr;
+        pList->Next = NewNode;
+        pList = pList->Next;
+        m_nContentLen += nLen;
+    }
+
+    void SetIcapServer(const char* szServer, int nServerPort) {
+        strncpy(m_szIcapServer, szServer, sizeof(m_szIcapServer) - 1);
+        m_szIcapServer[sizeof(m_szIcapServer) - 1] = '\0';
+        m_nIcapServerPort = nServerPort;
+    }
+
+    BOOL RespMod(char* pszAddress, int argflag, char* szVirus, int nLen);
+    
+    void PrintContent() const {
+        for (int i = 0; i < count; ++i) {
+            DS_TRACE("I IS : " << i);
+        }
+    }
+
+    BOOL ReleaseList() {
+        ContentList* current = MyList;
+        while (current != nullptr) {
+            ContentList* next = current->Next;
+            delete current;
+            current = next;
+        }
+        MyList = nullptr;
+        pList = nullptr;
+        return TRUE;
+    }
+
+private:
+    char* m_pContent{nullptr};
+    int m_nContentLen{0};
+    char m_szIcapServer[32]{};
+    int m_nIcapServerPort{0};
+    ContentList* MyList{nullptr};
+    ContentList* pList{nullptr};
+    int count{0};
+};
+
+#endif // __ICAP_H__

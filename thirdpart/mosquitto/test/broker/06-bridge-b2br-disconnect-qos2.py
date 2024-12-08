@@ -2,7 +2,6 @@
 
 # Does a bridge resend a QoS=1 message correctly after a disconnect?
 
-from mosq_test_helper import *
 
 def write_config(filename, port1, port2, protocol_version):
     with open(filename, 'w') as f:
@@ -15,10 +14,11 @@ def write_config(filename, port1, port2, protocol_version):
         f.write("restart_timeout 5\n")
         f.write("bridge_protocol_version %s\n" % (protocol_version))
 
+
 def do_test(proto_ver):
     if proto_ver == 4:
         bridge_protocol = "mqttv311"
-        proto_ver_connect = 128+4
+        proto_ver_connect = 128 + 4
     else:
         bridge_protocol = "mqttv50"
         proto_ver_connect = 5
@@ -29,8 +29,9 @@ def do_test(proto_ver):
 
     rc = 1
     keepalive = 60
-    client_id = socket.gethostname()+".bridge_sample"
-    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=proto_ver_connect)
+    client_id = socket.gethostname() + ".bridge_sample"
+    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False,
+                                           proto_ver=proto_ver_connect)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     if proto_ver == 5:
@@ -51,8 +52,10 @@ def do_test(proto_ver):
     suback3_packet = mosq_test.gen_suback(mid, 2, proto_ver=proto_ver)
 
     mid = 5
-    publish_packet = mosq_test.gen_publish("bridge/disconnect/test", qos=2, mid=mid, payload="disconnect-message", proto_ver=proto_ver)
-    publish_dup_packet = mosq_test.gen_publish("bridge/disconnect/test", qos=2, mid=mid, payload="disconnect-message", dup=True, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("bridge/disconnect/test", qos=2, mid=mid, payload="disconnect-message",
+                                           proto_ver=proto_ver)
+    publish_dup_packet = mosq_test.gen_publish("bridge/disconnect/test", qos=2, mid=mid, payload="disconnect-message",
+                                               dup=True, proto_ver=proto_ver)
     pubrec_packet = mosq_test.gen_pubrec(mid, proto_ver=proto_ver)
     pubrel_packet = mosq_test.gen_pubrel(mid, proto_ver=proto_ver)
     pubcomp_packet = mosq_test.gen_pubcomp(mid, proto_ver=proto_ver)
@@ -131,4 +134,3 @@ do_test(proto_ver=4)
 do_test(proto_ver=5)
 
 exit(0)
-

@@ -4,8 +4,6 @@
 # The client should try to publish a message that is too big, then the one below which is ok.
 # It should also try to subscribe with a too large topic
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
@@ -18,7 +16,6 @@ bad_publish_packet = mosq_test.gen_publish("pub/test", qos=0, payload="012345678
 publish_packet = mosq_test.gen_publish("pub/test", qos=0, payload="012345678901234567", proto_ver=5)
 
 disconnect_packet = mosq_test.gen_disconnect()
-
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -33,7 +30,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:

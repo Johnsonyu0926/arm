@@ -16,11 +16,11 @@ mid = 1
 subscribe_packet = mosq_test.gen_subscribe(mid, "test/topic", 1, proto_ver=5)
 suback_packet = mosq_test.gen_suback(mid, 1, proto_ver=5)
 
-mid=1
+mid = 1
 publish1_packet = mosq_test.gen_publish(topic="test/topic", mid=mid, qos=1, payload="12345678901234567890", proto_ver=5)
 puback1_packet = mosq_test.gen_puback(mid, proto_ver=5)
 
-mid=2
+mid = 2
 publish2_packet = mosq_test.gen_publish(topic="test/topic", mid=mid, qos=1, payload="7890", proto_ver=5)
 puback2_packet = mosq_test.gen_puback(mid, proto_ver=5)
 
@@ -49,4 +49,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

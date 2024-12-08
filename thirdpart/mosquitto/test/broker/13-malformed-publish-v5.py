@@ -3,9 +3,8 @@
 # Test whether the broker handles malformed packets correctly - PUBLISH
 # MQTTv5
 
-from mosq_test_helper import *
-
 rc = 1
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -13,6 +12,7 @@ def write_config(filename, port):
         f.write("allow_anonymous true\n")
         f.write("maximum_qos 1\n")
         f.write("retain_available false\n")
+
 
 def do_test(publish_packet, reason_code, error_string):
     global rc
@@ -77,11 +77,11 @@ try:
     do_test(publish_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with topic, no properties")
 
     # Truncated packet, with topic, no mid
-    publish_packet = struct.pack("!BBH1s", 48+2, 3, 1, b"a")
+    publish_packet = struct.pack("!BBH1s", 48 + 2, 3, 1, b"a")
     do_test(publish_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with topic, no mid")
 
     # Truncated packet, with topic, with mid, no properties
-    publish_packet = struct.pack("!BBH1sH", 48+2, 5, 1, b"a", 1)
+    publish_packet = struct.pack("!BBH1sH", 48 + 2, 5, 1, b"a", 1)
     do_test(publish_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with topic, with mid, no properties")
 
     # Bad topic

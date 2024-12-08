@@ -1,0 +1,33 @@
+#ifndef __CQSEARCH_H__
+#define __CQSEARCH_H__
+
+#include <qsearch.h>
+#include "doorsbase.h"
+
+class CQSearch {
+public:
+    CQSearch() = default;
+
+    ~CQSearch() {
+        qsearch_destructor(m_obj);
+        DS_TRACE("[CQSearch::~CQSearch] unload the plugin...");
+        qsearch_unload_plugin(m_plugin);
+    }
+
+    void AddContent(const char* szContent);
+    BOOL Init(const char* szPlugin, const char* szAlgo, const char* szFile);
+    BOOL Search(const char* pBuf, int nSize, char* szFoundKey, int nSize);
+
+private:
+    static int cb(void* cb_data, void* ptrn_data, size_t match_offset);
+
+    qsearch_plugin_t* m_plugin{nullptr};
+    qsearch_algo_t* m_algo{nullptr};
+    qsearch_algo_t** m_list{nullptr};
+    qsearch_obj_t* m_obj{nullptr};
+
+    static inline BOOL m_bFound{false};
+    static inline char m_szFoundKey[128]{};
+};
+
+#endif // __CQSEARCH_H__

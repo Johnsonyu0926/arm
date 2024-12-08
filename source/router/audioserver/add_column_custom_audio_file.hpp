@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <optional>
+#include <string>
 #include "audiocfg.hpp"
 #include "json.hpp"
 #include "utils.h"
@@ -25,17 +28,18 @@ namespace asns {
             return fileName;
         }
 
-        void setType(const int type){
+        void setType(int type) {
             this->type = type;
         }
-        void setSize(const int size){
+
+        void setSize(int size) {
             this->size = size;
         }
 
     public:
-        int type;
+        int type{0};
         std::string fileName;
-        int size;
+        int size{0};
     };
 
     class CAddColumnCustomAudioFileBusiness {
@@ -43,56 +47,59 @@ namespace asns {
         CAddColumnCustomAudioFileBusiness() {
             CAudioCfgBusiness business;
             business.load();
-            filePath = business.business[0].savePrefix + ADD_COLUMN_CUSTOM_AUDIO_FILE;
+            if (!business.business.empty()) {
+                filePath = business.business[0].savePrefix + ADD_COLUMN_CUSTOM_AUDIO_FILE;
+            }
         }
 
         std::string getFilePath() const {
             return filePath;
         }
 
-        void updateSize(const std::string name, const int size) {
-            Columnload();
-            for (auto &it: business) {
-                if (it.getName() == name) {
-                    it.size = size;
-                    saveJson();
-                    break;
+        void updateSize(const std::string& name, int size) {
+            if (Columnload()) {
+                for (auto &it : business) {
+                    if (it.getName() == name) {
+                        it.setSize(size);
+                        saveJson();
+                        break;
+                    }
                 }
             }
-
         }
 
-        int Columnload() {
+        bool Columnload() {
             std::ifstream i(filePath);
             if (!i.is_open()) {
-                return 0;
+                return false;
             }
             json js;
             try {
                 i >> js;
-                DS_TRACE(js.dump().c_str());
-                business = js;
+                LOG(INFO) << js.dump();
+                business = js.get<std::vector<CAddColumnCustomAudioFileData>>();
             } catch (json::parse_error &ex) {
-                std::cerr << "parse error at byte " << ex.byte << std::endl;
+                LOG(ERROR) << "parse error at byte " << ex.byte;
                 i.close();
-                return 0;
+                return false;
             }
             i.close();
+            return true;
         }
 
-        int load() {
+        bool load() {
             std::ifstream i(filePath);
             if (!i.is_open()) {
-                return 0;
+                return false;
             }
             json js;
             try {
                 i >> js;
-                business = js;
+                business = js.get<std::vector<CAddColumnCustomAudioFileData>>();
             } catch (json::parse_error &ex) {
-                std::cerr << "parse error at byte " << ex.byte << std::endl;
+                LOG(ERROR) << "parse error at byte " << ex.byte;
                 i.close();
-                return 0;
+                return false;
             }
             i.close();
             CUtils utils;
@@ -100,7 +107,7 @@ namespace asns {
             cfgBusiness.load();
             CAddCustomAudioFileBusiness bus;
             bus.load();
-            for (const auto &it: bus.business) {
+            for (const auto &it : bus.business) {
                 CAddColumnCustomAudioFileData data;
                 data.setName(it.customAudioName);
                 std::string path = cfgBusiness.getAudioFilePath() + it.customAudioName;
@@ -108,59 +115,69 @@ namespace asns {
                 data.setSize(utils.get_file_size(path));
                 this->business.push_back(data);
             }
+            return true;
         }
 
-        void saveJson() {
+        void saveJson() const {
             std::ofstream o(filePath);
+            if (!o.is_open()) {
+                LOG(ERROR) << "Failed to open file for writing: " << filePath;
+                return;
+            }
             json js = business;
             o << js << std::endl;
             o.close();
         }
 
-        int isNameEmpty(const std::string &name) {
-            load();
-            for (const auto &it: business) {
-                if (it.getName() == name) {
-                    return 1;
+        bool isNameEmpty(const std::string &name) {
+            if (load()) {
+                for (const auto &it : business) {
+                    if (it.getName() == name) {
+                        return true;
+                    }
                 }
-            }
 
-            CAddCustomAudioFileBusiness bus;
-            bus.load();
-            for (const auto &it: bus.business) {
-                if (it.filename == name) {
-                    return 1;
+                CAddCustomAudioFileBusiness bus;
+                bus.load();
+                for (const auto &it : bus.business) {
+                    if (it.filename == name) {
+                        return true;
+                    }
                 }
             }
-            return 0;
+            return false;
         }
 
-        int deleteAudio(std::string name) {
-            this->Columnload();
-            for (auto it = business.begin(); it != business.end(); ++it) {
-                if (it->getName() == name) {
-                    char cmd[256];
-                    CAudioCfgBusiness cfg;
-                    cfg.load();
+        bool deleteAudio(const std::string& name) {
+            if (Columnload()) {
+                for (auto it = business.begin(); it != business.end(); ++it) {
+                    if (it->getName() == name) {
+                        CAudioCfgBusiness cfg;
+                        cfg.load();
 
-                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
-                    system(cmd);
-                    business.erase(it);
-                    this->saveJson();
-                    return 1;
+                        std::string cmd = "rm " + cfg.getAudioFilePath() + name;
+                        if (system(cmd.c_str()) == -1) {
+                            LOG(ERROR) << "Failed to execute command: " << cmd;
+                            return false;
+                        }
+                        business.erase(it);
+                        saveJson();
+                        return true;
+                    }
                 }
             }
-            return 0;
+            return false;
         }
 
-        int exist(std::string &name) {
-            Columnload();
-            for (auto it = business.begin(); it != business.end(); ++it) {
-                if (it->getName() == name) {
-                    return 1;
+        bool exist(const std::string& name) {
+            if (Columnload()) {
+                for (const auto &busines : business) {
+                    if (busines.getName() == name) {
+                        return true;
+                    }
                 }
             }
-            return 0;
+            return false;
         }
 
     public:
@@ -168,4 +185,4 @@ namespace asns {
         std::string filePath;
     };
 
-} // namespace asms
+} // namespace asns

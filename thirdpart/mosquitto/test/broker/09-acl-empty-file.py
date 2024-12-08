@@ -2,8 +2,6 @@
 
 # Test for CVE-2018-xxxxx
 
-from mosq_test_helper import *
-import signal
 
 def write_config(filename, port, per_listener):
     with open(filename, 'w') as f:
@@ -11,6 +9,7 @@ def write_config(filename, port, per_listener):
         f.write("port %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("acl_file %s\n" % (filename.replace('.conf', '.acl')))
+
 
 def write_acl(filename):
     with open(filename, 'w') as f:
@@ -59,6 +58,7 @@ def do_test(port, per_listener):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 port = mosq_test.get_port()
 do_test(port, "false")

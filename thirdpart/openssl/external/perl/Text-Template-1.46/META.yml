@@ -17,5 +17,5 @@ no_index:
   directory:
     - t
     - inc
-requires: {}
+requires: { }
 version: 1.46

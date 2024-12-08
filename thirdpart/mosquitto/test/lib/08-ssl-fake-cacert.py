@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 if sys.version < '2.7':
@@ -25,7 +23,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:
@@ -50,4 +48,3 @@ if client.returncode == 0:
     exit(0)
 else:
     exit(1)
-

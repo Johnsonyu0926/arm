@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import mosq_test_helper
 import ptest
 
 tests = [
@@ -58,7 +57,6 @@ tests = [
     (1, ['./11-prop-send-content-type.py', 'c/11-prop-send-content-type.test']),
     (1, ['./11-prop-send-payload-format.py', 'c/11-prop-send-payload-format.test']),
 
-
     (1, ['./01-con-discon-success.py', 'cpp/01-con-discon-success.test']),
     (1, ['./01-keepalive-pingreq.py', 'cpp/01-keepalive-pingreq.test']),
     (1, ['./01-no-clean-session.py', 'cpp/01-no-clean-session.test']),
@@ -87,7 +85,6 @@ tests = [
     (1, ['./08-ssl-connect-no-auth.py', 'cpp/08-ssl-connect-no-auth.test']),
 
     (1, ['./09-util-topic-tokenise.py', 'cpp/09-util-topic-tokenise.test']),
-    ]
-
+]
 
 ptest.run_tests(tests)

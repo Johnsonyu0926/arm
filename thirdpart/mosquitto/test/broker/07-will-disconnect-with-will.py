@@ -3,7 +3,6 @@
 # Test whether a client will is transmitted when a client disconnects with DISCONNECT with will.
 # MQTT 5
 
-from mosq_test_helper import *
 
 def do_test():
     rc = 1
@@ -13,7 +12,8 @@ def do_test():
     connect1_packet = mosq_test.gen_connect("will-qos0-test", keepalive=keepalive, proto_ver=5)
     connack1_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
 
-    connect2_packet = mosq_test.gen_connect("will-helper", keepalive=keepalive, proto_ver=5, will_topic="will/test", will_payload=b"will delay", will_qos=2)
+    connect2_packet = mosq_test.gen_connect("will-helper", keepalive=keepalive, proto_ver=5, will_topic="will/test",
+                                            will_payload=b"will delay", will_qos=2)
     connack2_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
     disconnect_packet = mosq_test.gen_disconnect(reason_code=4, proto_ver=5)
 
@@ -46,5 +46,6 @@ def do_test():
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test()

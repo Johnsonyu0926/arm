@@ -3,43 +3,41 @@
 # Test for issue 1322:
 
 ## restart mosquitto
-#sudo systemctl restart mosquitto.service
+# sudo systemctl restart mosquitto.service
 #
 ## listen on topic1
-#mosquitto_sub -t "topic1"
+# mosquitto_sub -t "topic1"
 #
 ## publish to topic1 without clean session
-#mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message1"
+# mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message1"
 ## message1 on topic1 is received as expected
 #
 ## publish to topic2 without clean session
 ## IMPORTANT: no subscription to this topic is present on broker!
-#mosquitto_pub -t "topic2" -q 2 -c --id "foobar" -m "message2"
+# mosquitto_pub -t "topic2" -q 2 -c --id "foobar" -m "message2"
 ## this goes nowhere, as no subscriber present
 #
 ## publish to topic1 without clean session
-#mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message3"
+# mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message3"
 ## message3 on topic1 IS NOT RECEIVED
 #
 ## listen on topic2
-#mosquitto_sub -t "topic2"
+# mosquitto_sub -t "topic2"
 #
 ## publish to topic1 without clean session
-#mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message4"
+# mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message4"
 ## message2 on topic2 is received incorrectly
 #
 ## publish to topic1 without clean session
-#mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message5"
+# mosquitto_pub -t "topic1" -q 2 -c --id "foobar" -m "message5"
 ## message5 on topic1 is received as expected (message4 was dropped)
 
-
-
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
     keepalive = 60
-    pub_connect_packet = mosq_test.gen_connect("pub", keepalive=keepalive, clean_session=False, proto_ver=proto_ver, session_expiry=60)
+    pub_connect_packet = mosq_test.gen_connect("pub", keepalive=keepalive, clean_session=False, proto_ver=proto_ver,
+                                               session_expiry=60)
     pub_connack1_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
     pub_connack2_packet = mosq_test.gen_connack(rc=0, flags=1, proto_ver=proto_ver)
 

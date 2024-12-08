@@ -2,8 +2,8 @@
 
 # Check whether messages deliver or not after some access is revoked.
 
-from mosq_test_helper import *
 import signal
+
 
 def write_config(filename, port, per_listener):
     with open(filename, 'w') as f:
@@ -12,12 +12,14 @@ def write_config(filename, port, per_listener):
         f.write("allow_anonymous true\n")
         f.write("acl_file %s\n" % (filename.replace('.conf', '.acl')))
 
+
 def write_acl(filename, en):
     with open(filename, 'w') as f:
         f.write('user username\n')
         f.write('topic readwrite topic/one\n')
         if en:
             f.write('topic readwrite topic/two\n')
+
 
 keepalive = 60
 username = "username"
@@ -124,4 +126,3 @@ finally:
         exit(rc)
 
 port = mosq_test.get_port()
-

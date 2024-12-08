@@ -3,8 +3,6 @@
 # Test whether a retained PUBLISH is cleared when a zero length retained
 # message is published to a topic.
 
-from mosq_test_helper import *
-
 
 def do_test(proto_ver):
     rc = 1
@@ -12,8 +10,10 @@ def do_test(proto_ver):
     connect_packet = mosq_test.gen_connect("retain-clear-test", keepalive=keepalive, proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    publish_packet = mosq_test.gen_publish("retain/clear/test", qos=0, payload="retained message", retain=True, proto_ver=proto_ver)
-    retain_clear_packet = mosq_test.gen_publish("retain/clear/test", qos=0, payload=None, retain=True, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("retain/clear/test", qos=0, payload="retained message", retain=True,
+                                           proto_ver=proto_ver)
+    retain_clear_packet = mosq_test.gen_publish("retain/clear/test", qos=0, payload=None, retain=True,
+                                                proto_ver=proto_ver)
     mid_sub = 592
     subscribe_packet = mosq_test.gen_subscribe(mid_sub, "retain/clear/test", 0, proto_ver=proto_ver)
     suback_packet = mosq_test.gen_suback(mid_sub, 0, proto_ver=proto_ver)
@@ -62,7 +62,7 @@ def do_test(proto_ver):
             print("proto_ver=%d" % (proto_ver))
             exit(rc)
 
+
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

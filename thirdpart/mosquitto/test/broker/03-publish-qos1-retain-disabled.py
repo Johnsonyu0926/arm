@@ -3,7 +3,6 @@
 # Test whether a PUBLISH with a retain set when retains are disabled results in
 # the correct DISCONNECT.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -55,4 +54,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

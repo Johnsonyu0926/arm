@@ -4,11 +4,13 @@
 
 from mosq_test_helper import *
 
+
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("max_packet_size 30\n")
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -41,4 +43,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

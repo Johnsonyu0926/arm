@@ -2,9 +2,9 @@
 
 # This tests the default ACL type access behaviour for when no ACL matches.
 
-from mosq_test_helper import *
 import json
 import shutil
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -13,8 +13,10 @@ def write_config(filename, port):
         f.write("plugin ../../plugins/dynamic-security/mosquitto_dynamic_security.so\n")
         f.write("plugin_opt_config_file %d/dynamic-security.json\n" % (port))
 
+
 def command_check(sock, command_payload, expected_response):
-    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0, payload=json.dumps(command_payload))
+    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0,
+                                           payload=json.dumps(command_payload))
     sock.send(command_packet)
     response = json.loads(mosq_test.read_publish(sock))
     if response != expected_response:
@@ -23,19 +25,18 @@ def command_check(sock, command_payload, expected_response):
         raise ValueError(response)
 
 
-
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port)
 
-add_client_command = { "commands": [{
+add_client_command = {"commands": [{
     "command": "createClient", "username": "user_one",
     "password": "password", "clientid": "cid",
-    "correlationData": "2" }]
+    "correlationData": "2"}]
 }
 add_client_response = {'responses': [{'command': 'createClient', 'correlationData': '2'}]}
 
-get_access_command = { "commands": [{"command": "getDefaultACLAccess", "correlationData": "3" }]}
+get_access_command = {"commands": [{"command": "getDefaultACLAccess", "correlationData": "3"}]}
 get_access_response = {'responses': [
     {
         "command": "getDefaultACLAccess",
@@ -49,47 +50,47 @@ get_access_response = {'responses': [
     }]
 }
 
-allow_subscribe_command = { "commands": [
+allow_subscribe_command = {"commands": [
     {
         "command": "setDefaultACLAccess",
-        "acls":[
-            { "acltype": "subscribe", "allow": True }
-		],
-        "correlationData": "4" }
-    ]
+        "acls": [
+            {"acltype": "subscribe", "allow": True}
+        ],
+        "correlationData": "4"}
+]
 }
 allow_subscribe_response = {'responses': [{'command': 'setDefaultACLAccess', 'correlationData': '4'}]}
 
-allow_publish_send_command = { "commands": [
+allow_publish_send_command = {"commands": [
     {
         "command": "setDefaultACLAccess",
-        "acls":[
-            { "acltype": "publishClientSend", "allow": True }
-		],
-        "correlationData": "5" }
-    ]
+        "acls": [
+            {"acltype": "publishClientSend", "allow": True}
+        ],
+        "correlationData": "5"}
+]
 }
 allow_publish_send_response = {'responses': [{'command': 'setDefaultACLAccess', 'correlationData': '5'}]}
 
-allow_publish_recv_command = { "commands": [
+allow_publish_recv_command = {"commands": [
     {
         "command": "setDefaultACLAccess",
-        "acls":[
-            { "acltype": "publishClientReceive", "allow": False }
-		],
-        "correlationData": "6" }
-    ]
+        "acls": [
+            {"acltype": "publishClientReceive", "allow": False}
+        ],
+        "correlationData": "6"}
+]
 }
 allow_publish_recv_response = {'responses': [{'command': 'setDefaultACLAccess', 'correlationData': '6'}]}
 
-allow_unsubscribe_command = { "commands": [
+allow_unsubscribe_command = {"commands": [
     {
         "command": "setDefaultACLAccess",
-        "acls":[
-            { "acltype": "unsubscribe", "allow": False }
-		],
-        "correlationData": "7" }
-    ]
+        "acls": [
+            {"acltype": "unsubscribe", "allow": False}
+        ],
+        "correlationData": "7"}
+]
 }
 allow_unsubscribe_response = {'responses': [{'command': 'setDefaultACLAccess', 'correlationData': '7'}]}
 
@@ -102,7 +103,8 @@ mid = 2
 subscribe_packet_admin = mosq_test.gen_subscribe(mid, "$CONTROL/dynamic-security/#", 1)
 suback_packet_admin = mosq_test.gen_suback(mid, 1)
 
-connect_packet = mosq_test.gen_connect("cid", keepalive=keepalive, username="user_one", password="password", proto_ver=5)
+connect_packet = mosq_test.gen_connect("cid", keepalive=keepalive, username="user_one", password="password",
+                                       proto_ver=5)
 connack_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
 
 mid = 3
@@ -199,6 +201,5 @@ finally:
     (stdo, stde) = broker.communicate()
     if rc:
         print(stde.decode('utf-8'))
-
 
 exit(rc)

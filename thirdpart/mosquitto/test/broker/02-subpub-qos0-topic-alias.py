@@ -3,7 +3,6 @@
 # Test whether "topic alias" works to the broker
 # MQTT v5
 
-from mosq_test_helper import *
 
 def do_test():
     rc = 1
@@ -24,7 +23,6 @@ def do_test():
     props = mqtt5_props.gen_uint16_prop(mqtt5_props.PROP_TOPIC_ALIAS, 3)
     publish2s_packet = mosq_test.gen_publish("", qos=0, payload="message", proto_ver=5, properties=props)
     publish2r_packet = mosq_test.gen_publish("subpub/alias", qos=0, payload="message", proto_ver=5)
-
 
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)

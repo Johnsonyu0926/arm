@@ -3,7 +3,6 @@
 # Test whether a connection is successful with correct username and password
 # when using a two auth_plugin (first will defer, second will accept).
 
-from mosq_test_helper import *
 
 def write_config(filename, port, plugin_ver):
     with open(filename, 'w') as f:
@@ -12,6 +11,7 @@ def write_config(filename, port, plugin_ver):
         f.write("auth_plugin c/auth_plugin_v2.so\n")
         f.write("allow_anonymous false\n")
 
+
 def do_test(plugin_ver):
     port = mosq_test.get_port()
     conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -19,7 +19,8 @@ def do_test(plugin_ver):
 
     rc = 1
     keepalive = 10
-    connect_packet = mosq_test.gen_connect("connect-uname-pwd-test", keepalive=keepalive, username="test-username@v2", password="doesNotMatter")
+    connect_packet = mosq_test.gen_connect("connect-uname-pwd-test", keepalive=keepalive, username="test-username@v2",
+                                           password="doesNotMatter")
     connack_packet = mosq_test.gen_connack(rc=0)
 
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), use_conf=True, port=port)
@@ -38,6 +39,7 @@ def do_test(plugin_ver):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(4)
 do_test(5)

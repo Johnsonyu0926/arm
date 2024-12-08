@@ -3,7 +3,6 @@
 # Test for https://bugs.eclipse.org/bugs/show_bug.cgi?id=573191
 # Check under valgrind/asan for leaks.
 
-from mosq_test_helper import *
 
 def do_test():
     rc = 1
@@ -11,7 +10,8 @@ def do_test():
 
     mid = 1
     props = mqtt5_props.gen_uint32_prop(mqtt5_props.PROP_WILL_DELAY_INTERVAL, 3)
-    connect_packet = mosq_test.gen_connect("will-573191-test", keepalive=keepalive, proto_ver=5, will_topic="", will_properties=props)
+    connect_packet = mosq_test.gen_connect("will-573191-test", keepalive=keepalive, proto_ver=5, will_topic="",
+                                           will_properties=props)
     connack_packet = b""
 
     port = mosq_test.get_port()
@@ -28,5 +28,6 @@ def do_test():
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test()

@@ -3,7 +3,6 @@
 # Does setting and updating subscription identifiers work as expected?
 # MQTT v5
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -42,7 +41,6 @@ def do_test(proto_ver):
     subscribe3u_packet = mosq_test.gen_subscribe(mid, "subpub/noid", 0, proto_ver=5, properties=props)
     suback3u_packet = mosq_test.gen_suback(mid, 0, proto_ver=5)
 
-
     publish1_packet = mosq_test.gen_publish("subpub/id1", qos=0, payload="message1", proto_ver=5)
 
     props = mqtt5_props.gen_varint_prop(mqtt5_props.PROP_SUBSCRIPTION_IDENTIFIER, 1)
@@ -50,22 +48,22 @@ def do_test(proto_ver):
 
     publish2_packet = mosq_test.gen_publish("subpub/test/id2", qos=0, payload="message2", proto_ver=5)
     props = mqtt5_props.gen_varint_prop(mqtt5_props.PROP_SUBSCRIPTION_IDENTIFIER, 14)
-    publish2r_packet = mosq_test.gen_publish("subpub/test/id2", qos=0, payload="message2", proto_ver=5, properties=props)
+    publish2r_packet = mosq_test.gen_publish("subpub/test/id2", qos=0, payload="message2", proto_ver=5,
+                                             properties=props)
 
     publish3_packet = mosq_test.gen_publish("subpub/noid", qos=0, payload="message3", proto_ver=5)
-
 
     # Updated version of publish1r, now with no id
     publish1ru_packet = mosq_test.gen_publish("subpub/id1", qos=0, payload="message1", proto_ver=5)
 
     # Updated verison of publish2r, with updated id
     props = mqtt5_props.gen_varint_prop(mqtt5_props.PROP_SUBSCRIPTION_IDENTIFIER, 19)
-    publish2ru_packet = mosq_test.gen_publish("subpub/test/id2", qos=0, payload="message2", proto_ver=5, properties=props)
+    publish2ru_packet = mosq_test.gen_publish("subpub/test/id2", qos=0, payload="message2", proto_ver=5,
+                                              properties=props)
 
     # Updated version of publish3r, now with an id
     props = mqtt5_props.gen_varint_prop(mqtt5_props.PROP_SUBSCRIPTION_IDENTIFIER, 21)
     publish3ru_packet = mosq_test.gen_publish("subpub/noid", qos=0, payload="message3", proto_ver=5, properties=props)
-
 
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)

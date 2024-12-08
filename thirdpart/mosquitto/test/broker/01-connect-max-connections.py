@@ -2,7 +2,6 @@
 
 # Test whether max_connections works with repeated connections
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -10,13 +9,14 @@ def write_config(filename, port):
         f.write("allow_anonymous true\n")
         f.write("max_connections 10\n")
 
+
 def do_test():
     rc = 1
 
     connect_packets_ok = []
     connack_packets_ok = []
     for i in range(0, 10):
-        connect_packets_ok.append(mosq_test.gen_connect("max-conn-%d"%i, proto_ver=5))
+        connect_packets_ok.append(mosq_test.gen_connect("max-conn-%d" % i, proto_ver=5))
         connack_packets_ok.append(mosq_test.gen_connack(rc=0, proto_ver=5))
 
     connect_packet_bad = mosq_test.gen_connect("max-conn-bad", proto_ver=5)
@@ -74,6 +74,7 @@ def do_test():
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test()
 exit(0)

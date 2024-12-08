@@ -2,7 +2,6 @@
 
 # Test whether a bridge can cope with an unknown PUBACK
 
-from mosq_test_helper import *
 
 def write_config(filename, port1, port2, protocol_version):
     with open(filename, 'w') as f:
@@ -40,27 +39,25 @@ def do_test(proto_ver):
     mid = 180
     mid_unknown = 2000
 
-    publish_packet = mosq_test.gen_publish("bridge/unknown/qos2", qos=1, payload="bridge-message", mid=mid, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("bridge/unknown/qos2", qos=1, payload="bridge-message", mid=mid,
+                                           proto_ver=proto_ver)
     puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver)
 
-    pubrec_packet_unknown1 = mosq_test.gen_pubrec(mid_unknown+1, proto_ver=proto_ver)
-    pubrel_packet_unknown1 = mosq_test.gen_pubrel(mid_unknown+1, proto_ver=proto_ver)
+    pubrec_packet_unknown1 = mosq_test.gen_pubrec(mid_unknown + 1, proto_ver=proto_ver)
+    pubrel_packet_unknown1 = mosq_test.gen_pubrel(mid_unknown + 1, proto_ver=proto_ver)
 
-    pubrel_packet_unknown2 = mosq_test.gen_pubrel(mid_unknown+2, proto_ver=proto_ver)
-    pubcomp_packet_unknown2 = mosq_test.gen_pubcomp(mid_unknown+2, proto_ver=proto_ver)
+    pubrel_packet_unknown2 = mosq_test.gen_pubrel(mid_unknown + 2, proto_ver=proto_ver)
+    pubcomp_packet_unknown2 = mosq_test.gen_pubcomp(mid_unknown + 2, proto_ver=proto_ver)
 
-    pubcomp_packet_unknown3 = mosq_test.gen_pubcomp(mid_unknown+3, proto_ver=proto_ver)
-
+    pubcomp_packet_unknown3 = mosq_test.gen_pubcomp(mid_unknown + 3, proto_ver=proto_ver)
 
     unsubscribe_packet = mosq_test.gen_unsubscribe(1, "bridge/#", proto_ver=proto_ver)
     unsuback_packet = mosq_test.gen_unsuback(1, proto_ver=proto_ver)
-
 
     if os.environ.get('MOSQ_USE_VALGRIND') is not None:
         sleep_time = 5
     else:
         sleep_time = 0.5
-
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -113,4 +110,3 @@ do_test(proto_ver=4)
 do_test(proto_ver=5)
 
 exit(0)
-

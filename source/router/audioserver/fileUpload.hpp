@@ -1,21 +1,24 @@
 #pragma once
 
+#include <algorithm>
+#include <string>
 #include "json.hpp"
 #include "utils.h"
 #include "add_custom_audio_file.hpp"
+#include "spdlog/spdlog.h"
 
 namespace asns {
     class CFileUploadResult {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CFileUploadResult, cmd, resultId, msg)
 
-        int do_success() {
+        void do_success() {
             cmd = "FileUpload";
             resultId = 1;
             msg = "file upload success";
         }
 
-        int do_fail(std::string str) {
+        void do_fail(const std::string& str) {
             cmd = "FileUpload";
             resultId = 2;
             msg = str;
@@ -23,7 +26,7 @@ namespace asns {
 
     private:
         std::string cmd;
-        int resultId;
+        int resultId{0};
         std::string msg;
     };
 
@@ -35,47 +38,48 @@ namespace asns {
             std::transform(fileName.begin(), fileName.end(), fileName.begin(), ::tolower);
             CFileUploadResult fileUploadResult;
             CUtils utils;
-            CAudioCfgBusiness cfg;
-            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(),
-                                                      fileName.c_str());
-            DS_TRACE("res: " << res.c_str());
-            if (res.empty()) {
-                fileUploadResult.do_fail("fail");
-            } else if (res.find("error") != std::string::npos) {
-                fileUploadResult.do_fail("Connection unreachable");
-            } else if (res.find("Connection refused") != std::string::npos) {
-                fileUploadResult.do_fail("Connection refused");
-            } else if (res.find("No route to host") != std::string::npos) {
-                fileUploadResult.do_fail("No route to host");
-            } else if (res.find("Host is unreachable") != std::string::npos) {
-                fileUploadResult.do_fail("Host is unreachable");
-            } else if (res.find("Failed to connect") != std::string::npos) {
-                fileUploadResult.do_fail("Failed to connect");
-            } else if (res.find("Couldn't connect to server") != std::string::npos) {
-                fileUploadResult.do_fail("Couldn't connect to server");
-            } else {
-                CAddCustomAudioFileData node;
-                node.filePath = downloadUrl;
-                node.customAudioName = fileName;
-                CAddCustomAudioFileBusiness business;
-                utils.bit_rate_32_to_48(cfg.getAudioFilePath() + fileName);
-                if (!business.exist(fileName)) {
-                    business.business.push_back(node);
-                    business.saveToJson();
-                    fileUploadResult.do_success();
-                } else {
-                    fileUploadResult.do_success();
-                }
+
+            if (utils.get_available_Disk("/mnt") < asns::DISK_SIZE) {
+                return send_failure(pClient, "Lack of space");
             }
-            json js = fileUploadResult;
-            std::string str = js.dump();
-            DS_TRACE("return json: " << str.c_str());
-            pClient->Send(str.c_str(), str.length());
+
+            CAudioCfgBusiness cfg;
+            std::string res = utils.get_upload_result(downloadUrl.c_str(), cfg.getAudioFilePath().c_str(), fileName.c_str());
+            if (res != "success") {
+                return send_failure(pClient, res);
+            }
+
+            CAddCustomAudioFileData node;
+            node.filePath = downloadUrl;
+            node.customAudioName = fileName;
+            CAddCustomAudioFileBusiness business;
+            utils.bit_rate_32_to_48(cfg.getAudioFilePath() + fileName);
+
+            if (!business.exist(fileName)) {
+                business.business.push_back(node);
+                business.saveToJson();
+            }
+
+            fileUploadResult.do_success();
+            return send_response(pClient, fileUploadResult);
         }
 
     private:
         std::string cmd;
         std::string downloadUrl;
         std::string fileName;
+
+        int send_failure(CSocket *pClient, const std::string& msg) {
+            CFileUploadResult fileUploadResult;
+            fileUploadResult.do_fail(msg);
+            return send_response(pClient, fileUploadResult);
+        }
+
+        int send_response(CSocket *pClient, const CFileUploadResult& result) {
+            json js = result;
+            std::string str = js.dump();
+            spdlog::info("return json: {}", str);
+            return pClient->Send(str.c_str(), str.length());
+        }
     };
-}
+} // namespace asns

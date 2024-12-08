@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <string>
 #include "json.hpp"
 #include "add_custom_audio_file.hpp"
 #include "audiocfg.hpp"
@@ -23,7 +25,7 @@ namespace asns {
             return fileName;
         }
 
-        void setAudioUploadRecordId(const int id) {
+        void setAudioUploadRecordId(int id) {
             audioUploadRecordId = id;
         }
 
@@ -33,76 +35,82 @@ namespace asns {
 
     private:
         std::string fileName;
-        int audioUploadRecordId;
+        int audioUploadRecordId{0};
     };
 
     class CAddMqttCustomAudioFileBusiness {
     public:
         CAddMqttCustomAudioFileBusiness() {
-            CAudioCfgBusiness business;
-            business.load();
-            filePath = business.business[0].savePrefix + ADD_MQTT_CUSTOM_AUDIO_FILE;
+            CAudioCfgBusiness cfgBusiness;
+            cfgBusiness.load();
+            if (!cfgBusiness.business.empty()) {
+                filePath = cfgBusiness.business[0].savePrefix + ADD_MQTT_CUSTOM_AUDIO_FILE;
+            }
         }
 
         std::string getFilePath() const {
             return filePath;
         }
 
-        int mqttLoad() {
+        bool mqttLoad() {
             std::ifstream i(filePath);
             if (!i.is_open()) {
-                DS_TRACE("ifstream open fail");
-                return 0;
+                LOG(INFO) << "ifstream open fail";
+                return false;
             }
             json js;
             try {
                 i >> js;
-                DS_TRACE("mqtt load json:" << js.dump().c_str());
-                business = js;
+                LOG(INFO) << "mqtt load json: " << js.dump();
+                business = js.get<std::vector<CAddMqttCustomAudioFileData>>();
             } catch (json::parse_error &ex) {
-                std::cerr << "parse error at byte " << ex.byte << std::endl;
+                LOG(ERROR) << "parse error at byte " << ex.byte;
                 i.close();
-                return 0;
+                return false;
             }
             i.close();
+            return true;
         }
 
-        void saveJson() {
+        void saveJson() const {
             std::ofstream o(filePath);
             if (!o.is_open()) {
-                DS_TRACE("ofstream open fail");
+                LOG(INFO) << "ofstream open fail";
                 return;
             }
             json js = business;
-            DS_TRACE("mqtt saveJson :" << js.dump().c_str());
+            LOG(INFO) << "mqtt saveJson: " << js.dump();
             o << js << std::endl;
             o.close();
         }
 
-        int deleteData(const std::string &name) {
-            mqttLoad();
-            for (auto it = business.begin(); it != business.end(); ++it) {
-                if (it->getName() == name) {
-                    char cmd[256];
+        bool deleteData(const std::string &name) {
+            if (mqttLoad()) {
+                auto it = std::find_if(business.begin(), business.end(), [&name](const auto& data) {
+                    return data.getName() == name;
+                });
+                if (it != business.end()) {
                     CAudioCfgBusiness cfg;
                     cfg.load();
-                    sprintf(cmd, "rm %s%s", cfg.getAudioFilePath().c_str(), name.c_str());
-                    DS_TRACE(cmd);
-                    system(cmd);
+                    std::string cmd = "rm " + cfg.getAudioFilePath() + name;
+                    LOG(INFO) << cmd;
+                    if (system(cmd.c_str()) == -1) {
+                        LOG(ERROR) << "Failed to execute command: " << cmd;
+                        return false;
+                    }
                     business.erase(it);
                     saveJson();
-                    return 1;
+                    return true;
                 }
             }
-            return 3;
+            return false;
         }
 
         bool exist(const std::string &name) {
-            mqttLoad();
-            for (auto it = business.begin(); it != business.end(); ++it) {
-                if (it->getName() == name) {
-                    return true;
-                }
+            if (mqttLoad()) {
+                return std::any_of(business.begin(), business.end(), [&name](const auto& data) {
+                    return data.getName() == name;
+                });
             }
             return false;
         }
@@ -112,4 +120,4 @@ namespace asns {
         std::string filePath;
     };
 
-} // namespace asms
+} // namespace asns

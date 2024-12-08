@@ -2,8 +2,6 @@
 
 # MQTT v5 session takeover test
 
-from mosq_test_helper import *
-
 port = mosq_test.get_port()
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)
 

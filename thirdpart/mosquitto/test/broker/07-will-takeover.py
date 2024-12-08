@@ -2,7 +2,6 @@
 
 # Test whether a will is published when a client takes over an existing session that has a will set.
 #
-from mosq_test_helper import *
 
 
 def do_test(proto_ver, clean_session1, clean_session2):
@@ -27,10 +26,13 @@ def do_test(proto_ver, clean_session1, clean_session2):
         connect_props1 = b""
         connect_props2 = b""
 
-    connect2_packet = mosq_test.gen_connect("will-test", keepalive=keepalive, proto_ver=proto_ver, will_topic="will/test", will_payload=b"LWT", clean_session=clean_session1, properties=connect_props1)
+    connect2_packet = mosq_test.gen_connect("will-test", keepalive=keepalive, proto_ver=proto_ver,
+                                            will_topic="will/test", will_payload=b"LWT", clean_session=clean_session1,
+                                            properties=connect_props1)
     connack2_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    connect3_packet = mosq_test.gen_connect("will-test", keepalive=keepalive, proto_ver=proto_ver, clean_session=clean_session2, properties=connect_props2)
+    connect3_packet = mosq_test.gen_connect("will-test", keepalive=keepalive, proto_ver=proto_ver,
+                                            clean_session=clean_session2, properties=connect_props2)
     if clean_session1 == False and clean_session2 == False:
         connack3_packet = mosq_test.gen_connack(rc=0, flags=1, proto_ver=proto_ver)
     else:

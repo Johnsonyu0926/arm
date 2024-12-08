@@ -3,7 +3,6 @@
 # Test whether a PUBLISH to a topic with QoS 2 results in the correct packet flow.
 # With max_inflight_messages set to 1
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -21,7 +20,7 @@ def do_test(proto_ver):
     keepalive = 60
     connect_packet = mosq_test.gen_connect("pub-qos2-test", keepalive=keepalive, proto_ver=proto_ver)
     properties = mqtt5_props.gen_uint16_prop(mqtt5_props.PROP_TOPIC_ALIAS_MAXIMUM, 10) \
-        + mqtt5_props.gen_uint16_prop(mqtt5_props.PROP_RECEIVE_MAXIMUM, 1)
+                 + mqtt5_props.gen_uint16_prop(mqtt5_props.PROP_RECEIVE_MAXIMUM, 1)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver, properties=properties, property_helper=False)
 
     mid = 312

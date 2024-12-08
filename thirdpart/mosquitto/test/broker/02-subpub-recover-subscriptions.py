@@ -2,7 +2,6 @@
 
 # Check whether a durable client keeps its subscriptions on reconnecting.
 
-from mosq_test_helper import *
 
 def publish_helper(port):
     connect_packet = mosq_test.gen_connect("subpub-sub-helper")
@@ -19,7 +18,8 @@ def do_test(proto_ver):
     rc = 1
     if proto_ver == 5:
         props = mqtt5_props.gen_uint32_prop(mqtt5_props.PROP_SESSION_EXPIRY_INTERVAL, 60)
-        connect_packet = mosq_test.gen_connect("subpub-sub-test", proto_ver=proto_ver, clean_session=False, properties=props)
+        connect_packet = mosq_test.gen_connect("subpub-sub-test", proto_ver=proto_ver, clean_session=False,
+                                               properties=props)
     else:
         connect_packet = mosq_test.gen_connect("subpub-sub-test", proto_ver=proto_ver, clean_session=False)
     connack1_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
@@ -40,7 +40,8 @@ def do_test(proto_ver):
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)
 
     try:
-        sock = mosq_test.do_client_connect(connect_packet, connack1_packet, timeout=2, port=port, connack_error="connack 1")
+        sock = mosq_test.do_client_connect(connect_packet, connack1_packet, timeout=2, port=port,
+                                           connack_error="connack 1")
 
         mosq_test.do_send_receive(sock, subscribe1_packet, suback1_packet, "suback1")
         mosq_test.do_send_receive(sock, subscribe2_packet, suback2_packet, "suback2")
@@ -52,7 +53,8 @@ def do_test(proto_ver):
         sock.close()
 
         # Reconnect, but don't resubscribe
-        sock = mosq_test.do_client_connect(connect_packet, connack2_packet, timeout=2, port=port, connack_error="connack 2")
+        sock = mosq_test.do_client_connect(connect_packet, connack2_packet, timeout=2, port=port,
+                                           connack_error="connack 2")
 
         publish_helper(port)
         mosq_test.expect_packet(sock, "publish1", publish1_packet)

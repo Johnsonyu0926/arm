@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-import mosq_test_helper
 import ptest
 
 tests = [
-    #(ports required, 'path'),
+    # (ports required, 'path'),
     (1, './01-connect-575314.py'),
     (1, './01-connect-allow-anonymous.py'),
     (1, './01-connect-disconnect-v5.py'),
@@ -46,7 +45,7 @@ tests = [
     (1, './02-subscribe-long-topic.py'),
     (1, './02-subscribe-persistence-flipflop.py'),
 
-    #(1, './03-publish-qos1-queued-bytes.py'),
+    # (1, './03-publish-qos1-queued-bytes.py'),
     (1, './03-pattern-matching.py'),
     (1, './03-publish-b2c-disconnect-qos1.py'),
     (1, './03-publish-b2c-disconnect-qos2.py'),
@@ -195,6 +194,6 @@ tests = [
     (1, './14-dynsec-plugin-invalid.py'),
     (1, './14-dynsec-role.py'),
     (1, './14-dynsec-role-invalid.py'),
-    ]
+]
 
 ptest.run_tests(tests)

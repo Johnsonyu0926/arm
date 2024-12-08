@@ -3,7 +3,6 @@
 # Test whether a client subscribed to a topic with retain-as-published set works as expected.
 # MQTT v5
 
-from mosq_test_helper import *
 
 def do_test():
     rc = 1
@@ -16,7 +15,8 @@ def do_test():
     suback1_packet = mosq_test.gen_suback(mid, 0, proto_ver=5)
 
     mid = 531
-    subscribe2_packet = mosq_test.gen_subscribe(mid, "subpub/rap", 0 | mqtt5_opts.MQTT_SUB_OPT_RETAIN_AS_PUBLISHED, proto_ver=5)
+    subscribe2_packet = mosq_test.gen_subscribe(mid, "subpub/rap", 0 | mqtt5_opts.MQTT_SUB_OPT_RETAIN_AS_PUBLISHED,
+                                                proto_ver=5)
     suback2_packet = mosq_test.gen_suback(mid, 0, proto_ver=5)
 
     publish1_packet = mosq_test.gen_publish("subpub/normal", qos=0, retain=True, payload="message", proto_ver=5)
@@ -27,7 +27,6 @@ def do_test():
 
     mid = 1
     publish3_packet = mosq_test.gen_publish("subpub/receive", qos=1, mid=mid, payload="success", proto_ver=5)
-
 
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)

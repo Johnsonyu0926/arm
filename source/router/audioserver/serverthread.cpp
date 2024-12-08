@@ -1,10 +1,10 @@
-#include <stdio.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 #include "doorsbase.h"
 #include "serverthread.h"
 #include "clientthread.h"
-#include <sys/ioctl.h>
-#include <fcntl.h>
 #include "utils.h"
+#include "spdlog/spdlog.h"
 
 BOOL CServerThread::InitInstance() {
     CSocket socket;
@@ -13,12 +13,12 @@ BOOL CServerThread::InitInstance() {
     setsockopt(socket.m_hSocket, SOL_SOCKET, SO_REUSEADDR, (const char *) &opt, sizeof(opt));
 
     if (!socket.Bind(m_nPort)) {
-        DS_TRACE("Failed bind port:" << m_nPort);
+        spdlog::error("Failed to bind port: {}", m_nPort);
         exit(1);
     }
     socket.Listen();
     int i = 0;
-    while (1) {
+    while (true) {
         struct timeval timeout;
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
@@ -28,26 +28,29 @@ BOOL CServerThread::InitInstance() {
         FD_SET(socket.m_hSocket, &rset);
         CUtils utils;
         utils.heart_beat("/tmp/audio_server_netvoice_heartbeat.txt");
-        int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+        int n = select(socket.m_hSocket + 1, &rset, nullptr, nullptr, &timeout);
         if (n < 0) {
-            DS_TRACE("fatal , select error!\n");
+            spdlog::warn("Fatal, select error!");
             return 0;
-        }else if(n == 0){
+        } else if (n == 0) {
             continue;
         } else if (n > 0) {
-            DS_TRACE("server select n = " << n);
+            spdlog::info("Server select n = {}", n);
         }
-        CSocket *pClient = new CSocket;
-        socket.Accept(pClient);
-        DS_TRACE("Got the no."<<i<<" connection :"<<pClient->GetRemoteIp()<<":"<<ntohs(pClient->GetPeerPort()));
+        auto pClient = std::make_unique<CSocket>();
+        socket.Accept(pClient.get());
+        spdlog::info("Got the no.{} connection: {}:{}", i, pClient->GetRemoteIp(), ntohs(pClient->GetPeerPort()));
+        Singleton::getInstance().m_connIp = pClient->GetRemoteIp();
         i++;
-        CClientThread *pThread = new CClientThread();
-        pThread->SetClient(pClient);
+        auto pThread = std::make_unique<CClientThread>();
+        pThread->SetClient(pClient.release());
         pThread->CreateThread();
     }
     return TRUE;
 }
 
 BOOL CServerThread::ExitInstance() {
+    spdlog::info("Exiting server thread on port {}", m_nPort);
+    // 在这里添加清理逻辑，例如关闭套接字
     return TRUE;
 }

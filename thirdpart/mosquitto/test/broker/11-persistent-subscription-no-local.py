@@ -5,12 +5,14 @@
 
 from mosq_test_helper import *
 
+
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("persistence true\n")
         f.write("persistence_file mosquitto-%d.db\n" % (port))
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -93,6 +95,4 @@ finally:
     if os.path.exists('mosquitto-%d.db' % (port)):
         os.unlink('mosquitto-%d.db' % (port))
 
-
 exit(rc)
-

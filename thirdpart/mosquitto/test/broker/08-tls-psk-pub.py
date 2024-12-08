@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
-
 if sys.version < '2.7':
     print("WARNING: SSL not supported on Python 2.6")
     exit(0)
@@ -18,6 +16,7 @@ def write_config(filename, port1, port2):
         f.write("listener %d\n" % (port2))
         f.write("log_type all\n")
 
+
 (port1, port2) = mosq_test.get_port(2)
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port1, port2)
@@ -28,8 +27,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
-
+env['PYTHONPATH'] = '../../lib/python:' + pp
 
 rc = 1
 keepalive = 10
@@ -48,7 +46,8 @@ try:
     sock = mosq_test.do_client_connect(connect_packet, connack_packet, timeout=20, port=port2)
     mosq_test.do_send_receive(sock, subscribe_packet, suback_packet, "suback")
 
-    pub = subprocess.Popen(['./c/08-tls-psk-pub.test', str(port1)], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pub = subprocess.Popen(['./c/08-tls-psk-pub.test', str(port1)], env=env, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE)
     if pub.wait():
         raise ValueError
     (stdo, stde) = pub.communicate()
@@ -68,4 +67,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

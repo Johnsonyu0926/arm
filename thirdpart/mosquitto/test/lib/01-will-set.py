@@ -7,13 +7,12 @@
 # client id 01-will-set will topic set to topic/on/unexpected/disconnect , will
 # payload set to "will message", will qos set to 1 and will retain set.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
 keepalive = 60
-connect_packet = mosq_test.gen_connect("01-will-set", keepalive=keepalive, will_topic="topic/on/unexpected/disconnect", will_qos=1, will_retain=True, will_payload=b"will message")
+connect_packet = mosq_test.gen_connect("01-will-set", keepalive=keepalive, will_topic="topic/on/unexpected/disconnect",
+                                       will_qos=1, will_retain=True, will_payload=b"will message")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -28,7 +27,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:
@@ -47,4 +46,3 @@ finally:
     sock.close()
 
 exit(rc)
-

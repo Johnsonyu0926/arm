@@ -1,24 +1,25 @@
 #pragma once
 
+#include <string>
 #include "json.hpp"
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "public.hpp"
+#include "spdlog/spdlog.h"
 
-//{"duration":"5","uploadUrl":"http://192.168.85.1:8091/iot/1v1/api/v1/micRecordUpload","cmd":"MicRecord"}
 namespace asns {
 
     class CMicRecordResult {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CMicRecordResult, cmd, resultId, msg)
 
-        int do_success() {
+        void do_success() {
             cmd = "MicRecord";
             resultId = 1;
             msg = "success";
         }
 
-        int do_fail(const std::string str) {
+        void do_fail(const std::string& str) {
             cmd = "MicRecord";
             resultId = 2;
             msg = str;
@@ -26,7 +27,7 @@ namespace asns {
 
     private:
         std::string cmd;
-        int resultId;
+        int resultId{0};
         std::string msg;
     };
 
@@ -39,37 +40,49 @@ namespace asns {
             bus.load();
             std::string imei = bus.business[0].deviceID;
             CUtils utils;
-            if (utils.get_process_status("madplay") || utils.get_process_status("aplay")) {
-                CMicRecordResult result;
-                result.do_fail("Currently playing");
-                json js = result;
-                std::string res = js.dump();
-                return pClient->Send(res.c_str(), res.length());
+
+            if (utils.get_process_status("ffmpeg")) {
+                return send_failure(pClient, "Currently recording");
             }
-            std::string res = utils.record_upload(std::atoi(duration.c_str()), uploadUrl, imei);
-            DS_TRACE("result:" << res.c_str());
-            if (res.find("true") != std::string::npos) {
-                CMicRecordResult result;
-                result.do_success();
-                json js = result;
-                std::string res = js.dump();
-                return pClient->Send(res.c_str(), res.length());
-            } else {
-                CMicRecordResult result;
-                result.do_fail("post error");
-                json js = result;
-                std::string res = js.dump();
-                return pClient->Send(res.c_str(), res.length());
-            }
+
+            int time = std::stoi(duration);
+            std::string url = uploadUrl;
+            utils.async_wait(1, 0, 0, [=] {
+                std::string res = utils.record_upload(time, url, imei);
+                spdlog::info("result: {}", res);
+                if (res.find("true") != std::string::npos) {
+                    send_success(pClient);
+                } else {
+                    send_failure(pClient, "post error");
+                }
+            });
+            return 1;
         }
 
     private:
         std::string cmd;
         std::string duration;
         std::string uploadUrl;
+
+        int send_success(CSocket *pClient) {
+            CMicRecordResult result;
+            result.do_success();
+            return send_response(pClient, result);
+        }
+
+        int send_failure(CSocket *pClient, const std::string& msg) {
+            CMicRecordResult result;
+            result.do_fail(msg);
+            return send_response(pClient, result);
+        }
+
+        int send_response(CSocket *pClient, const CMicRecordResult& result) {
+            json js = result;
+            std::string res = js.dump();
+            return pClient->Send(res.c_str(), res.length());
+        }
     };
 
     class CSThread;
 
-
-}
+} // namespace asns

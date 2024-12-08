@@ -2,13 +2,14 @@
 
 # Test whether a client will is transmitted correctly with a null payload.
 
-from mosq_test_helper import *
 
 def helper(port, proto_ver):
-    connect_packet = mosq_test.gen_connect("test-helper", keepalive=60, will_topic="will/null/test", proto_ver=proto_ver)
+    connect_packet = mosq_test.gen_connect("test-helper", keepalive=60, will_topic="will/null/test",
+                                           proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
     sock = mosq_test.do_client_connect(connect_packet, connack_packet, port=port)
     sock.close()
+
 
 def do_test(proto_ver):
     rc = 1
@@ -50,4 +51,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

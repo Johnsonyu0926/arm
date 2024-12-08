@@ -6,6 +6,7 @@ from mosq_test_helper import *
 import os.path
 import signal
 
+
 def write_config(filename, port1, port2, per_listener):
     with open(filename, 'w') as f:
         f.write("per_listener_settings %s\n" % (per_listener))
@@ -18,11 +19,13 @@ def write_config(filename, port1, port2, per_listener):
         f.write("listener %d\n" % (port2))
         f.write("allow_anonymous true\n")
 
+
 def write_acl_1(filename, username):
     with open(filename, 'w') as f:
         if username is not None:
             f.write('user %s\n' % (username))
         f.write('topic readwrite test/topic\n')
+
 
 def write_acl_2(filename, username):
     with open(filename, 'w') as f:
@@ -44,7 +47,6 @@ def do_test(proto_ver, per_listener, username):
     acl_file = os.path.basename(__file__).replace('.py', '.acl')
     write_acl_1(acl_file, username)
 
-
     rc = 1
     keepalive = 60
     connect_packet = mosq_test.gen_connect("retain-check", keepalive=keepalive, username=username, proto_ver=proto_ver)
@@ -61,7 +63,8 @@ def do_test(proto_ver, per_listener, username):
     connack2_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     mid = 1
-    publish_packet = mosq_test.gen_publish("test/topic", qos=0, payload="retained message", retain=True, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("test/topic", qos=0, payload="retained message", retain=True,
+                                           proto_ver=proto_ver)
     subscribe_packet = mosq_test.gen_subscribe(mid, "test/topic", 0, proto_ver=proto_ver)
     suback_packet = mosq_test.gen_suback(mid, 0, proto_ver=proto_ver)
 

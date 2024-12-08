@@ -2,13 +2,13 @@
 
 # Test whether message size limits apply.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("listener %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("message_size_limit 1\n")
+
 
 def do_test(proto_ver):
     rc = 1

@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
-
 
 resp_topic = "response/topic"
 pub_topic = "request/topic"
@@ -19,7 +16,6 @@ subscribe1_packet = mosq_test.gen_subscribe(mid, resp_topic, 0, proto_ver=5)
 subscribe2_packet = mosq_test.gen_subscribe(mid, pub_topic, 0, proto_ver=5)
 suback_packet = mosq_test.gen_suback(mid, 0, proto_ver=5)
 
-
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_RESPONSE_TOPIC, resp_topic)
 props += mqtt5_props.gen_string_prop(mqtt5_props.PROP_CORRELATION_DATA, "corridor")
 publish1_packet_incoming = mosq_test.gen_publish(pub_topic, qos=0, payload="action", proto_ver=5, properties=props)
@@ -31,7 +27,6 @@ publish1_packet_outgoing = mosq_test.gen_publish(pub_topic, qos=0, payload="acti
 
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_CORRELATION_DATA, "corridor")
 publish2_packet = mosq_test.gen_publish(resp_topic, qos=0, payload="a response", proto_ver=5, properties=props)
-
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -45,14 +40,16 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
-client1 = mosq_test.start_client(filename="03-request-response-correlation-1.log", cmd=["c/03-request-response-correlation-1.test"], env=env, port=port)
+env['PYTHONPATH'] = '../../lib/python:' + pp
+client1 = mosq_test.start_client(filename="03-request-response-correlation-1.log",
+                                 cmd=["c/03-request-response-correlation-1.test"], env=env, port=port)
 
 try:
     (conn1, address) = sock.accept()
     conn1.settimeout(10)
 
-    client2 = mosq_test.start_client(filename="03-request-response-2.log", cmd=["c/03-request-response-2.test"], env=env, port=port)
+    client2 = mosq_test.start_client(filename="03-request-response-2.log", cmd=["c/03-request-response-2.test"],
+                                     env=env, port=port)
     (conn2, address) = sock.accept()
     conn2.settimeout(10)
 

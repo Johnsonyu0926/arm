@@ -2,9 +2,9 @@
 
 # Check invalid inputs for plugin commands
 
-from mosq_test_helper import *
 import json
 import shutil
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -13,8 +13,10 @@ def write_config(filename, port):
         f.write("plugin ../../plugins/dynamic-security/mosquitto_dynamic_security.so\n")
         f.write("plugin_opt_config_file %d/dynamic-security.json\n" % (port))
 
+
 def command_check(sock, command_payload, expected_response, msg=""):
-    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0, payload=json.dumps(command_payload))
+    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0,
+                                           payload=json.dumps(command_payload))
     sock.send(command_packet)
     response = json.loads(mosq_test.read_publish(sock))
     if response != expected_response:
@@ -70,15 +72,15 @@ bad6_command = {'commands': [{}]}
 bad6_response = {'responses': [{'command': 'Unknown command', 'error': 'Missing command'}]}
 
 # Bad command type
-bad7_command = {'commands': [{'command':6}]}
+bad7_command = {'commands': [{'command': 6}]}
 bad7_response = {'responses': [{'command': 'Unknown command', 'error': 'Missing command'}]}
 
 # Bad correlationData type
-bad8_command = {'commands': [{'command':'command', 'correlationData':6}]}
+bad8_command = {'commands': [{'command': 'command', 'correlationData': 6}]}
 bad8_response = {'responses': [{'command': 'command', 'error': 'Invalid correlationData data type.'}]}
 
 # Unknown command
-bad9_command = {'commands': [{'command':'command'}]}
+bad9_command = {'commands': [{'command': 'command'}]}
 bad9_response = {'responses': [{'command': 'command', 'error': 'Unknown command'}]}
 
 # ==========================================================================
@@ -86,13 +88,12 @@ bad9_response = {'responses': [{'command': 'command', 'error': 'Unknown command'
 # ==========================================================================
 
 # Missing actions array
-set_default1_command = {'commands': [{'command':'setDefaultACLAccess'}]}
+set_default1_command = {'commands': [{'command': 'setDefaultACLAccess'}]}
 set_default1_response = {'responses': [{'command': 'setDefaultACLAccess', 'error': 'Missing/invalid actions array'}]}
 
 # Actions array not an array
-set_default2_command = {'commands': [{'command':'setDefaultACLAccess', 'actions':'bad'}]}
+set_default2_command = {'commands': [{'command': 'setDefaultACLAccess', 'actions': 'bad'}]}
 set_default2_response = {'responses': [{'command': 'setDefaultACLAccess', 'error': 'Missing/invalid actions array'}]}
-
 
 rc = 1
 keepalive = 10
@@ -145,6 +146,5 @@ finally:
     (stdo, stde) = broker.communicate()
     if rc:
         print(stde.decode('utf-8'))
-
 
 exit(rc)

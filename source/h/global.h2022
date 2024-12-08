@@ -1,0 +1,83 @@
+#ifndef __GLOBAL_H__
+#define __GLOBAL_H__
+
+#include "database.h"
+
+constexpr int INTERVAL_TIME = 150;
+
+/* IP */
+constexpr char TABLE_IPPKT1[] = "ip_packet";
+constexpr char TABLE_IPPKT2[] = "ip_packet2";
+constexpr char TABLE_IPSTA_TCP[] = "ip_tcp_sta";
+constexpr char TABLE_IPSTA_ICMP[] = "ip_icmp_sta";
+constexpr char TABLE_IPSTA_UDP[] = "ip_udp_sta";
+constexpr char TABLE_IPSTA_OTHER[] = "ip_other_sta";
+
+/* TCP */
+constexpr char TABLE_TCPINFO[] = "tcp_conn_sta";
+
+/* HTTP */
+constexpr char TABLE_HTTPPAGE[] = "http_page_sta";
+
+/* TP */
+constexpr char TABLE_TPCONN[] = "tp_conn_sta";
+constexpr char TABLE_TPPDU[] = "tp_pdus";
+constexpr char TABLE_TPDISCONN[] = "tp_disconn_sta";
+
+/* ARM */
+constexpr char TABLE_ARMCONN[] = "arm_conn_sta";
+constexpr char TABLE_ARMPDU[] = "arm_pdus";
+
+/* Conference Manager */
+constexpr char TABLE_CMGPDU[] = "cmg_pdus";
+
+/* Meeting */
+constexpr char TABLE_MTG_CONN[] = "mtg_conn_sta";
+
+constexpr char TABLE_APPSVR[] = "appsvr_trarte";
+constexpr char TABLE_SVRSTA[] = "mtg_svrstatus";
+constexpr char TABLE_CPING_PDUS[] = "mz_cping_pdus";
+constexpr char TABLE_MMCB_PDUS[] = "mz_mmcb_pdus";
+constexpr char TABLE_APPS_PDUS[] = "mz_mmapp_pdus";
+constexpr char TABLE_FCS_PDUS[] = "mz_mmfcs_pdus";
+constexpr char TABLE_PMS_PDUS[] = "mz_mmpms_pdus";
+
+constexpr char TABLE_WIN[] = "wbxWIN";
+constexpr char TABLE_DOMAIN[] = "wbxDomain";
+constexpr char TABLE_ZONE[] = "wbxZone";
+constexpr char TABLE_SITE[] = "wbxSite";
+
+extern Database* pdb;
+
+/* IP */
+extern DBResult* pRes_Ippkt1;
+extern DBResult* pRes_Ippkt2;
+extern DBResult* pRes_IpSta_TCP;
+extern DBResult* pRes_IpSta_UDP;
+extern DBResult* pRes_IpSta_ICMP;
+extern DBResult* pRes_IpSta_OTHER;
+
+/* HTTP */
+extern DBResult* pRes_HttpPage;
+
+/* TP */
+extern DBResult* pRes_TpConn;
+extern DBResult* pRes_TpPdu;
+extern DBResult* pRes_TpDisconn;
+
+/* ARM */
+extern DBResult* pRes_ArmConn;
+extern DBResult* pRes_ArmPdu;
+
+/* Conference Manager */
+extern DBResult* pRes_CmgPdu;
+
+/* Meeting */
+extern DBResult* pRes_MtgConn;
+extern DBResult* pRes_conf;
+
+/* Server Performance */
+extern DBResult* pRes_appsvr;
+extern DBResult* pRes_SvrSta;
+
+#endif // __GLOBAL_H__

@@ -19,4 +19,3 @@ except usb.SerialException, e:
 
 mosq.disconnect()
 mosq.loop_stop()
-

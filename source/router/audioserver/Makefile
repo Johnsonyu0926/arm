@@ -32,7 +32,7 @@ LDFLAGS += ./lib/libmbedtls.a ./lib/libmbedcrypto.a ./lib/libmbedx509.a ./mipsel
 
 
 
-CXXFLAGS += $(INCLUDE_OPTIONS) -DUNIX -D_DEBUG -O2 -s -Wall -Wstrict-prototypes -std=c++11 $(CFLAGS)
+CXXFLAGS += $(INCLUDE_OPTIONS) -DUNIX -D_DEBUG -O2 -Wall -std=c++11 $(CFLAGS)
 #LIBS		= -L/usr/local/lib/mysql -lmysqlclient
 ifdef PLAT_DIR
 LIBS		= -lssl -lcrypto  -L$(USR_DIR_OPENSRC)/openssl
@@ -46,6 +46,7 @@ SRCDIR	= ./../audioserver
 
 OBJS = 				\
 	$(INTDIR)/serverthread.o	\
+	$(INTDIR)/easylogging++.o	\
 	$(INTDIR)/audio.o	\
 	$(INTDIR)/talk.o	\
 	$(INTDIR)/clientthread.o
@@ -94,6 +95,8 @@ $(TARGET) : $(OBJS) $(BIND_OBJS)
 # (OBJS) 
 $(INTDIR)/serverthread.o: $(SRCDIR)/serverthread.cpp
 	$(CXX) $(CXXFLAGS) -g -c -o $@ $(SRCDIR)/serverthread.cpp
+$(INTDIR)/easylogging++.o: $(SRCDIR)/easylogging++.cc
+	$(CXX) $(CXXFLAGS) -g -c -o $@ $(SRCDIR)/easylogging++.cc
 $(INTDIR)/clientthread.o: $(SRCDIR)/clientthread.cpp
 	$(CXX) $(CXXFLAGS) -g -c -o $@ $(SRCDIR)/clientthread.cpp
 $(INTDIR)/audio.o: $(SRCDIR)/audio.cpp
@@ -117,5 +120,6 @@ romfs:
 	cp ./asctrl.sh $(ROOTFS_DIR)/sbin
 	cp ./vol.sh $(ROOTFS_DIR)/sbin
 	cp ./conv.sh $(ROOTFS_DIR)/sbin
+	cp ./tts.sh $(ROOTFS_DIR)/sbin
 	cp ./dodownload.sh $(ROOTFS_DIR)/sbin
 	cp -a ./mp3/ $(ROOTFS_DIR)/usr/lib

@@ -1,7 +1,8 @@
+//add_column_custom_audio_file.jason
 [
-    {
-        "type": 32,
-        "fileName": "1.mp3",
-        "size": 1024
-    }
+  {
+    "type": 32,
+    "fileName": "1.mp3",
+    "size": 1024
+  }
 ]

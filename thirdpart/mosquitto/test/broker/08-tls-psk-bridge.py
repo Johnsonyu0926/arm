@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
-
 if sys.version < '2.7':
     print("WARNING: SSL not supported on Python 2.6")
     exit(0)
+
 
 def write_config1(filename, port1, port2):
     with open(filename, 'w') as f:
@@ -17,6 +16,7 @@ def write_config1(filename, port1, port2):
         f.write("listener %d\n" % (port2))
         f.write("psk_hint hint\n")
 
+
 def write_config2(filename, port2, port3):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port3))
@@ -27,6 +27,7 @@ def write_config2(filename, port2, port3):
         f.write("topic psk/test out\n")
         f.write("bridge_identity psk-test\n")
         f.write("bridge_psk deadbeef\n")
+
 
 (port1, port2, port3) = mosq_test.get_port(3)
 conf_file1 = "08-tls-psk-bridge.conf"
@@ -40,8 +41,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
-
+env['PYTHONPATH'] = '../../lib/python:' + pp
 
 rc = 1
 keepalive = 60
@@ -56,7 +56,7 @@ publish_packet = mosq_test.gen_publish(topic="psk/test", payload="message", qos=
 
 bridge_cmd = ['../../src/mosquitto', '-c', '08-tls-psk-bridge.conf2']
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), use_conf=True, port=port1)
-bridge = mosq_test.start_broker(filename=os.path.basename(__file__)+'_bridge', cmd=bridge_cmd, port=port3)
+bridge = mosq_test.start_broker(filename=os.path.basename(__file__) + '_bridge', cmd=bridge_cmd, port=port3)
 
 pub = None
 try:
@@ -64,7 +64,8 @@ try:
 
     mosq_test.do_send_receive(sock, subscribe_packet, suback_packet, "suback")
 
-    pub = subprocess.Popen(['./c/08-tls-psk-bridge.test', str(port3)], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pub = subprocess.Popen(['./c/08-tls-psk-bridge.test', str(port3)], env=env, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE)
     if pub.wait():
         raise ValueError
     (stdo, stde) = pub.communicate()
@@ -94,4 +95,3 @@ finally:
             print(stdo.decode('utf-8'))
 
 exit(rc)
-

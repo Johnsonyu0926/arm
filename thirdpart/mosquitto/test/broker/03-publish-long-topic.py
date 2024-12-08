@@ -5,8 +5,6 @@
 # https://github.com/eclipse/mosquitto/issues/1412
 
 
-from mosq_test_helper import *
-
 def do_test(proto_ver):
     rc = 1
     mid = 19
@@ -14,7 +12,7 @@ def do_test(proto_ver):
     connect_packet = mosq_test.gen_connect("pub-qos1-test", keepalive=keepalive, proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    publish_packet = mosq_test.gen_publish("/"*65535, qos=1, mid=mid, payload="message", proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("/" * 65535, qos=1, mid=mid, payload="message", proto_ver=proto_ver)
     puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver)
 
     port = mosq_test.get_port()
@@ -46,4 +44,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

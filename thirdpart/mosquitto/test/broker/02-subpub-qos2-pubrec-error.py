@@ -2,7 +2,6 @@
 
 # Test whether a PUBREC with reason code >= 0x80 is handled correctly
 
-from mosq_test_helper import *
 
 def helper(port):
     connect_packet = mosq_test.gen_connect("test-helper", keepalive=60)
@@ -41,11 +40,13 @@ def do_test():
     suback_packet = mosq_test.gen_suback(mid, 2, proto_ver=5)
 
     mid = 1
-    publish_1_packet = mosq_test.gen_publish("qos2/pubrec/rejected", qos=2, mid=mid, payload="rejected-message", proto_ver=5)
+    publish_1_packet = mosq_test.gen_publish("qos2/pubrec/rejected", qos=2, mid=mid, payload="rejected-message",
+                                             proto_ver=5)
     pubrec_1_packet = mosq_test.gen_pubrec(mid, proto_ver=5, reason_code=0x80)
 
     mid = 2
-    publish_2_packet = mosq_test.gen_publish("qos2/pubrec/accepted", qos=2, mid=mid, payload="accepted-message", proto_ver=5)
+    publish_2_packet = mosq_test.gen_publish("qos2/pubrec/accepted", qos=2, mid=mid, payload="accepted-message",
+                                             proto_ver=5)
     pubrec_2_packet = mosq_test.gen_pubrec(mid, proto_ver=5)
     pubrel_2_packet = mosq_test.gen_pubrel(mid, proto_ver=5)
     pubcomp_2_packet = mosq_test.gen_pubcomp(mid, proto_ver=5)

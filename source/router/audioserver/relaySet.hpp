@@ -1,20 +1,24 @@
 #pragma once
 
+#include <string>
 #include "json.hpp"
 #include "utils.h"
+#include "Relay.hpp"
+#include "spdlog/spdlog.h"
 
 namespace asns {
+
     class CRelaySetResult {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CRelaySetResult, cmd, resultId, msg)
 
-        int do_success() {
+        void do_success() {
             cmd = "RelaySet";
             resultId = 1;
             msg = "RelaySet success";
         }
 
-        int do_fail(std::string str) {
+        void do_fail(const std::string& str) {
             cmd = "RelaySet";
             resultId = 2;
             msg = str;
@@ -22,7 +26,7 @@ namespace asns {
 
     private:
         std::string cmd;
-        int resultId;
+        int resultId{0};
         std::string msg;
     };
 
@@ -31,18 +35,27 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CRelaySet, cmd, model, status)
 
         int do_req(CSocket *pClient) {
-            CUtils utils;
-            utils.set_gpio_model(model, status);
-            CRelaySetResult relaySetResult;
-            relaySetResult.do_success();
-            json js = relaySetResult;
-            std::string s = js.dump();
-            pClient->Send(s.c_str(), s.length());
+            try {
+                Relay::getInstance().set_gpio_model(model, status);
+                CRelaySetResult relaySetResult;
+                relaySetResult.do_success();
+                json js = relaySetResult;
+                std::string s = js.dump();
+                spdlog::info("RelaySet success: {}", s);
+                return pClient->Send(s.c_str(), s.length());
+            } catch (const std::exception& e) {
+                CRelaySetResult relaySetResult;
+                relaySetResult.do_fail(e.what());
+                json js = relaySetResult;
+                std::string s = js.dump();
+                spdlog::error("RelaySet failed: {}", s);
+                return pClient->Send(s.c_str(), s.length());
+            }
         }
 
     private:
         std::string cmd;
-        int model;
-        int status;
+        int model{0};
+        int status{0};
     };
-};
+} // namespace asns

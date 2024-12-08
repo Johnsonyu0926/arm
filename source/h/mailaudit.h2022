@@ -1,0 +1,94 @@
+#ifndef __CMAILAUDIT_H__
+#define __CMAILAUDIT_H__
+
+#include <gmime/gmime.h>
+#include <cstring>
+#include "CDsList.h"
+
+constexpr int CHECK_WHITE = 0;
+constexpr int CHECK_BLACK = 1;
+
+constexpr int AUDIT_PASS = 0;
+constexpr int AUDIT_FORBIDEN_ATTACHMENT = 1;
+constexpr int AUDIT_FORBIDEN_BODY = 2;
+constexpr int AUDIT_FORBIDEN_SUBJECT = 3;
+
+class CQSearch;
+
+class CMailAudit {
+public:
+    CMailAudit() {
+        g_mime_init(0);
+        std::memset(m_szFoundKey, 0, sizeof(m_szFoundKey));
+    }
+
+    ~CMailAudit() {
+        // g_mime_shutdown();
+    }
+
+    const char* GetSubject() const {
+        return m_szSubject;
+    }
+
+    const char* GetFrom() const {
+        return m_szFrom;
+    }
+
+    const char* GetTo() const {
+        return m_szTo;
+    }
+
+    const char* GetCc() const {
+        return m_szCc;
+    }
+
+    const char* GetDate() const {
+        return m_szDate;
+    }
+
+    void SetAttaList(CDsList* pAttaList) {
+        m_pAttaList = pAttaList;
+    }
+
+    void SetContList(CDsList* pContList) {
+        m_pContList = pContList;
+    }
+
+    void SetContCheckMode(int nCheckMode) {
+        m_nContCheckMode = nCheckMode;
+    }
+
+    void SetAttaCheckMode(int nCheckMode) {
+        m_nAttaCheckMode = nCheckMode;
+    }
+
+    void SetQSearch(CQSearch* pQSearch) {
+        m_pQSearch = pQSearch;
+    }
+
+    int Audit(char* pMail, int nMailSize);
+    BOOL GetFoundKey(char* szFoundKey, int nSize) const {
+        std::strncpy(szFoundKey, m_szFoundKey, nSize);
+        return TRUE;
+    }
+
+private:
+    char m_szFoundKey[128]{};
+    CDsList* m_pAttaList{nullptr};
+    CDsList* m_pContList{nullptr};
+    int m_nContCheckMode{0};
+    int m_nAttaCheckMode{0};
+    CQSearch* m_pQSearch{nullptr};
+
+    char* DoEncode(char* p);
+    BOOL DoDecode(char* p, char* pValue, int size);
+    BOOL DecodeSubject(const char* szEnc, char* pValue, int size);
+
+    char m_szSubject[1024]{};
+    char m_szFrom[1024]{};
+    char m_szTo[1024]{};
+    char m_szDate[1024]{};
+    char m_szCc[1024]{};
+};
+
+#endif // __CMAILAUDIT_H__

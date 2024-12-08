@@ -13,8 +13,6 @@
 # The second publish should also go to client 3 (share one) and client 4 (share two)
 # The third publish should also go to client 3 (share two) and client 5 (share one)
 
-from mosq_test_helper import *
-
 rc = 1
 keepalive = 60
 mid = 1
@@ -75,7 +73,6 @@ unsuback4_packet = mosq_test.gen_unsuback(mid, proto_ver=5)
 unsubscribe5_packet = mosq_test.gen_unsubscribe(mid, "$share/one/share-test", proto_ver=5)
 unsuback5_packet = mosq_test.gen_unsuback(mid, proto_ver=5)
 
-
 port = mosq_test.get_port()
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)
 
@@ -131,4 +128,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

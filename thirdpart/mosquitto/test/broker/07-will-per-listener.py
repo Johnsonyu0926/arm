@@ -2,7 +2,6 @@
 
 # Test whether a client will is transmitted correctly, with per_listener_settings enabled
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -10,13 +9,15 @@ def write_config(filename, port):
         f.write("listener %d\n" % (port))
         f.write("allow_anonymous true\n")
 
+
 def do_test(proto_ver, clean_session):
     rc = 1
     mid = 53
     connect1_packet = mosq_test.gen_connect("will-qos0-test", proto_ver=proto_ver)
     connack1_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    connect2_packet = mosq_test.gen_connect("test-helper", will_topic="will/qos0/test", will_payload=b"will-message", clean_session=clean_session, proto_ver=proto_ver, session_expiry=60)
+    connect2_packet = mosq_test.gen_connect("test-helper", will_topic="will/qos0/test", will_payload=b"will-message",
+                                            clean_session=clean_session, proto_ver=proto_ver, session_expiry=60)
     connack2_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     subscribe_packet = mosq_test.gen_subscribe(mid, "will/qos0/test", 0, proto_ver=proto_ver)
@@ -50,6 +51,7 @@ def do_test(proto_ver, clean_session):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(4, True)
 do_test(4, False)

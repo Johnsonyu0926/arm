@@ -36,10 +36,10 @@ The test section supports the following options
 * Method - the method to test. One of DTLS or TLS.
 
 * HandshakeMode - which handshake flavour to test:
-  - Simple - plain handshake (default)
-  - Resume - test resumption
-  - RenegotiateServer - test server initiated renegotiation
-  - RenegotiateClient - test client initiated renegotiation
+    - Simple - plain handshake (default)
+    - Resume - test resumption
+    - RenegotiateServer - test server initiated renegotiation
+    - RenegotiateClient - test client initiated renegotiation
 
 When HandshakeMode is Resume or Renegotiate, the original handshake is expected
 to succeed. All configured test expectations are verified against the second
@@ -61,10 +61,10 @@ handshake.
 ### Test expectations
 
 * ExpectedResult - expected handshake outcome. One of
-  - Success - handshake success
-  - ServerFail - serverside handshake failure
-  - ClientFail - clientside handshake failure
-  - InternalError - some other error
+    - Success - handshake success
+    - ServerFail - serverside handshake failure
+    - ClientFail - clientside handshake failure
+    - InternalError - some other error
 
 * ExpectedClientAlert, ExpectedServerAlert - expected alert. See
   `ssl_test_ctx.c` for known values. Note: the expected alert is currently
@@ -77,18 +77,18 @@ handshake.
   SSLv3, TLSv1, TLSv1.1, TLSv1.2.
 
 * SessionTicketExpected - whether or not a session ticket is expected
-  - Ignore - do not check for a session ticket (default)
-  - Yes - a session ticket is expected
-  - No - a session ticket is not expected
+    - Ignore - do not check for a session ticket (default)
+    - Yes - a session ticket is expected
+    - No - a session ticket is not expected
 
 * SessionIdExpected - whether or not a session id is expected
-  - Ignore - do not check for a session id (default)
-  - Yes - a session id is expected
-  - No - a session id is not expected
+    - Ignore - do not check for a session id (default)
+    - Yes - a session id is expected
+    - No - a session id is not expected
 
 * ResumptionExpected - whether or not resumption is expected (Resume mode only)
-  - Yes - resumed handshake
-  - No - full handshake (default)
+    - Yes - resumed handshake
+    - No - full handshake (default)
 
 * ExpectedNPNProtocol, ExpectedALPNProtocol - NPN and ALPN expectations.
 
@@ -137,7 +137,7 @@ The following sections may optionally be defined:
   matches server.
 * resume_client - this section configures the client to resume its session with
   a different configuration. In practice this may occur when, for example,
-  upgraded clients reuse sessions persisted on disk.  This context is used
+  upgraded clients reuse sessions persisted on disk. This context is used
   whenever HandshakeMode is Resume. If the resume_client section is not present,
   then the configuration matches client.
 
@@ -159,32 +159,32 @@ client => {
 
 * ClientVerifyCallback - the client's custom certificate verify callback.
   Used to test callback behaviour. One of
-  - None - no custom callback (default)
-  - AcceptAll - accepts all certificates.
-  - RejectAll - rejects all certificates.
+    - None - no custom callback (default)
+    - AcceptAll - accepts all certificates.
+    - RejectAll - rejects all certificates.
 
 * ServerName - the server the client should attempt to connect to. One of
-  - None - do not use SNI (default)
-  - server1 - the initial context
-  - server2 - the secondary context
-  - invalid - an unknown context
+    - None - do not use SNI (default)
+    - server1 - the initial context
+    - server2 - the secondary context
+    - invalid - an unknown context
 
 * CTValidation - Certificate Transparency validation strategy. One of
-  - None - no validation (default)
-  - Permissive - SSL_CT_VALIDATION_PERMISSIVE
-  - Strict - SSL_CT_VALIDATION_STRICT
+    - None - no validation (default)
+    - Permissive - SSL_CT_VALIDATION_PERMISSIVE
+    - Strict - SSL_CT_VALIDATION_STRICT
 
 #### Supported server-side options
 
 * ServerNameCallback - the SNI switching callback to use
-  - None - no callback (default)
-  - IgnoreMismatch - continue the handshake on SNI mismatch
-  - RejectMismatch - abort the handshake on SNI mismatch
+    - None - no callback (default)
+    - IgnoreMismatch - continue the handshake on SNI mismatch
+    - RejectMismatch - abort the handshake on SNI mismatch
 
 * BrokenSessionTicket - a special test case where the session ticket callback
   does not initialize crypto.
-  - No (default)
-  - Yes
+    - No (default)
+    - Yes
 
 #### Mutually supported options
 

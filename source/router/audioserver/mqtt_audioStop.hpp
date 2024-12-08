@@ -1,9 +1,11 @@
 #pragma once
 
+#include <string>
 #include "json.hpp"
 #include "utils.h"
 
 namespace asns {
+
     template<typename Quest, typename Result>
     class CReQuest;
 
@@ -16,15 +18,14 @@ namespace asns {
 
         template<typename Quest, typename Result, typename T>
         int do_success(const CReQuest<Quest, Result> &c, CResult<T> &r) {
-            CUtils utils;
-            utils.audio_stop();
+            AudioPlayUtil::audio_stop();
             r.resultId = 1;
             r.result = "success";
             return 1;
         }
 
     private:
-        std::nullptr_t null;
+        std::nullptr_t null{nullptr};
     };
 
     class CAudioStopData {
@@ -32,6 +33,6 @@ namespace asns {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CAudioStopData, null)
 
     private:
-        std::nullptr_t null;
+        std::nullptr_t null{nullptr};
     };
 }

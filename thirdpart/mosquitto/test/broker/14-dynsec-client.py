@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 import json
 import shutil
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -11,8 +11,10 @@ def write_config(filename, port):
         f.write("plugin ../../plugins/dynamic-security/mosquitto_dynamic_security.so\n")
         f.write("plugin_opt_config_file %d/dynamic-security.json\n" % (port))
 
+
 def command_check(sock, command_payload, expected_response):
-    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0, payload=json.dumps(command_payload))
+    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0,
+                                           payload=json.dumps(command_payload))
     sock.send(command_packet)
     response = json.loads(mosq_test.read_publish(sock))
     if response != expected_response:
@@ -21,47 +23,48 @@ def command_check(sock, command_payload, expected_response):
         raise ValueError(response)
 
 
-
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port)
 
-add_client_command = { "commands": [{
-            "command": "createClient", "username": "user_one",
-            "password": "password", "clientid": "cid",
-            "textname": "Name", "textdescription": "Description",
-            "rolename": "", "correlationData": "2" }]
+add_client_command = {"commands": [{
+    "command": "createClient", "username": "user_one",
+    "password": "password", "clientid": "cid",
+    "textname": "Name", "textdescription": "Description",
+    "rolename": "", "correlationData": "2"}]
 }
 add_client_response = {'responses': [{'command': 'createClient', 'correlationData': '2'}]}
-add_client_repeat_response = {'responses':[{"command":"createClient","error":"Client already exists", "correlationData":"2"}]}
+add_client_repeat_response = {
+    'responses': [{"command": "createClient", "error": "Client already exists", "correlationData": "2"}]}
 
-list_clients_command = { "commands": [{
-            "command": "listClients", "verbose": False, "correlationData": "10"}]
+list_clients_command = {"commands": [{
+    "command": "listClients", "verbose": False, "correlationData": "10"}]
 }
-list_clients_response = {'responses': [{"command": "listClients", "data":{"totalCount":2, "clients":["admin", "user_one"]},"correlationData":"10"}]}
+list_clients_response = {'responses': [
+    {"command": "listClients", "data": {"totalCount": 2, "clients": ["admin", "user_one"]}, "correlationData": "10"}]}
 
-list_clients_verbose_command = { "commands": [{
-            "command": "listClients", "verbose": True, "correlationData": "20"}]
+list_clients_verbose_command = {"commands": [{
+    "command": "listClients", "verbose": True, "correlationData": "20"}]
 }
-list_clients_verbose_response = {'responses':[{"command": "listClients", "data":{"totalCount":2, "clients":[
+list_clients_verbose_response = {'responses': [{"command": "listClients", "data": {"totalCount": 2, "clients": [
     {'username': 'admin', 'textname': 'Dynsec admin user', 'roles': [{'rolename': 'admin'}], 'groups': []},
-    {"username":"user_one", "clientid":"cid", "textname":"Name", "textdescription":"Description",
-        "roles":[], "groups":[]}]}, "correlationData":"20"}]}
+    {"username": "user_one", "clientid": "cid", "textname": "Name", "textdescription": "Description",
+     "roles": [], "groups": []}]}, "correlationData": "20"}]}
 
-
-get_client_command = { "commands": [{
+get_client_command = {"commands": [{
     "command": "getClient", "username": "user_one", "correlationData": "42"}]}
-get_client_response = {'responses':[{'command': 'getClient', 'data': {'client': {'username': 'user_one', 'clientid': 'cid',
-    'textname': 'Name', 'textdescription': 'Description', 'groups': [], 'roles': []}}, "correlationData":"42"}]}
+get_client_response = {
+    'responses': [{'command': 'getClient', 'data': {'client': {'username': 'user_one', 'clientid': 'cid',
+                                                               'textname': 'Name', 'textdescription': 'Description',
+                                                               'groups': [], 'roles': []}}, "correlationData": "42"}]}
 
 set_client_password_command = {"commands": [{
     "command": "setClientPassword", "username": "user_one", "password": "password"}]}
-set_client_password_response = {"responses": [{"command":"setClientPassword"}]}
+set_client_password_response = {"responses": [{"command": "setClientPassword"}]}
 
-delete_client_command = { "commands": [{
-            "command": "deleteClient", "username": "user_one"}]}
-delete_client_response = {'responses':[{'command': 'deleteClient'}]}
-
+delete_client_command = {"commands": [{
+    "command": "deleteClient", "username": "user_one"}]}
+delete_client_response = {'responses': [{'command': 'deleteClient'}]}
 
 rc = 1
 keepalive = 10
@@ -136,6 +139,5 @@ finally:
     (stdo, stde) = broker.communicate()
     if rc:
         print(stde.decode('utf-8'))
-
 
 exit(rc)

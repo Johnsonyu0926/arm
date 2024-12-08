@@ -4,33 +4,38 @@
 #include <iostream>
 #include "json.hpp"
 #include "utils.h"
-
-using namespace std;
+#include "spdlog/spdlog.h"
 
 namespace asns {
 
     class CNetworkSetResult {
     private:
-        string cmd;
-        int resultId;
-        string msg;
+        std::string cmd;
+        int resultId{0};
+        std::string msg;
 
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CNetworkSetResult, cmd, resultId, msg)
 
-        int do_success() {
+        void do_success() {
             cmd = "NetworkSet";
             resultId = 1;
             msg = "NetworkSet handle success";
-        };
+        }
+
+        void do_fail(const std::string& str) {
+            cmd = "NetworkSet";
+            resultId = 2;
+            msg = str;
+        }
     };
 
     class CNetworkSet {
     private:
-        string cmd;
-        string ipAddress;
-        string gateway;
-        string netMask;
+        std::string cmd;
+        std::string ipAddress;
+        std::string gateway;
+        std::string netMask;
 
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CNetworkSet, cmd, ipAddress, gateway, netMask)
@@ -38,14 +43,25 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CUtils utils;
             CNetworkSetResult res;
-            res.do_success();
-            json j = res;
+            try {
+                utils.network_set(gateway, ipAddress, netMask);
+                res.do_success();
+                spdlog::info("NetworkSet success: IP={}, Gateway={}, Netmask={}", ipAddress, gateway, netMask);
+            } catch (const std::exception& e) {
+                res.do_fail(e.what());
+                spdlog::error("NetworkSet failed: {}", e.what());
+            }
+            return send_response(pClient, res);
+        }
+
+    private:
+        int send_response(CSocket *pClient, const CNetworkSetResult& result) {
+            json j = result;
             std::string s = j.dump();
-            pClient->Send(s.c_str(), s.length());
-            utils.network_set(gateway, ipAddress, netMask);
-            return 1;
+            return pClient->Send(s.c_str(), s.length());
         }
     };
 
-} // namespace tcpserver
-#endif
+} // namespace asns
+
+#endif // __CNETWORKSET_H__

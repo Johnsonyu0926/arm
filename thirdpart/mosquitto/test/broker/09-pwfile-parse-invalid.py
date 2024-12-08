@@ -2,8 +2,6 @@
 
 # Test for CVE-2018-xxxxx.
 
-from mosq_test_helper import *
-import signal
 
 def write_config(filename, port, per_listener):
     with open(filename, 'w') as f:
@@ -12,21 +10,26 @@ def write_config(filename, port, per_listener):
         f.write("password_file %s\n" % (filename.replace('.conf', '.pwfile')))
         f.write("allow_anonymous false")
 
+
 def write_pwfile(filename, bad_line1, bad_line2):
     with open(filename, 'w') as f:
         if bad_line1 is not None:
             f.write('%s\n' % (bad_line1))
         # Username test, password test
-        f.write('test:$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==\n')
+        f.write(
+            'test:$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==\n')
         # Username empty, password 0 length
-        f.write('empty:$6$o+53eGXtmlfHeYrg$FY7X9DNQ4uU1j0NiPmGOOSU05ZSzhqNmNhXIof/0nLpVb1zDhcRHdaC72E3YryH7dtTiG/r6jH6C8J+30cZBgA==\n')
+        f.write(
+            'empty:$6$o+53eGXtmlfHeYrg$FY7X9DNQ4uU1j0NiPmGOOSU05ZSzhqNmNhXIof/0nLpVb1zDhcRHdaC72E3YryH7dtTiG/r6jH6C8J+30cZBgA==\n')
         if bad_line2 is not None:
             f.write('%s\n' % (bad_line2))
+
 
 def do_test(port, connack_rc, username, password):
     rc = 1
     keepalive = 60
-    connect_packet = mosq_test.gen_connect("username-password-check", keepalive=keepalive, username=username, password=password)
+    connect_packet = mosq_test.gen_connect("username-password-check", keepalive=keepalive, username=username,
+                                           password=password)
     connack_packet = mosq_test.gen_connack(rc=connack_rc)
 
     try:
@@ -133,21 +136,28 @@ def all_tests(port):
     username_password_tests(port)
 
     # Valid file, first line has invalid hash designator
-    write_pwfile(pw_file, bad_line1='bad:$5$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==', bad_line2=None)
+    write_pwfile(pw_file,
+                 bad_line1='bad:$5$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==',
+                 bad_line2=None)
     username_password_tests(port)
 
     # Invalid file, missing username but valid password hash
-    write_pwfile(pw_file, bad_line1=':$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==', bad_line2=None)
+    write_pwfile(pw_file,
+                 bad_line1=':$6$njERlZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==',
+                 bad_line2=None)
     username_password_tests(port)
 
     # Valid file, valid username but password salt not base64
-    write_pwfile(pw_file, bad_line1='bad:$6$njER{ZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==', bad_line2=None)
+    write_pwfile(pw_file,
+                 bad_line1='bad:$6$njER{ZMi/7DzNB9E$iiavfuXvUm8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==',
+                 bad_line2=None)
     username_password_tests(port)
 
     # Valid file, valid username but password hash not base64
-    write_pwfile(pw_file, bad_line1='bad:$6$njERlZMi/7DzNB9E$iiavfuXv{}8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==', bad_line2=None)
+    write_pwfile(pw_file,
+                 bad_line1='bad:$6$njERlZMi/7DzNB9E$iiavfuXv{}8iyDZArTy7smTxh07GXXOrOsqxfW6gkOYVXHGk+W+i/8d3xDxrMwEPygEBhoA8A/gjQC0N2M4Lkw==',
+                 bad_line2=None)
     username_password_tests(port)
-
 
 
 port = mosq_test.get_port()

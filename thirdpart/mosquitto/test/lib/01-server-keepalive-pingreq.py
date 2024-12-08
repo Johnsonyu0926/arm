@@ -4,8 +4,6 @@
 # Client sets a keepalive of 60 seconds, but receives a server keepalive to set
 # it back to 4 seconds.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
@@ -32,12 +30,12 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:
     (conn, address) = sock.accept()
-    conn.settimeout(server_keepalive+10)
+    conn.settimeout(server_keepalive + 10)
 
     mosq_test.do_receive_send(conn, connect_packet, connack_packet, "connect")
 
@@ -57,4 +55,3 @@ finally:
     sock.close()
 
 exit(rc)
-

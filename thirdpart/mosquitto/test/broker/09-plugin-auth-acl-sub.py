@@ -2,13 +2,13 @@
 
 # Test topic subscription. All topic are allowed but not using wildcard in subscribe.
 
-from mosq_test_helper import *
 
 def write_config(filename, port, plugin_ver):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("auth_plugin c/auth_plugin_v%d.so\n" % (plugin_ver))
         f.write("allow_anonymous false\n")
+
 
 def do_test(plugin_ver):
     port = mosq_test.get_port()
@@ -49,6 +49,7 @@ def do_test(plugin_ver):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(4)
 do_test(5)

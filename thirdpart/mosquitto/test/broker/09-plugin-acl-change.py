@@ -5,13 +5,13 @@
 # access to the topic is revoked, the client reconnects and it attempts to
 # complete the flow. Is the publish allowed? It should not be.
 
-from mosq_test_helper import *
 
 def write_config(filename, port, plugin_ver):
     with open(filename, 'w') as f:
         f.write("listener %d\n" % (port))
         f.write("auth_plugin c/auth_plugin_acl_change.so\n")
         f.write("allow_anonymous true\n")
+
 
 def do_test(plugin_ver):
     port = mosq_test.get_port()
@@ -23,7 +23,7 @@ def do_test(plugin_ver):
     connack1_packet = mosq_test.gen_connack(rc=0)
 
     connect2_packet = mosq_test.gen_connect("acl-change-test", clean_session=False)
-    connack2_packet = mosq_test.gen_connack(rc=0,flags=1)
+    connack2_packet = mosq_test.gen_connack(rc=0, flags=1)
 
     mid = 1
     subscribe_packet = mosq_test.gen_subscribe(mid, "#", 0)
@@ -65,5 +65,6 @@ def do_test(plugin_ver):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(4)

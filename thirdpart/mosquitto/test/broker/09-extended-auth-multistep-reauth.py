@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("auth_plugin c/auth_plugin_extended_multiple.so\n")
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -52,7 +52,6 @@ auth2_2_packet = mosq_test.gen_auth(reason_code=mqtt5_rc.MQTT_RC_CONTINUE_AUTHEN
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_AUTHENTICATION_METHOD, "mirror")
 auth2_3_packet = mosq_test.gen_auth(reason_code=0, properties=props)
 
-
 # Third auth - bad due to different method
 # ========================================
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_AUTHENTICATION_METHOD, "badmethod")
@@ -61,7 +60,6 @@ reauth3_packet = mosq_test.gen_auth(reason_code=mqtt5_rc.MQTT_RC_REAUTHENTICATE,
 
 # Server to client
 disconnect3_packet = mosq_test.gen_disconnect(reason_code=mqtt5_rc.MQTT_RC_PROTOCOL_ERROR, proto_ver=5)
-
 
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), use_conf=True, port=port)
 
@@ -89,6 +87,4 @@ finally:
     if rc:
         print(stde.decode('utf-8'))
 
-
 exit(rc)
-

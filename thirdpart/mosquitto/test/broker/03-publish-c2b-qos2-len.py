@@ -3,7 +3,6 @@
 # Check whether the broker handles a v5 PUBREL with all combinations
 # of with/without reason code and properties.
 
-from mosq_test_helper import *
 
 def len_test(test, pubrel_packet):
     rc = 1

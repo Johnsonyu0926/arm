@@ -3,7 +3,6 @@
 # Does the broker respect receive maximum==2?
 # MQTT v5
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     if proto_ver == 4:
@@ -37,7 +36,6 @@ def do_test(proto_ver):
     pubrel_packet3 = mosq_test.gen_pubrel(mid, proto_ver=5)
     pubcomp_packet3 = mosq_test.gen_pubcomp(mid, proto_ver=5)
 
-
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)
 
@@ -46,7 +44,8 @@ def do_test(proto_ver):
 
         mosq_test.do_send_receive(sock, subscribe_packet, suback_packet, "suback")
 
-        pub = subprocess.Popen(['./02-subpub-qos2-receive-maximum-helper.py', str(port)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        pub = subprocess.Popen(['./02-subpub-qos2-receive-maximum-helper.py', str(port)], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
         pub.wait()
         (stdo, stde) = pub.communicate()
 

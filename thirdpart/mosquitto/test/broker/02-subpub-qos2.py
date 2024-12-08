@@ -2,7 +2,6 @@
 
 # Test whether a client subscribed to a topic receives its own message sent to that topic.
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -25,7 +24,6 @@ def do_test(proto_ver):
     pubrec_packet2 = mosq_test.gen_pubrec(mid, proto_ver=proto_ver)
     pubrel_packet2 = mosq_test.gen_pubrel(mid, proto_ver=proto_ver)
     pubcomp_packet2 = mosq_test.gen_pubcomp(mid, proto_ver=proto_ver)
-
 
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)

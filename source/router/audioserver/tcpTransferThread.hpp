@@ -3,16 +3,19 @@
 #include "public.hpp"
 #include "add_column_custom_audio_file.hpp"
 #include "utils.h"
+#include "Rs485.hpp"
+
 #include <fstream>
-
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <openssl/md5.h>
 class CSThread;
-
 class CSocket;
-
 
 class TcpTransferThread : public CSThread {
 public:
-    virtual BOOL InitInstance() {
+    virtual BOOL InitInstance() override {
         CSocket socket;
         if (!socket.Create(TCP)) {
             return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
@@ -24,26 +27,24 @@ public:
                 m_nPort = i;
                 if (std::stoi(m_vecStr[3]) != asns::RECORDEND) {
                     std::string res = "01 E1 " + m_vecStr[5] + " " + std::to_string(m_nPort);
-                    if(pClient == nullptr){
-                        CUtils utils;
-                        utils.uart_write(res);
-                    }else{
+                    if (pClient == nullptr) {
+                        Rs485::_uart_work(res.c_str(), res.length());
+                    } else {
                         pClient->Send(res.c_str(), res.length());
                     }
                 } else {
                     CUtils utils;
                     int file_size = utils.get_file_size(asns::RECORD_PATH);
                     std::string res = "01 E1 " + m_vecStr[4] + " " + std::to_string(file_size) + " " + std::to_string(m_nPort);
-                    if(pClient == nullptr){
-                        CUtils utils;
-                        utils.uart_write(res);
-                    }else{
+                    if (pClient == nullptr) {
+                        Rs485::_uart_work(res.c_str(), res.length());
+                    } else {
                         pClient->Send(res.c_str(), res.length());
                     }
                 }
                 break;
             } else if (i == asns::ENDPORT) {
-                DS_TRACE("fatal , bind error!\n");
+                LOG(INFO) << "fatal, bind error!";
                 return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
             }
         }
@@ -54,26 +55,26 @@ public:
         struct timeval timeout;
         timeout.tv_sec = 30;
         timeout.tv_usec = 0;
-        int n = select(socket.m_hSocket + 1, &rset, NULL, NULL, &timeout);
+        int n = select(socket.m_hSocket + 1, &rset, nullptr, nullptr, &timeout);
         if (n < 0) {
-            DS_TRACE("fatal , select error!\n");
+            LOG(INFO) << "fatal, select error!";
             return SendFast(asns::OPERATION_FAIL_ERROR, pClient);
         } else if (n == 0) {
-            DS_TRACE("timeout!\n");
+            LOG(INFO) << "timeout!";
             return SendFast(asns::TCP_TIMEOUT, pClient);
         } else if (n > 0) {
-            DS_TRACE("server select n = " << n);
+            LOG(INFO) << "server select n = " << n;
         }
-        CSocket *pTcp = new CSocket;
-        socket.Accept(pTcp);
-        DS_TRACE("Got the no." << " connection :" << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort()));
-        do_req(pTcp);
+        auto pTcp = std::make_unique<CSocket>();
+        socket.Accept(pTcp.get());
+        LOG(INFO) << "Got the connection: " << pTcp->GetRemoteIp() << ":" << ntohs(pTcp->GetPeerPort());
+        do_req(pTcp.get());
         socket.Close();
-        delete pTcp;
+        return 1;
     }
 
-    virtual BOOL ExitInstance() {
-        DS_TRACE("exit tcp transfer thread.");
+    virtual BOOL ExitInstance() override {
+        LOG(INFO) << "exit tcp transfer thread.";
         return TRUE;
     }
 
@@ -106,25 +107,25 @@ private:
     int Record(CSocket *pTcp) {
         CUtils utils;
         int file_size = utils.get_file_size(asns::RECORD_PATH);
-        DS_TRACE("record file size:" << file_size);
+        LOG(INFO) << "record file size: " << file_size;
         char buf[asns::BUFSIZE] = {0};
-        std::fstream fs(asns::RECORD_PATH, std::fstream::in | std::fstream::binary);
+        std::ifstream fs(asns::RECORD_PATH, std::ios::in | std::ios::binary);
         while (!fs.eof()) {
             fs.read(buf, sizeof(buf));
-            std::cout << fs.gcount() << " ";
+            LOG(INFO) << fs.gcount() << " ";
             if (fs.gcount() <= 0) {
-                DS_TRACE("read count < 0");
+                LOG(INFO) << "read count < 0";
                 break;
             }
             pTcp->Send(buf, fs.gcount());
             file_size -= fs.gcount();
             if (file_size <= 0) {
-                DS_TRACE("file size < 0");
+                LOG(INFO) << "file size < 0";
                 break;
             }
         }
         fs.close();
-        DS_TRACE("Send ok");
+        LOG(INFO) << "Send ok";
         system("rm /tmp/record.mp3");
         return SendTrue(pClient);
     }
@@ -136,23 +137,23 @@ private:
         std::string name = prefix + "." + suffix;
         asns::CAudioCfgBusiness cfg;
         std::string path = cfg.getAudioFilePath() + name;
-        std::fstream fs(path, std::fstream::out | std::fstream::binary | std::fstream::trunc);
+        std::ofstream fs(path, std::ios::out | std::ios::binary | std::ios::trunc);
 
-        int file_size = std::atoi(m_vecStr[4].c_str());
+        int file_size = std::stoi(m_vecStr[4]);
         char buf[asns::BUFSIZE] = {0};
 
         while (true) {
             int len = pTcp->Recv(buf, sizeof(buf));
-            DS_TRACE("recv len :" << len);
+            LOG(INFO) << "recv len: " << len;
             if (len > 0) {
                 fs.write(buf, len);
                 file_size -= len;
                 if (file_size <= 0) {
-                    DS_TRACE("read end");
+                    LOG(INFO) << "read end";
                     break;
                 }
             } else if (len == 0) {
-                DS_TRACE("read end");
+                LOG(INFO) << "read end";
                 break;
             } else if (len < 0) {
                 fs.close();
@@ -162,7 +163,7 @@ private:
             }
         }
         fs.close();
-        DS_TRACE("begin json");
+        LOG(INFO) << "begin json";
         CUtils utils;
         utils.bit_rate_32_to_48(path);
         asns::CAddColumnCustomAudioFileBusiness business;
@@ -174,62 +175,91 @@ private:
             business.business.push_back(node);
             business.saveJson();
         } else {
-            business.updateSize(name, std::atoi(m_vecStr[4].c_str()));
+            business.updateSize(name, std::stoi(m_vecStr[4]));
         }
         return SendTrue(pClient);
     }
 
-    int FileUpgrade(CSocket *pTcp) {
-        CUtils utils;
-        std::fstream fs(asns::FIRMWARE_PATH, std::fstream::out | std::fstream::binary);
-        int file_size = std::atoi(m_vecStr[4].c_str());
-        char buf[asns::BUFSIZE] = {0};
-        while (true) {
-            int len = pTcp->Recv(buf, sizeof(buf));
-            if (len > 0) {
-                fs.write(buf, len);
-                std::cout << len << " ";
-                file_size -= len;
-                if (file_size <= 0)break;
-            } else if (len <= 0) {
-                fs.close();
-                return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
-            }
-        }
-        fs.close();
-        SendTrue(pClient);
-        DS_TRACE("begin up read size:" << utils.get_file_size(asns::FIRMWARE_PATH));
-        std::string cmdRes = utils.get_by_cmd_res("webs -U /var/run/SONICCOREV100R001.bin");
-        DS_TRACE("cmd res:" << cmdRes.c_str());
-        if (cmdRes.find("OK") != std::string::npos) {
-            utils.reboot();
-        } else {
-            system("rm /var/run/SONICCOREV100R001.bin");
+int FileUpgrade(CSocket *pTcp) {
+    CUtils utils;
+    std::string firmware_name = m_vecStr[6]; // 从 m_vecStr 获取固件文件名称
+    std::string firmware_path = "/var/run/" + firmware_name; // 构建完整的固件文件路径
+    std::string signature_path = firmware_path + ".sig"; // 签名文件路径
+    std::ofstream fs(firmware_path, std::ios::out | std::ios::binary);
+    int file_size = std::stoi(m_vecStr[4]);
+    char buf[asns::BUFSIZE] = {0};
+    while (true) {
+        int len = pTcp->Recv(buf, sizeof(buf));
+        if (len > 0) {
+            fs.write(buf, len);
+            file_size -= len;
+            if (file_size <= 0) break;
+        } else if (len <= 0) {
+            fs.close();
+            return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
         }
     }
+    fs.close();
+
+    // 接收签名文件
+    std::ofstream sig_fs(signature_path, std::ios::out | std::ios::binary);
+    int sig_file_size = std::stoi(m_vecStr[5]); // 假设签名文件大小在 m_vecStr[5]
+    while (true) {
+        int len = pTcp->Recv(buf, sizeof(buf));
+        if (len > 0) {
+            sig_fs.write(buf, len);
+            sig_file_size -= len;
+            if (sig_file_size <= 0) break;
+        } else if (len <= 0) {
+            sig_fs.close();
+            return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
+        }
+    }
+    sig_fs.close();
+
+    // 验证数字签名
+    std::string verify_cmd = "openssl dgst -sha256 -verify /path/to/public_key.pem -signature " + signature_path + " " + firmware_path;
+    std::string verify_res = utils.get_by_cmd_res(verify_cmd);
+    if (verify_res.find("Verified OK") == std::string::npos) {
+        system(("rm " + firmware_path).c_str());
+        system(("rm " + signature_path).c_str());
+        return SendFast(asns::TCP_TRANSFER_ERROR, pClient);
+    }
+
+    SendTrue(pClient);
+
+    // 执行固件升级脚本，传递设备路径
+    std::string cmd = "/path/to/upgrade_script.sh " + firmware_path + " /dev/sda";
+    std::string cmdRes = utils.get_by_cmd_res(cmd);
+    if (cmdRes.find("Firmware upgrade successful") != std::string::npos) {
+        utils.reboot();
+    } else {
+        system(("rm " + firmware_path).c_str());
+        system(("rm " + signature_path).c_str());
+    }
+    return 1;
+}
 
     int SendTrue(CSocket *pClient) {
         std::string res = "01 E1";
-        DS_TRACE("return: " << res.c_str());
-        if(pClient == nullptr){
-            CUtils utils;
-            return utils.uart_write(res);
+        LOG(INFO) << "return: " << res;
+        if (pClient == nullptr) {
+            return Rs485::_uart_work(res.c_str(), res.length());
         }
         return pClient->Send(res.c_str(), res.length());
     }
 
     int SendFast(const std::string &err_code, CSocket *pClient) {
         std::string buf = "01 " + err_code;
-        DS_TRACE("return: " << buf.c_str());
-        if(pClient == nullptr){
-            CUtils utils;
-            return utils.uart_write(buf);
+        LOG(INFO) << "return: " << buf;
+        if (pClient == nullptr) {
+            return Rs485::_uart_work(buf.c_str(), buf.length());
         }
         return pClient->Send(buf.c_str(), buf.length());
     }
 
 private:
-    CSocket *pClient;
-    int m_nPort;
+    CSocket *pClient{nullptr};
+    int m_nPort{0};
     std::vector<std::string> m_vecStr;
 };

@@ -2,7 +2,6 @@
 
 # Test whether a plugin can subscribe to the tick event
 
-from mosq_test_helper import *
 
 def write_config(filename, port, per_listener_settings="false"):
     with open(filename, 'w') as f:
@@ -10,6 +9,7 @@ def write_config(filename, port, per_listener_settings="false"):
         f.write("listener %d\n" % (port))
         f.write("plugin c/auth_plugin_v5_handle_tick.so\n")
         f.write("allow_anonymous true\n")
+
 
 def do_test(per_listener_settings):
     proto_ver = 5
@@ -19,7 +19,8 @@ def do_test(per_listener_settings):
 
     rc = 1
     keepalive = 10
-    connect_packet = mosq_test.gen_connect("plugin-tick-test", keepalive=keepalive, username="readwrite", clean_session=False, proto_ver=proto_ver)
+    connect_packet = mosq_test.gen_connect("plugin-tick-test", keepalive=keepalive, username="readwrite",
+                                           clean_session=False, proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     tick_packet = mosq_test.gen_publish("topic/tick", qos=0, payload="test-message", proto_ver=proto_ver)
@@ -47,6 +48,7 @@ def do_test(per_listener_settings):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test("false")
 do_test("true")

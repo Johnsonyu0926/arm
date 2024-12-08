@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 import json
 import shutil
+
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -11,8 +11,10 @@ def write_config(filename, port):
         f.write("plugin ../../plugins/dynamic-security/mosquitto_dynamic_security.so\n")
         f.write("plugin_opt_config_file %d/dynamic-security.json\n" % (port))
 
+
 def command_check(sock, command_payload, expected_response):
-    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0, payload=json.dumps(command_payload))
+    command_packet = mosq_test.gen_publish(topic="$CONTROL/dynamic-security/v1", qos=0,
+                                           payload=json.dumps(command_payload))
     sock.send(command_packet)
     response = json.loads(mosq_test.read_publish(sock))
     if response != expected_response:
@@ -21,15 +23,14 @@ def command_check(sock, command_payload, expected_response):
         raise ValueError(response)
 
 
-
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port)
 
-create_role_command = { "commands": [{
+create_role_command = {"commands": [{
     "command": "createRole", "rolename": "role_one",
     "textname": "Name", "textdescription": "Description",
-    "acls":[
+    "acls": [
         {
             "acltype": "publishClientSend",
             "allow": True,
@@ -42,14 +43,14 @@ create_role_command = { "commands": [{
             "topic": "topic/2/#",
             "priority": 9
         }
-    ], "correlationData": "2" }]
+    ], "correlationData": "2"}]
 }
 create_role_response = {'responses': [{'command': 'createRole', 'correlationData': '2'}]}
 
-modify_role_command = { "commands": [{
+modify_role_command = {"commands": [{
     "command": "modifyRole", "rolename": "role_one",
     "textname": "Modified name", "textdescription": "Modified description",
-    "acls":[
+    "acls": [
         {
             "acltype": "publishClientReceive",
             "allow": True,
@@ -63,47 +64,48 @@ modify_role_command = { "commands": [{
             "priority": 1
         }
     ],
-    "correlationData": "3" }]
+    "correlationData": "3"}]
 }
 modify_role_response = {'responses': [{'command': 'modifyRole', 'correlationData': '3'}]}
 
+get_role_command1 = {"commands": [{"command": "getRole", "rolename": "role_one"}]}
+get_role_response1 = {'responses': [{'command': 'getRole', 'data': {'role': {'rolename': 'role_one',
+                                                                             'textname': 'Name',
+                                                                             'textdescription': 'Description',
+                                                                             'acls': [
+                                                                                 {
+                                                                                     "acltype": "publishClientSend",
+                                                                                     "topic": "topic/2/#",
+                                                                                     "allow": True,
+                                                                                     "priority": 9
+                                                                                 },
+                                                                                 {
+                                                                                     "acltype": "publishClientSend",
+                                                                                     "topic": "topic/#",
+                                                                                     "allow": True,
+                                                                                     "priority": 8
+                                                                                 }
+                                                                             ]}}}]}
 
-get_role_command1 = { "commands": [{"command": "getRole", "rolename": "role_one"}]}
-get_role_response1 = {'responses':[{'command': 'getRole', 'data': {'role': {'rolename': 'role_one',
-    'textname': 'Name', 'textdescription': 'Description',
-    'acls': [
-        {
-            "acltype": "publishClientSend",
-            "topic": "topic/2/#",
-            "allow": True,
-            "priority": 9
-        },
-        {
-            "acltype": "publishClientSend",
-            "topic": "topic/#",
-            "allow": True,
-            "priority": 8
-        }
-    ]}}}]}
-
-get_role_command2 = { "commands": [{
+get_role_command2 = {"commands": [{
     "command": "getRole", "rolename": "role_one"}]}
-get_role_response2 = {'responses':[{'command': 'getRole', 'data': {'role': {'rolename': 'role_one',
-    'textname': 'Modified name', 'textdescription': 'Modified description',
-    'acls': [
-        {
-            "acltype": "publishClientReceive",
-            "topic": "topic/#",
-            "allow": True,
-            "priority": 2
-        },
-        {
-            "acltype": "publishClientReceive",
-            "topic": "topic/2/#",
-            "allow": True,
-            "priority": 1
-        }
-    ]}}}]}
+get_role_response2 = {'responses': [{'command': 'getRole', 'data': {'role': {'rolename': 'role_one',
+                                                                             'textname': 'Modified name',
+                                                                             'textdescription': 'Modified description',
+                                                                             'acls': [
+                                                                                 {
+                                                                                     "acltype": "publishClientReceive",
+                                                                                     "topic": "topic/#",
+                                                                                     "allow": True,
+                                                                                     "priority": 2
+                                                                                 },
+                                                                                 {
+                                                                                     "acltype": "publishClientReceive",
+                                                                                     "topic": "topic/2/#",
+                                                                                     "allow": True,
+                                                                                     "priority": 1
+                                                                                 }
+                                                                             ]}}}]}
 
 rc = 1
 keepalive = 10
@@ -166,6 +168,5 @@ finally:
     (stdo, stde) = broker.communicate()
     if rc:
         print(stde.decode('utf-8'))
-
 
 exit(rc)

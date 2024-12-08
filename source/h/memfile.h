@@ -1,28 +1,35 @@
 #ifndef _MEMFILE_H__
 #define _MEMFILE_H__
 
-class CMemFile
-{
-public:
-	CMemFile();
-	~CMemFile();
+#include <cstring>
+#include <vector>
 
-	void SeekToBegin();
-	int Read(char* szValue, int nSize);
-	void Write(const char *szBuf, int nSize);
-
+class CMemFile {
 public:
+    CMemFile() : m_nPos(0) {}
+
+    ~CMemFile() = default;
+
+    void SeekToBegin() {
+        m_nPos = 0;
+    }
+
+    int Read(char* szValue, int nSize) {
+        if (m_nPos + nSize > m_szBuf.size()) {
+            nSize = m_szBuf.size() - m_nPos;
+        }
+        std::memcpy(szValue, m_szBuf.data() + m_nPos, nSize);
+        m_nPos += nSize;
+        return nSize;
+    }
+
+    void Write(const char* szBuf, int nSize) {
+        m_szBuf.insert(m_szBuf.end(), szBuf, szBuf + nSize);
+    }
 
 private:
-	char *m_szBuf;
-	int m_nTotal;
-	BOOL m_bFirstAdd;
-
-	int m_nPos;  //¼ÇÔØµ±Ç°Ö¸ÕëÖ¸ÏòÄÚÈİµÄÎ»ÖÃ
-
-private:
-
+    std::vector<char> m_szBuf;
+    int m_nPos;  // å½“å‰æŒ‡é’ˆæŒ‡å‘æ•°æ®çš„ä½ç½®
 };
 
-#endif
-
+#endif // _MEMFILE_H__

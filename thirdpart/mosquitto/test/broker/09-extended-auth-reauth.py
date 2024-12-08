@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("auth_plugin c/auth_plugin_extended_reauth.so\n")
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -47,6 +47,4 @@ finally:
     if rc:
         print(stde.decode('utf-8'))
 
-
 exit(rc)
-

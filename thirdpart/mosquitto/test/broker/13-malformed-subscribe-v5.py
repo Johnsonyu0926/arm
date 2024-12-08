@@ -3,9 +3,8 @@
 # Test whether the broker handles malformed packets correctly - SUBSCRIBE
 # MQTTv5
 
-from mosq_test_helper import *
-
 rc = 1
+
 
 def do_test(subscribe_packet, reason_code, error_string):
     global rc
@@ -71,15 +70,18 @@ try:
 
     # Truncated packet, with properties field, empty topic, with qos
     subscribe_packet = struct.pack("!BBHBHB", 130, 6, 1, 0, 0, 1)
-    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with properties field, empty topic, with qos")
+    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET,
+            "Truncated packet, with properties field, empty topic, with qos")
 
     # Truncated packet, with properties field, with topic, no qos
     subscribe_packet = struct.pack("!BBHBH1s", 130, 6, 1, 0, 1, b"a")
-    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with properties field, with topic, no qos")
+    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET,
+            "Truncated packet, with properties field, with topic, no qos")
 
     # Truncated packet, with properties field, with 1st topic and qos ok, second topic ok, no second qos
     subscribe_packet = struct.pack("!BBHHH1sBH1s", 130, 10, 1, 0, 1, b"a", 0, 1, b"b")
-    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET, "Truncated packet, with properties field, with 1st topic and qos ok, second topic ok, no second qos")
+    do_test(subscribe_packet, mqtt5_rc.MQTT_RC_MALFORMED_PACKET,
+            "Truncated packet, with properties field, with 1st topic and qos ok, second topic ok, no second qos")
 
     # Bad topic
     subscribe_packet = mosq_test.gen_subscribe(topic="#/test/topic", qos=1, mid=1, proto_ver=5)

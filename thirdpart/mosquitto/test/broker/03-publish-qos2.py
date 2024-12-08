@@ -2,7 +2,6 @@
 
 # Test whether a PUBLISH to a topic with QoS 2 results in the correct packet flow.
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -42,4 +41,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

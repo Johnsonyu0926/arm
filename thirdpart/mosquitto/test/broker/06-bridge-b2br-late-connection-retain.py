@@ -4,6 +4,7 @@
 
 from mosq_test_helper import *
 
+
 def write_config1(filename, persistence_file, port1, port2):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port2))
@@ -11,6 +12,7 @@ def write_config1(filename, persistence_file, port1, port2):
         f.write("\n")
         f.write("persistence true\n")
         f.write("persistence_file %s\n" % (persistence_file))
+
 
 def write_config2(filename, persistence_file, port1, port2, protocol_version):
     with open(filename, 'w') as f:
@@ -26,10 +28,11 @@ def write_config2(filename, persistence_file, port1, port2, protocol_version):
         f.write("persistence true\n")
         f.write("persistence_file %s\n" % (persistence_file))
 
+
 def do_test(proto_ver):
     if proto_ver == 4:
         bridge_protocol = "mqttv311"
-        proto_ver_connect = 128+4
+        proto_ver_connect = 128 + 4
     else:
         bridge_protocol = "mqttv50"
         proto_ver_connect = 5
@@ -40,15 +43,17 @@ def do_test(proto_ver):
 
     rc = 1
     keepalive = 60
-    client_id = socket.gethostname()+".bridge_sample"
-    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=proto_ver_connect)
+    client_id = socket.gethostname() + ".bridge_sample"
+    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False,
+                                           proto_ver=proto_ver_connect)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     c_connect_packet = mosq_test.gen_connect("client", keepalive=keepalive, proto_ver=proto_ver)
     c_connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     mid = 1
-    publish_packet = mosq_test.gen_publish("bridge/test", qos=1, mid=mid, payload="message", retain=True, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("bridge/test", qos=1, mid=mid, payload="message", retain=True,
+                                           proto_ver=proto_ver)
 
     if proto_ver == 5:
         puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver, reason_code=16)

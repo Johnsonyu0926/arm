@@ -2,7 +2,6 @@
 
 # Test whether a SUBSCRIBE to $SYS or $share succeeds
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -38,6 +37,7 @@ def do_test(proto_ver):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(4)
 do_test(5)

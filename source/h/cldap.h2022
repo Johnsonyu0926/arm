@@ -1,0 +1,93 @@
+#ifndef __CLDAP_H__
+#define __CLDAP_H__
+
+#include <lber.h>
+#include <ldap.h>
+#include "doorsbase.h"
+
+constexpr int AUTH_SUCCESS = 0;
+constexpr int AUTH_USER_NOT_EXIST = 1;
+constexpr int AUTH_PASSWORD_ERROR = 2;
+constexpr int AUTH_LDAP_SERVER_ERROR = 3;
+
+constexpr int LDAP_PORT = 389;
+constexpr char LDAP_HOST[] = "192.168.100.194";
+constexpr char BASE[] = "o=doors,c=cn";
+constexpr char ADMIN_BINDDN[] = "cn=admin,o=doors,c=cn";
+constexpr char ADMIN_PASSWD[] = "admin123";
+constexpr int HTTP_PROXY = 0x01;
+constexpr int HOME_PROXY = 0x02;
+constexpr char BASE_DOMAIN[] = "o=doors,c=cn";
+constexpr char GROUP_BASE[] = "ou=Groups,o=zju,c=CN";
+constexpr char HTTP_GROUP_DN[] = "cn=httpgrp,ou=Groups,ou=zju,o=edu,c=cn";
+constexpr char HOME_GROUP_DN[] = "cn=domesticgrp,ou=Groups,ou=zju,o=edu,c=cn";
+constexpr char FTP_GROUP_DN[] = "cn=ftpgrp,ou=Groups,ou=zju,o=edu,c=cn";
+constexpr char SOCKS_GROUP_DN[] = "cn=socksgrp,ou=Groups,ou=zju,o=edu,c=cn";
+
+class CLdap {
+public:
+    CLdap() {
+        strcpy(m_szBase, BASE);
+        strcpy(m_szLdapHost, LDAP_HOST);
+        m_nLdapPort = LDAP_PORT;
+        strcpy(m_szAdminBindDN, ADMIN_BINDDN);
+        strcpy(m_szAdminPasswd, ADMIN_PASSWD);
+    }
+
+    ~CLdap() = default;
+
+    int Init(const char* szHost = LDAP_HOST, int nPort = LDAP_PORT, const char* szBindDN = ADMIN_BINDDN, const char* szPswd = ADMIN_PASSWD, int nAuthMethod = LDAP_AUTH_SIMPLE);
+    int LdapSearchEx(const char* szBaseDN, const char* szFilter, LDAPMessage** pRet, char* szDN);
+    int LdapSearch(const char* szBaseDN, const char* szFilter, LDAPMessage** pRet);
+    int LdapSearch(const char* szFilter);
+    void ShowProperties(LDAP* ld, const char* dn);
+    void PrintMessage();
+    int LdapModify(const char* szModifyDN, LDAPMod** pMods);
+    int LdapAdd(const char* szModifyDN, LDAPMod* pAttrs[]);
+    void FreeMods(LDAPMod** pMods);
+    int LdapDelete(const char* szDN);
+    int LdapModifyDN(const char* szOldDN, const char* szNewDN);
+    int DeleteUser(const char* szCommonName, const char* szOu);
+    int ModifyUserAttribute(const char* szDN, const char* szAttr, const char* szValue);
+    int ModifyUserAttribute(const char* szCommonName, const char* szOuName, const char* szAttr, const char* szValue);
+    int AddAttr(const char* szBaseDN, const char* szAttrType, const char* szAttrValue);
+    int AddMemberInProxyGroup(const char* szMemberDN, long nStatus);
+    int DisableUserHttp(const char* szCN, const char* szOu, int nProxyType = HTTP_PROXY);
+    int EnableUserHttp(const char* szCN, const char* szOu, int nProxyType = HTTP_PROXY);
+    int EnableUserHttp(const char* szDN, int nProxyType = HTTP_PROXY);
+    int DisableUserHttp(const char* szDN, int nProxyType = HTTP_PROXY);
+    int LdapUnBind();
+    BOOL IsExistUserID(const char* szUserID);
+    int LdapAddOu(const char* szOuName, const char* szBaseDN = "ou=zju,o=edu,c=cn");
+    int Auth(const char* szUID, const char* szPasswd);
+    int StopEmail(const char* szCN, const char* szOU);
+    int EnableEmail(const char* szCN, const char* szOU);
+    int SetParam(const char* szLdapHost, int nLdapPort, const char* szBase, const char* szAdminBindDN, const char* szAdminPasswd);
+
+private:
+    LDAP* LdapOpen(const char* szHost, int nPort = 389);
+    int LdapBind(const char* szBindDN, const char* szPasswd, int nAuthMethod = LDAP_AUTH_SIMPLE);
+    int GetEmail(const char* szUid, const char* szOuName, char* szMail);
+    int GetRFC822Proxy(const char* szUid, char* szRFC822Proxy);
+    int GetRFC822Zjuem(const char* szUid, char* szRFC822Zjuem);
+    int GetDNFromCN(const char* szCN, const char* szOuName, char* szDN);
+    int LdapDeleteAttr(const char* szBaseDN, const char* szType, const char* szValue);
+    int GetDCDN(const char* szNewOu, const char* szBaseDN, char* szDCDN);
+    int GetURIAttr(const char* szNewOU, const char* szBaseDN, char* szURI);
+    int GetAsName(const char* szNewOU, const char* szBaseDN, char* szAsName);
+    int GetDesc(const char* szNewOU, const char* szBaseDN, char* szDesc);
+    int GetDN(const char* szNewOU, const char* szBaseDN, char* szNewDN);
+    int GetDC(const char* szBase, char* szDC);
+    int AddOUDN(const char* szNewOU, const char* szBaseDN);
+    int AddDCDN(const char* szNewOU, const char* szBaseDN);
+
+    LDAP* m_pLdap{nullptr};
+    LDAPMessage* m_pMessage{nullptr};
+    char m_szLdapHost[32];
+    int m_nLdapPort;
+    char m_szAdminBindDN[256];
+    char m_szAdminPasswd[32];
+    char m_szBase[256];
+};
+
+#endif // __CLDAP_H__

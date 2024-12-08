@@ -2,13 +2,13 @@
 
 # Test whether message size limits apply.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("listener %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("message_size_limit 1\n")
+
 
 def do_test(proto_ver):
     rc = 1
@@ -30,7 +30,8 @@ def do_test(proto_ver):
     mid = 2
     publish_packet_bad = mosq_test.gen_publish("subpub/qos1", mid=mid, qos=1, payload="AB", proto_ver=proto_ver)
     if proto_ver == 5:
-        puback_packet_bad = mosq_test.gen_puback(reason_code=mqtt5_rc.MQTT_RC_PACKET_TOO_LARGE, mid=mid, proto_ver=proto_ver)
+        puback_packet_bad = mosq_test.gen_puback(reason_code=mqtt5_rc.MQTT_RC_PACKET_TOO_LARGE, mid=mid,
+                                                 proto_ver=proto_ver)
     else:
         puback_packet_bad = mosq_test.gen_puback(mid=mid, proto_ver=proto_ver)
 

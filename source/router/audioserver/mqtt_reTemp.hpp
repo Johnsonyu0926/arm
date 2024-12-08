@@ -1,6 +1,8 @@
 #pragma once
 
+#include <string>
 #include "json.hpp"
+#include "public.hpp"
 
 /*
  * publishId: 172684, // Long,本次下发唯一ID
@@ -22,6 +24,7 @@
  */
 
 namespace asns {
+
     template<typename Quest, typename Result>
     class CReQuest;
 
@@ -34,18 +37,18 @@ namespace asns {
         void do_success(const CReQuest<Quest, Result> &c) {
             this->data.template do_success<Quest, Result, T>(c, *this);
             imei = c.imei;
-            topic = "TaDiao/device/report/test/" + imei;
+            topic = asns::REQUEST_TOPIC + imei;
             cmd = c.cmd;
             publishId = c.publishId;
         }
 
     public:
         std::string result;
-        int resultId{};
+        int resultId{0};
         std::string imei;
         std::string topic;
         std::string cmd;
-        long publishId{};
+        long publishId{0};
         T data;
     };
 
@@ -62,10 +65,10 @@ namespace asns {
         }
 
     public:
-        long publishId{};
+        long publishId{0};
         std::string cmd;
         std::string imei;
-        long operatorId{};
+        long operatorId{0};
         Quest data;
     };
 

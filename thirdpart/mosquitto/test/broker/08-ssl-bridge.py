@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from mosq_test_helper import *
 
 def write_config(filename, port1, port2):
     with open(filename, 'w') as f:
@@ -16,14 +15,15 @@ def write_config(filename, port1, port2):
         f.write("bridge_cafile ../ssl/all-ca.crt\n")
         f.write("bridge_insecure true\n")
 
+
 (port1, port2) = mosq_test.get_port(2)
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port1, port2)
 
 rc = 1
 keepalive = 60
-client_id = socket.gethostname()+".bridge_test"
-connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=128+4)
+client_id = socket.gethostname() + ".bridge_test"
+connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=128 + 4)
 connack_packet = mosq_test.gen_connack(rc=0)
 
 mid = 1
@@ -78,4 +78,3 @@ finally:
     ssock.close()
 
 exit(rc)
-

@@ -5,6 +5,7 @@
 
 from mosq_test_helper import *
 
+
 def do_test(proto_ver):
     if proto_ver == 4:
         exit(0)
@@ -31,7 +32,6 @@ def do_test(proto_ver):
     pubrec_packet3 = mosq_test.gen_pubrec(mid, proto_ver=5)
     pubrel_packet3 = mosq_test.gen_pubrel(mid, proto_ver=5)
     pubcomp_packet3 = mosq_test.gen_pubcomp(mid, proto_ver=5)
-
 
     port = mosq_test.get_port()
 

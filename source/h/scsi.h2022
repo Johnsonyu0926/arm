@@ -1,0 +1,113 @@
+#ifndef AFX_SCSI_H__701A166F_809B_47D6_B487_1907DC8ECCCE__INCLUDED_
+#define AFX_SCSI_H__701A166F_809B_47D6_B487_1907DC8ECCCE__INCLUDED_
+
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
+#include <cstring>
+#include "doorsdefs.h"
+#include "doorsbase.h"
+
+// TestUnit Ready
+constexpr int TESTUNITREADY_CMD = 0;
+constexpr int TESTUNITREADY_CMDLEN = 6;
+
+constexpr int ADD_SENSECODE = 12;
+constexpr int ADD_SC_QUALIFIER = 13;
+constexpr int NO_MEDIA_SC = 0x3a;
+constexpr int NO_MEDIA_SCQ = 0x00;
+
+constexpr int INQUIRY_CMD = 0x12;
+constexpr int INQUIRY_CMDLEN = 6;
+constexpr int INQUIRY_REPLY_LEN = 96;
+constexpr int INQUIRY_VENDOR = 8; // Offset in reply data to vendor name
+constexpr int SCSI_OFF = 36; // sizeof(struct sg_header)
+
+constexpr char DEVICE[] = "/dev/sg0";
+
+constexpr int SWITCH_CMD = 0x17;
+constexpr int SWITCH_CMDLEN = 6;
+
+#ifndef BYTE
+#define BYTE unsigned char
+#endif
+
+#ifndef IN
+#define IN
+#define OUT
+#endif
+
+struct SCSI_Cdb_Read_t {
+    unsigned int CommandCode : 8; // should be 0x08
+    unsigned int LBA2 : 5;
+    unsigned int Lun : 3;
+    unsigned int LBA1 : 8;
+    unsigned int LBA0 : 8;
+    unsigned int Length : 8;
+    unsigned int Link : 1;
+    unsigned int Flag : 1;
+    unsigned int : 4;
+    unsigned int VendorSpecific : 2;
+};
+
+struct SCSI_Cdb_Write_t {
+    unsigned int CommandCode : 8; // should be 0x08
+    unsigned int LBA2 : 5;
+    unsigned int Lun : 3;
+    unsigned int LBA1 : 8;
+    unsigned int LBA0 : 8;
+    unsigned int Length : 8;
+    unsigned int Link : 1;
+    unsigned int Flag : 1;
+    unsigned int : 4;
+    unsigned int VendorSpecific : 2;
+};
+
+constexpr int SCSI_Cmd_Read = 0x08; // --> 0x28h READ(10) modified by billy
+constexpr int SCSI_Cmd_Write = 0x0A; // --> 0x2ah WRITE(10)
+
+constexpr char VERSON[] = "Prospect EGAP 1";
+
+class CHeadBlock {
+public:
+    char m_szVerson[16]; // Prospect EGAP 1
+    int m_nBlockCount;
+    BYTE m_pBufRev[492];
+
+    CHeadBlock() {
+        std::strcpy(m_szVerson, VERSON);
+        std::memset(m_pBufRev, 0, 492);
+    }
+
+    ~CHeadBlock() = default;
+};
+
+class CScsi {
+public:
+    CScsi();
+    virtual ~CScsi();
+
+    void SetMem(int nMem);
+    unsigned char* Inquiry();
+    int Open(const char* szDevice);
+    void CloseDevice();
+    int TestUnitReady();
+    int Write(BYTE* pBuf, int nSectNum, int nSectCount); // return the bytes
+    int Read(BYTE* pBuf, int nSectNum, int nSectCount);
+
+    int Disconnect();
+    int Switch();
+    int Reset();
+
+private:
+    int handle_SCSI_cmd(unsigned cmd_len, unsigned in_size, unsigned char* i_buff, unsigned out_size, unsigned char* o_buff);
+
+    unsigned char cmd[SCSI_OFF + 18]; // SCSI command buffer
+    int fd; // SCSI device/file descriptor
+
+    char m_szDevice[128];
+    int m_nMem;
+};
+
+#endif // !defined(AFX_SCSI_H__701A166F_809B_47D6_B487_1907DC8ECCCE__INCLUDED_)

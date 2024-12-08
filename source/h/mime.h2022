@@ -1,0 +1,72 @@
+#ifndef __MIME_H__
+#define __MIME_H__
+
+#include <gmime/gmime.h>
+#include "doorsbase.h"
+
+class CMime {
+public:
+    CMime() {
+        m_pAttaList = new CDsList();
+        m_pBody = nullptr;
+    }
+
+    ~CMime() {
+        DS_TRACE("[CMime::~CMime] release mime memory...");
+        if (m_pBody) {
+            g_free(m_pBody);
+            m_pBody = nullptr;
+        }
+        if (m_pAttaList) {
+            for (int i = 0; i < m_pAttaList->GetCount(); ++i) {
+                char* pValue = static_cast<char*>(m_pAttaList->ElementAt(i));
+                delete[] pValue;
+            }
+            m_pAttaList->RemoveAll();
+            delete m_pAttaList;
+            m_pAttaList = nullptr;
+        }
+    }
+
+    void SetContent(const char* pMail, int nSize);
+    char* GetBody() const {
+        return m_pBody;
+    }
+
+    CDsList* GetAttaList() const {
+        return m_pAttaList;
+    }
+
+    const char* GetSubject() const {
+        return m_szSubject;
+    }
+
+    const char* GetDate() const {
+        return m_szDate;
+    }
+
+    const char* GetFrom() const {
+        return m_szFrom;
+    }
+
+    const char* GetTo() const {
+        return m_szTo;
+    }
+
+    const char* GetCc() const {
+        return m_szCc;
+    }
+
+private:
+    CDsList* m_pAttaList;
+    char* m_pBody;
+    char m_szSubject[1024]{};
+    char m_szDate[1024]{};
+    char m_szFrom[1024]{};
+    char m_szTo[1024]{};
+    char m_szCc[1024]{};
+
+    void print_mime_struct(GMimeObject* part, int depth);
+};
+
+#endif // __MIME_H__

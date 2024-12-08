@@ -2,21 +2,19 @@
 
 # MQTT v5. Test whether session expiry interval works correctly.
 
-from mosq_test_helper import *
-
 rc = 1
 keepalive = 60
-
 
 # This client exists to test possible fixed size int overflow and sorting of the session intervals
 # https://github.com/eclipse/mosquitto/issues/1525
 props = mqtt5_props.gen_uint32_prop(mqtt5_props.PROP_SESSION_EXPIRY_INTERVAL, 4294967294)
-connect0_packet = mosq_test.gen_connect("overflow", keepalive=keepalive, clean_session=False, proto_ver=5, properties=props)
+connect0_packet = mosq_test.gen_connect("overflow", keepalive=keepalive, clean_session=False, proto_ver=5,
+                                        properties=props)
 connack0_packet = mosq_test.gen_connack(flags=0, rc=0, proto_ver=5)
 
-
 props = mqtt5_props.gen_uint32_prop(mqtt5_props.PROP_SESSION_EXPIRY_INTERVAL, 1)
-connect_packet = mosq_test.gen_connect("clean-qos2-test", keepalive=keepalive, clean_session=False, proto_ver=5, properties=props)
+connect_packet = mosq_test.gen_connect("clean-qos2-test", keepalive=keepalive, clean_session=False, proto_ver=5,
+                                       properties=props)
 connack1_packet = mosq_test.gen_connack(flags=0, rc=0, proto_ver=5)
 
 connack2_packet = mosq_test.gen_connack(flags=1, rc=0, proto_ver=5)
@@ -100,4 +98,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

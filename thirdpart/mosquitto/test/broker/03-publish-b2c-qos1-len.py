@@ -3,7 +3,6 @@
 # Check whether the broker handles a v5 PUBACK with all combinations
 # of with/without reason code and properties.
 
-from mosq_test_helper import *
 
 def helper(port):
     connect_packet = mosq_test.gen_connect("test-helper", keepalive=60)

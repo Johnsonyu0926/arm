@@ -6,8 +6,6 @@
 # client 1 receives message, publishes a response on response-topic
 # client 2 receives message, checks payload
 
-from mosq_test_helper import *
-
 rc = 1
 
 keepalive = 10
@@ -58,4 +56,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

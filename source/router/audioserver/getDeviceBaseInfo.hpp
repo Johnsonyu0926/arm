@@ -4,51 +4,52 @@
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "volume.hpp"
+#include "Relay.hpp"
+#include "spdlog/spdlog.h"
 
 extern asns::CVolumeSet g_volumeSet;
+
 namespace asns {
 
     class CDeviceBaseData {
     public:
-        string codeVersion;
-        string coreVersion;
+        std::string codeVersion;
+        std::string coreVersion;
         int relayMode;
-        string ip;
+        std::string ip;
         int storageType;
         int port;
         int playStatus;
         int volume;
         int relayStatus;
-        string hardwareReleaseTime;
+        std::string hardwareReleaseTime;
         int spiFreeSpace;
         int flashFreeSpace;
-        string hardwareVersion;
-        string password;
+        std::string hardwareVersion;
+        std::string password;
         int temperature;
-        string netmask;
-        string address;
-        string gateway;
-        string userName;
-        string imei;
-        string functionVersion;
-        string deviceCode;
-        string serverAddress;
-        string serverPort;
+        std::string netmask;
+        std::string address;
+        std::string gateway;
+        std::string userName;
+        std::string imei;
+        std::string functionVersion;
+        std::string deviceCode;
+        std::string serverAddress;
+        std::string serverPort;
 
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CDeviceBaseData, codeVersion, coreVersion, relayMode, ip, storageType, port,
                                        playStatus, volume, relayStatus, hardwareReleaseTime, spiFreeSpace,
                                        flashFreeSpace, hardwareVersion, password, temperature, netmask, address,
                                        gateway, userName, imei, functionVersion, deviceCode, serverAddress, serverPort)
-
     };
 
     class CGetDeviceBaseInfoResult {
-
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CGetDeviceBaseInfoResult, cmd, resultId, data, msg)
 
-        int do_success() {
+        void do_success() {
             CAudioCfgBusiness cfg;
             cfg.load();
             CUtils util;
@@ -58,32 +59,31 @@ namespace asns {
 
             data.codeVersion = cfg.business[0].codeVersion;
             data.coreVersion = util.get_core_version();
-            data.relayMode = util.get_gpio_model();
-            data.ip = util.get_lan_addr();
+            data.relayMode = Relay::getInstance().getGpioModel();
+            data.ip = util.get_addr();
             data.storageType = 1;
             data.port = 34508;
-            data.playStatus = util.get_play_state();
+            data.playStatus = PlayStatus::getInstance().getPlayState();
             g_volumeSet.load();
             data.volume = g_volumeSet.getVolume();
-            data.relayStatus = util.get_gpio_state();
+            data.relayStatus = Relay::getInstance().getGpioStatus();
             data.hardwareReleaseTime = util.get_hardware_release_time();
             data.spiFreeSpace = 9752500;
             data.flashFreeSpace = util.get_available_Disk("/mnt");
-            data.hardwareVersion = util.get_by_cmd_res("uname -r");
+            data.hardwareVersion = util.get_res_by_cmd("uname -r");
             data.password = cfg.business[0].serverPassword;
             data.temperature = 12;
-            data.netmask = util.get_lan_netmask();
+            data.netmask = util.get_netmask();
             data.address = "01";
-            data.gateway = util.get_lan_gateway();
+            data.gateway = util.get_gateway();
             data.userName = "admin";
             data.imei = cfg.business[0].deviceID;
             data.functionVersion = "COMMON";
             data.deviceCode = cfg.business[0].deviceID;
             data.serverAddress = cfg.business[0].server;
-            data.serverPort = to_string(cfg.business[0].port);
-            cout << "data.serverPort:" << data.serverPort << endl;
+            data.serverPort = std::to_string(cfg.business[0].port);
+        }
 
-        };
     private:
         std::string cmd;
         int resultId;
@@ -98,12 +98,13 @@ namespace asns {
         int do_req(CSocket *pClient) {
             CGetDeviceBaseInfoResult deviceBaseInfoResult;
             deviceBaseInfoResult.do_success();
-            json js = deviceBaseInfoResult;
+            nlohmann::json js = deviceBaseInfoResult;
             std::string s = js.dump();
-            pClient->Send(s.c_str(), s.length());
+            spdlog::info("data: {}", s);
+            return pClient->Send(s.c_str(), s.length());
         }
 
     private:
         std::string cmd;
     };
-}
+} // namespace asns

@@ -1,0 +1,68 @@
+#ifndef __LOG_H__
+#define __LOG_H__
+
+#include <cstdio>
+#include <cstring>
+#include "doorsbase.h"
+
+#define HTTP_LOG "../log/httpd.log"
+
+#ifdef LOG_ON_HDC
+#define SMTP_SUCCESS_LOG "/mnt/hdc/configroot/usr/local/pegap/log/smtpsuccess.log"
+#define SMTP_FAIL_LOG "/mnt/hdc/configroot/usr/local/pegap/log/smtpfail.log"
+#define POP3_SUCCESS_LOG "/mnt/hdc/configroot/usr/local/pegap/log/pop3success.log"
+#define POP3_FAIL_LOG "/mnt/hdc/configroot/usr/local/pegap/log/pop3fail.log"
+#define POP3_LOGIN_LOG "/mnt/hdc/configroot/usr/local/pegap/log/pop3login.log"
+#define HTTP_SUCCESS_LOG "/mnt/hdc/configroot/usr/local/pegap/log/httpsuccess.log"
+#define HTTP_FAIL_LOG "/mnt/hdc/configroot/usr/local/pegap/log/httpfail.log"
+#else
+#define SMTP_SUCCESS_LOG "../log/smtpsuccess.log"
+#define SMTP_FAIL_LOG "../log/smtpfail.log"
+#define POP3_SUCCESS_LOG "../log/pop3success.log"
+#define POP3_FAIL_LOG "../log/pop3fail.log"
+#define POP3_LOGIN_LOG "../log/pop3login.log"
+#define HTTP_SUCCESS_LOG "../log/httpsuccess.log"
+#define HTTP_FAIL_LOG "../log/httpfail.log"
+#endif
+
+class CLog {
+public:
+    explicit CLog(const char* szSuccessLog) {
+        DS_TRACE("szSuccessLog:" << szSuccessLog);
+        m_fpSuccess = fopen(szSuccessLog, "a");
+    }
+
+    ~CLog() {
+        if (m_fpSuccess) {
+            fclose(m_fpSuccess);
+        }
+    }
+
+protected:
+    FILE* m_fpSuccess{nullptr};
+    CSTime m_timetool;
+
+    void CheckValid(const char* szItem);
+};
+
+enum class DsHTTPLogType {
+    DsHTTPSuccess = 1, // 访问成功
+    DsHTTPFailNotAuth = 2, // 失败，原因：未认证
+    DsHTTPFailPostDeny = 3, // 失败，原因：POST请求被禁止
+    DsHTTPFailGetDeny = 4, // 失败，原因：GET请求被禁止
+    DsHTTPFailPostContentDeny = 5, // 失败，原因：POST请求内容被禁止
+    DsHTTPFailGetContentDeny = 6, // 失败，原因：GET请求内容被禁止
+    DsHTTPFailUrlDeny = 7, // 失败，原因：网址被禁止
+    DsHTTPFailUnknown = 8 // 失败，原因：未知
+};
+
+class CHTTPLog : public CLog {
+public:
+    CHTTPLog() : CLog(HTTP_LOG) {}
+
+    ~CHTTPLog() = default;
+
+    void Log(const char* szUser, const char* szFromIp, const char* szMethod, const char* szHost, const char* szPath, int nRespCode, DsHTTPLogType nLogType);
+};
+
+#endif // __LOG_H__

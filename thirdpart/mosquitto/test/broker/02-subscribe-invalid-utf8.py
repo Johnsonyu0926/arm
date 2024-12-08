@@ -2,7 +2,6 @@
 
 # Test whether a SUBSCRIBE to a topic with an invalid UTF-8 topic fails
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -12,9 +11,9 @@ def do_test(proto_ver):
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     subscribe_packet = mosq_test.gen_subscribe(mid, "invalid/utf8", 0, proto_ver=proto_ver)
-    b = list(struct.unpack("B"*len(subscribe_packet), subscribe_packet))
-    b[13] = 0 # Topic should never have a 0x0000
-    subscribe_packet = struct.pack("B"*len(b), *b)
+    b = list(struct.unpack("B" * len(subscribe_packet), subscribe_packet))
+    b[13] = 0  # Topic should never have a 0x0000
+    subscribe_packet = struct.pack("B" * len(b), *b)
 
     suback_packet = mosq_test.gen_suback(mid, 0, proto_ver=proto_ver)
 
@@ -28,7 +27,7 @@ def do_test(proto_ver):
         if proto_ver == 4:
             mosq_test.do_send_receive(sock, subscribe_packet, b"", "suback")
         else:
-            disconnect_packet = mosq_test.gen_disconnect(proto_ver=5, reason_code = mqtt5_rc.MQTT_RC_MALFORMED_PACKET)
+            disconnect_packet = mosq_test.gen_disconnect(proto_ver=5, reason_code=mqtt5_rc.MQTT_RC_MALFORMED_PACKET)
             mosq_test.do_send_receive(sock, subscribe_packet, disconnect_packet, "suback")
 
         rc = 0

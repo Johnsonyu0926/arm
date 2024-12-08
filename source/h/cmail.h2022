@@ -1,0 +1,66 @@
+#ifndef __CMAIL_H__
+#define __CMAIL_H__
+
+#include <stdio.h>
+#include <string.h>
+#include <gmime/gmime.h>
+#include <memory>
+
+class CMail {
+public:
+    CMail() {
+        g_mime_init(0);
+    }
+
+    ~CMail() {
+        if (m_szMessage) {
+            g_free(m_szMessage);
+            m_szMessage = nullptr;
+        }
+        if (m_szContent) {
+            delete[] m_szContent;
+            m_szContent = nullptr;
+        }
+        // g_mime_shutdown();
+    }
+
+    void SetSubject(const char* szSubject) {
+        strncpy(m_szSubject, szSubject, sizeof(m_szSubject) - 1);
+        m_szSubject[sizeof(m_szSubject) - 1] = '\0';
+    }
+
+    void SetFrom(const char* szFrom) {
+        strncpy(m_szFrom, szFrom, sizeof(m_szFrom) - 1);
+        m_szFrom[sizeof(m_szFrom) - 1] = '\0';
+    }
+
+    void SetTo(const char* szTo) {
+        strncpy(m_szTo, szTo, sizeof(m_szTo) - 1);
+        m_szTo[sizeof(m_szTo) - 1] = '\0';
+    }
+
+    void SetDate(const char* szDate) {
+        strncpy(m_szDate, szDate, sizeof(m_szDate) - 1);
+        m_szDate[sizeof(m_szDate) - 1] = '\0';
+    }
+
+    void SetContent(const char* szContent) {
+        if (szContent == nullptr) return;
+        m_szContent = new char[strlen(szContent) + 1];
+        strcpy(m_szContent, szContent);
+    }
+
+    int BuildMail();
+    char* GetMessage() const { return m_szMessage; }
+
+private:
+    char* m_szMessage{nullptr};
+    char* m_szContent{nullptr};
+
+    char m_szSubject[1024]{};
+    char m_szFrom[1024]{};
+    char m_szTo[1024]{};
+    char m_szDate[256]{};
+};
+
+#endif // __CMAIL_H__

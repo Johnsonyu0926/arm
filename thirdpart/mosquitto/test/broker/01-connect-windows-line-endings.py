@@ -4,12 +4,12 @@
 # This just connects anonymously - if the config file causes a failure, the
 # broker won't start so the connection would fail.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("listener %d\r\n" % (port))
         f.write("allow_anonymous true\r\n")
+
 
 def do_test():
     port = mosq_test.get_port()
@@ -22,7 +22,8 @@ def do_test():
         for proto_ver in [4, 5]:
             rc = 1
             keepalive = 10
-            connect_packet = mosq_test.gen_connect("connect-anon-test-%d" % (proto_ver), keepalive=keepalive, proto_ver=proto_ver)
+            connect_packet = mosq_test.gen_connect("connect-anon-test-%d" % (proto_ver), keepalive=keepalive,
+                                                   proto_ver=proto_ver)
 
             if proto_ver == 5:
                 connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)

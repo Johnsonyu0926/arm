@@ -11,8 +11,6 @@
 # should handle this as per the spec by sending a PUBACK message.
 # The client should then exit with return code==0.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
@@ -39,7 +37,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 try:

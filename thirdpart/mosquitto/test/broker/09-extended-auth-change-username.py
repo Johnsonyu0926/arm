@@ -2,7 +2,6 @@
 
 # Check whether an extended auth plugin can change the username of a client.
 
-from mosq_test_helper import *
 
 def write_config(filename, acl_file, port, per_listener):
     with open(filename, 'w') as f:
@@ -12,14 +11,17 @@ def write_config(filename, acl_file, port, per_listener):
         f.write("acl_file %s\n" % (acl_file))
         f.write("auth_plugin c/auth_plugin_extended_single.so\n")
 
+
 def write_acl(filename):
     with open(filename, 'w') as f:
         f.write('user new_username\n')
         f.write('topic readwrite topic/one\n')
 
+
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 acl_file = os.path.basename(__file__).replace('.py', '.acl')
+
 
 def do_test(per_listener):
     write_config(conf_file, acl_file, port, per_listener)

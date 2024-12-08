@@ -2,8 +2,6 @@
 
 # Test whether a retained PUBLISH to a topic with QoS 0 is actually retained.
 
-from mosq_test_helper import *
-
 
 def do_test(proto_ver):
     rc = 1
@@ -12,7 +10,8 @@ def do_test(proto_ver):
     connect_packet = mosq_test.gen_connect("retain-qos0-test", keepalive=keepalive, proto_ver=proto_ver)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    publish_packet = mosq_test.gen_publish("retain/qos0/test", qos=0, payload="retained message", retain=True, proto_ver=proto_ver)
+    publish_packet = mosq_test.gen_publish("retain/qos0/test", qos=0, payload="retained message", retain=True,
+                                           proto_ver=proto_ver)
     subscribe_packet = mosq_test.gen_subscribe(mid, "retain/qos0/test", 0, proto_ver=proto_ver)
     suback_packet = mosq_test.gen_suback(mid, 0, proto_ver=proto_ver)
 

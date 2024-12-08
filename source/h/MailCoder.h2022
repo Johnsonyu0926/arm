@@ -1,0 +1,37 @@
+#ifndef __MAILCODER_H__
+#define __MAILCODER_H__
+
+#include <cstdio>
+#include <cstring>
+
+class CMailCoder {
+public:
+    static unsigned int m_LineWidth; // 指定编码每行的长度，默认值为76
+    static constexpr char BASE64_ENCODE_TABLE[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static constexpr unsigned int BASE64_DECODE_TABLE[256] = {
+        // Initialize the decode table with appropriate values
+    };
+    static constexpr unsigned char QUOTED_ENCODE_TABLE[256] = {
+        // Initialize the quoted encode table with appropriate values
+    };
+
+private:
+    static unsigned char DecToHex(unsigned char B); // 为Quoted编码提供的字符转换
+    static unsigned char HexToDec(unsigned char C); // 为Quoted编码提供的字符转换
+
+public:
+    static int Base64EncodeSize(int iSize); // 根据文件实际长度获取编码后的Base64长度
+    static int Base64DecodeSize(int iSize); // 根据已编码文件长度获取解码后的Base64长度
+    static int UUEncodeSize(int iSize); // 根据文件实际长度获取UUCode编码后的长度
+    static int UUDecodeSize(int iSize); // 根据已编码文件长度获取UUCode解码后的长度
+    static int QuotedEncodeSize(int iSize); // 根据实际文件长度获取Quoted编码后的长度
+
+    static int base64_encode(const char* pSrc, unsigned int nSize, char* pDest);
+    static int base64_decode(const char* pSrc, unsigned int nSize, char* pDest);
+    static int UU_encode(const char* pSrc, unsigned int nSize, char* pDest);
+    static int UU_decode(const char* pSrc, unsigned int nSize, char* pDest);
+    static int quoted_encode(const char* pSrc, unsigned int nSize, char* pDest);
+    static int quoted_decode(const char* pSrc, unsigned int nSize, char* pDest);
+};
+
+#endif // __MAILCODER_H__

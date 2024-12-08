@@ -3,13 +3,10 @@
 # Test whether a PUBLISH to a topic with QoS 1 results in the correct PUBACK
 # packet when there are no subscribers.
 
-from mosq_test_helper import *
-
 rc = 1
 keepalive = 60
 connect_packet = mosq_test.gen_connect("pub-qos1-test", keepalive=keepalive, proto_ver=5)
 connack_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
-
 
 mid = 1
 publish1_packet = mosq_test.gen_publish("pub", qos=1, mid=mid, payload="message", proto_ver=5)
@@ -71,4 +68,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

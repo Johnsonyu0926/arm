@@ -22,26 +22,26 @@
 #
 # sub does not receive the message
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
     keepalive = 60
-    connect_packet_sub_persistent = mosq_test.gen_connect("flipflop-test", keepalive=keepalive, clean_session=False, proto_ver=proto_ver)
-    connect_packet_sub_clean = mosq_test.gen_connect("flipflop-test", keepalive=keepalive, clean_session=True, proto_ver=proto_ver)
+    connect_packet_sub_persistent = mosq_test.gen_connect("flipflop-test", keepalive=keepalive, clean_session=False,
+                                                          proto_ver=proto_ver)
+    connect_packet_sub_clean = mosq_test.gen_connect("flipflop-test", keepalive=keepalive, clean_session=True,
+                                                     proto_ver=proto_ver)
     connack_packet_sub = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     connect_packet_pub = mosq_test.gen_connect("flipflop-test-pub", keepalive=keepalive, proto_ver=proto_ver)
     connack_packet_pub = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
-    mid=1
+    mid = 1
     subscribe_packet = mosq_test.gen_subscribe(mid, "flipflop/test", 1, proto_ver=proto_ver)
     suback_packet = mosq_test.gen_suback(mid, 1, proto_ver=proto_ver)
 
-    mid=1
+    mid = 1
     publish_packet = mosq_test.gen_publish("flipflop/test", qos=1, mid=mid, payload="message", proto_ver=proto_ver)
     puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver)
-
 
     port = mosq_test.get_port()
     broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port)

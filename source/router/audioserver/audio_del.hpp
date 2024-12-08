@@ -1,43 +1,46 @@
 #pragma once
 
+#include <string>
+#include <vector>
 #include "json.hpp"
 #include "add_custom_audio_file.hpp"
 #include "add_column_custom_audio_file.hpp"
 #include "audiocfg.hpp"
 #include "utils.h"
 #include "getaudiolist.hpp"
-//{"cmd":"AudioDelete","deleteName":"23.mp3","storageType":1}
+#include "spdlog/spdlog.h"
+
 namespace asns {
 
     class CDeleteAudioResult {
     private:
-        string cmd;
-        int resultId;
-        string msg;
-        vector <CGetAudioData> data;
+        std::string cmd;
+        int resultId{0};
+        std::string msg;
+        std::vector<CGetAudioData> data;
 
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CDeleteAudioResult, cmd, resultId, data, msg)
 
     public:
-        int do_success() {
+        void do_success() {
             cmd = "AudioDelete";
             resultId = 1;
             msg = "AudioDelete handle success";
 
             CAddCustomAudioFileBusiness audios;
             audios.load();
-            for (int i = 0; i < audios.business.size(); i++) {
+            for (auto &busines : audios.business) {
                 CGetAudioData v;
                 v.storageType = 0;
                 v.type = 32;
-                audios.business[i].parseFile();
-                v.fileName = audios.business[i].customAudioName;
+                busines.parseFile();
+                v.fileName = busines.customAudioName;
                 CAudioCfgBusiness cfg;
                 cfg.load();
                 CUtils utils;
-                v.size = utils.get_size(cfg.getAudioFilePath().c_str(), audios.business[i].filename);
-                v.audioId = audios.business[i].customAudioID;
+                v.size = utils.get_size(cfg.getAudioFilePath().c_str(), busines.filename);
+                v.audioId = busines.customAudioID;
                 data.push_back(v);
             }
         }
@@ -47,10 +50,12 @@ namespace asns {
     public:
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(CDeleteAudio, cmd, deleteName, storageType)
 
-        int do_del(std::string &name, int type) {
+        int do_del(const std::string &name, int type) {
             CAddCustomAudioFileBusiness audios;
             CAddColumnCustomAudioFileBusiness business;
-            if (audios.deleteAudio(name) || business.deleteAudio(name))return 1;
+            audios.deleteAudio(name);
+            business.deleteAudio(name);
+            spdlog::info("Deleted audio file: {}", name);
             return 0;
         }
 
@@ -61,12 +66,13 @@ namespace asns {
             json j = res;
             std::string s = j.dump();
             pClient->Send(s.c_str(), s.length());
+            spdlog::info("Audio delete request processed: {}", deleteName);
             return 1;
         }
 
     private:
         std::string cmd;
         std::string deleteName;
-        int storageType;
+        int storageType{0};
     };
-}
+} // namespace asns

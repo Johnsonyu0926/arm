@@ -1,0 +1,70 @@
+#ifndef _GAPAUDIT_H__
+#define _GAPAUDIT_H__
+
+#include "GAPMime.h"
+
+constexpr int RULECOUNT = 100;
+
+class CGAPAudit {
+public:
+    CGAPAudit();
+    ~CGAPAudit();
+
+    BOOL AddContent(const BYTE* pBuf, int nLen);
+    BOOL InitRule();
+    BOOL Audit(DsAuditStatus* pAudited);
+
+    const char* GetSubject() const {
+        return m_szSubject;
+    }
+
+    const char* GetFrom() const {
+        return m_szFrom;
+    }
+
+    const char* GetTo() const {
+        return m_szTo;
+    }
+
+    const char* GetCc() const {
+        return m_szCc;
+    }
+
+    const char* GetDate() const {
+        return m_szDate;
+    }
+
+    BOOL SetContent(const char* szBuf, int nLen);
+
+private:
+    char m_szDate[256]{};
+    int m_bReleaseMem{0};
+
+    int m_nDenyAll{0};
+    char m_szSubject[1024]{};
+    char m_szFrom[1024]{};
+    char m_szTo[1024]{};
+    char m_szCc[1024]{};
+
+    char* m_szContent{nullptr};
+    long m_nContentLen{0};
+    BOOL m_bFirstAdd{TRUE};
+
+    char* m_pRuleContent[RULECOUNT]{};
+    int m_nRuleContentCount{0};
+    char* m_pRuleAttachMent[RULECOUNT]{};
+    int m_nRuleAttachMentCount{0};
+    char* m_pRuleScript[RULECOUNT]{};
+    int m_nRuleScriptCount{0};
+
+    CGAPMime m_Mime;
+
+    BOOL Decode(DsEncodingMethod EncodingMethod, const CString& strBody, CString& strDecoded);
+    BOOL AuditTextPlain(const BYTE* pBody);
+    BOOL AuditHtml(const BYTE* pBody);
+    BOOL AuditAttachment(const char* szFileName, int nFileType);
+    int CheckFileName(const CString& strFileName);
+    int AuditSubject();
+};
+
+#endif // _GAPAUDIT_H__

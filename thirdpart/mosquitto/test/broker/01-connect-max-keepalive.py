@@ -2,13 +2,13 @@
 
 # Test whether max_keepalive violations are rejected for MQTT < 5.0.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("listener %d\n" % (port))
         f.write("allow_anonymous true\n")
         f.write("max_keepalive 100\n")
+
 
 def do_test(proto_ver):
     rc = 1
@@ -38,6 +38,7 @@ def do_test(proto_ver):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(3)
 do_test(4)

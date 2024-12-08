@@ -3,8 +3,6 @@
 # Test whether a v5 client sends a correct UNSUBSCRIBE packet with multiple
 # topics, and handles the UNSUBACK.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 keepalive = 60
@@ -34,7 +32,7 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 
 rc = 1

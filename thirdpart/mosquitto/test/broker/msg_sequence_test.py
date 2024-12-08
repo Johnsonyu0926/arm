@@ -2,13 +2,11 @@
 
 # Test whether a valid CONNECT results in the correct CONNACK packet.
 
-from mosq_test_helper import *
-import importlib
-from os import walk
-import socket
 import json
-from collections import deque
 import mosq_test
+import socket
+from collections import deque
+from os import walk
 
 send = 1
 recv = 2
@@ -19,10 +17,12 @@ publish = 5
 
 class SingleMsg(object):
     __slots__ = 'action', 'message', 'comment'
+
     def __init__(self, action, message, comment=''):
         self.action = action
         self.message = message
         self.comment = comment
+
 
 class MsgSequence(object):
     __slots__ = 'name', 'msgs', 'expect_disconnect'
@@ -89,7 +89,6 @@ class MsgSequence(object):
         if data != msg.message:
             raise ValueError("Receive message %s | %s | %s" % (msg.comment, data, msg.message))
 
-
     def _disconnected_check(self, sock):
         try:
             data = sock.recv(1)
@@ -140,7 +139,7 @@ def do_test(hostname, port):
         if seq[-5:] != ".json":
             continue
 
-        with open("data/"+seq, "r") as f:
+        with open("data/" + seq, "r") as f:
             test_file = json.load(f)
 
         for g in test_file:
@@ -169,9 +168,9 @@ def do_test(hostname, port):
                     expect_disconnect = True
 
                 this_test = MsgSequence(tname,
-                        proto_ver=proto_ver,
-                        expect_disconnect=expect_disconnect,
-                        default_connect=connect)
+                                        proto_ver=proto_ver,
+                                        expect_disconnect=expect_disconnect,
+                                        default_connect=connect)
 
                 for m in t["msgs"]:
                     try:
@@ -207,6 +206,7 @@ def do_test(hostname, port):
     print("%d tests total\n%d tests succeeded" % (total, succeeded))
     return rc
 
+
 hostname = "localhost"
 port = mosq_test.get_port()
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), port=port, nolog=True)
@@ -219,5 +219,5 @@ finally:
     broker.wait()
     (stdo, stde) = broker.communicate()
 if rc:
-    #print(stde.decode('utf-8'))
+    # print(stde.decode('utf-8'))
     exit(rc)

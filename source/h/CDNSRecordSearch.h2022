@@ -1,0 +1,96 @@
+#ifndef _CDNSRECORDSEARCH_H__
+#define _CDNSRECORDSEARCH_H__
+
+#include "doorsbase.h"
+#include "cstring.h"
+
+constexpr int ATYPE = 1;
+constexpr int NSTYPE = 2;
+constexpr int MDTYPE = 3;
+constexpr int MFTYPE = 4;
+constexpr int CNAMETYPE = 5;
+constexpr int SOATYPE = 6;
+constexpr int MBTYPE = 7;
+constexpr int MGTYPE = 8;
+constexpr int MRTYPE = 9;
+constexpr int NULLTYPE = 10;
+constexpr int WKSTYPE = 11;
+constexpr int PTRTYPE = 12;
+constexpr int HINFOTYPE = 13;
+constexpr int MINFOTYPE = 14;
+constexpr int MXTYPE = 15;
+constexpr int TXTTYPE = 16;
+constexpr int AXFRTYPE = 252;
+constexpr int MAILBTYPE = 253;
+constexpr int MAILATYPE = 254;
+constexpr int ALLTYPE = 255;
+
+constexpr int INCLASS = 1;
+constexpr int CSCLASS = 2;
+constexpr int CHCLASS = 3;
+constexpr int HSCLASS = 4;
+constexpr int ALLCLASS = 255;
+
+struct MX_RECORD {
+    char szRecord[16][255];
+    unsigned short nNum{0};
+};
+
+struct DNSHeadTag {
+    unsigned short m_nID;
+    unsigned char m_szCode[2];
+    unsigned short m_nQDCount;
+    unsigned short m_nANCount;
+    unsigned short m_nNSCount;
+    unsigned short m_nARCount;
+};
+
+struct ResponseRecord {
+    CString m_strName;
+    CString m_strAnswer;
+};
+
+class CDNSRecordSearch {
+public:
+    CDNSRecordSearch(const char* DNSServerIPAddress, const char* ServerName, unsigned short Type, unsigned short Class);
+    virtual ~CDNSRecordSearch();
+
+    BOOL Run();
+    ResponseRecord* GetARRecord(int index);
+    ResponseRecord* GetNSRecord(int index);
+    ResponseRecord* GetANRecord(int index);
+
+private:
+    BOOL DealWithResponse();
+    int GetResponse();
+    BOOL SendRequest();
+    void AddANRecords();
+    void AddNSRecords();
+    void AddARRecords();
+    void RemoveRecordsFromList();
+    int GetRecordData(int StartIndex, CString& Data, BOOL IsIPAddress);
+    void GetNextAnswer(int PassBytes, ResponseRecord* Data);
+
+public:
+    BOOL Init();
+    unsigned short m_nANRecordCount{0};
+    unsigned short m_nNSRecordCount{0};
+    unsigned short m_nARRecordCount{0};
+    unsigned short m_nType{0};
+    unsigned short m_nClass{0};
+
+private:
+    CSocket m_ssServerSocket;
+    unsigned char m_szBuf[513]{};
+    int m_nBufPos{0};
+    int m_nReceiveBytes{0};
+    CDsList m_listANRecords;
+    CDsList m_listNSRecords;
+    CDsList m_listARRecords;
+    CString m_strServerName;
+    CString m_strDNSServerIPAddress;
+};
+
+extern BOOL _GetMXAddressByName(const char* szDNSServerIP, const char* szMXServerName, MX_RECORD& MXRecord);
+
+#endif // _CDNSRECORDSEARCH_H__

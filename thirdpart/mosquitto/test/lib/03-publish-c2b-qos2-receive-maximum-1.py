@@ -3,8 +3,6 @@
 # Test whether a client responds correctly to multiple PUBLISH with QoS 2, with
 # receive maximum set to 1.
 
-from mosq_test_helper import *
-
 port = mosq_test.get_lib_port()
 
 rc = 1
@@ -46,13 +44,11 @@ pubrec_5_packet = mosq_test.gen_pubrec(mid, proto_ver=5)
 pubrel_5_packet = mosq_test.gen_pubrel(mid, proto_ver=5)
 pubcomp_5_packet = mosq_test.gen_pubcomp(mid, proto_ver=5)
 
-
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.settimeout(10)
 sock.bind(('', port))
 sock.listen(5)
-
 
 client_args = sys.argv[1:]
 env = dict(os.environ)
@@ -61,9 +57,8 @@ try:
     pp = env['PYTHONPATH']
 except KeyError:
     pp = ''
-env['PYTHONPATH'] = '../../lib/python:'+pp
+env['PYTHONPATH'] = '../../lib/python:' + pp
 client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
-
 
 try:
     (conn, address) = sock.accept()

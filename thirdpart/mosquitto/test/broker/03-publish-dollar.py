@@ -2,8 +2,6 @@
 
 # Test whether a PUBLISH to a topic starting with $ succeeds
 
-from mosq_test_helper import *
-
 rc = 1
 mid = 19
 keepalive = 60
@@ -33,4 +31,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

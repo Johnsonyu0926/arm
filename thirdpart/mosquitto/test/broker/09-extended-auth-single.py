@@ -8,12 +8,11 @@
 # * Matching authentication method, auth succeeds, new auth data sent back to client
 
 
-from mosq_test_helper import *
-
 def write_config(filename, port):
     with open(filename, 'w') as f:
         f.write("port %d\n" % (port))
         f.write("auth_plugin c/auth_plugin_extended_single.so\n")
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -51,7 +50,6 @@ props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_AUTHENTICATION_METHOD, "mir
 props += mqtt5_props.gen_string_prop(mqtt5_props.PROP_AUTHENTICATION_DATA, "atademos")
 connack5_packet = mosq_test.gen_connack(rc=0, proto_ver=5, properties=props)
 
-
 broker = mosq_test.start_broker(filename=os.path.basename(__file__), use_conf=True, port=port)
 
 try:
@@ -81,6 +79,4 @@ finally:
     if rc:
         print(stde.decode('utf-8'))
 
-
 exit(rc)
-

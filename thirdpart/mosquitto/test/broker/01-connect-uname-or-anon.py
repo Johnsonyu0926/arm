@@ -2,7 +2,6 @@
 
 # Test whether an anonymous connection is correctly denied.
 
-from mosq_test_helper import *
 
 def write_config(filename, port, allow_anonymous, password_file):
     with open(filename, 'w') as f:
@@ -13,6 +12,7 @@ def write_config(filename, port, allow_anonymous, password_file):
             f.write("allow_anonymous false\n")
         if password_file:
             f.write("password_file %s\n" % (filename.replace('.conf', '.pwfile')))
+
 
 def do_test(allow_anonymous, password_file, username, expect_success):
     port = mosq_test.get_port()
@@ -26,21 +26,23 @@ def do_test(allow_anonymous, password_file, username, expect_success):
             rc = 1
             keepalive = 10
             if username:
-                connect_packet = mosq_test.gen_connect("connect-test-%d" % (proto_ver), keepalive=keepalive, proto_ver=proto_ver, username="user", password="password")
+                connect_packet = mosq_test.gen_connect("connect-test-%d" % (proto_ver), keepalive=keepalive,
+                                                       proto_ver=proto_ver, username="user", password="password")
             else:
-                connect_packet = mosq_test.gen_connect("connect-test-%d" % (proto_ver), keepalive=keepalive, proto_ver=proto_ver)
+                connect_packet = mosq_test.gen_connect("connect-test-%d" % (proto_ver), keepalive=keepalive,
+                                                       proto_ver=proto_ver)
 
             if proto_ver == 5:
                 if expect_success == True:
                     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
                 else:
-                    connack_packet = mosq_test.gen_connack(rc=mqtt5_rc.MQTT_RC_NOT_AUTHORIZED, proto_ver=proto_ver, properties=None)
+                    connack_packet = mosq_test.gen_connack(rc=mqtt5_rc.MQTT_RC_NOT_AUTHORIZED, proto_ver=proto_ver,
+                                                           properties=None)
             else:
                 if expect_success == True:
                     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
                 else:
                     connack_packet = mosq_test.gen_connack(rc=5, proto_ver=proto_ver)
-
 
             sock = mosq_test.do_client_connect(connect_packet, connack_packet, port=port)
             sock.close()
@@ -54,17 +56,18 @@ def do_test(allow_anonymous, password_file, username, expect_success):
         (stdo, stde) = broker.communicate()
         if rc:
             print(stde.decode('utf-8'))
-            print("proto_ver=%d, allow_anonymous=%d, password_file=%d, username=%d" % (proto_ver, allow_anonymous, password_file, username))
+            print("proto_ver=%d, allow_anonymous=%d, password_file=%d, username=%d" % (
+            proto_ver, allow_anonymous, password_file, username))
             exit(rc)
 
 
-do_test(allow_anonymous=True,  password_file=True,  username=True,  expect_success=True)
-do_test(allow_anonymous=True,  password_file=True,  username=False, expect_success=True)
-do_test(allow_anonymous=True,  password_file=False, username=True,  expect_success=True)
-do_test(allow_anonymous=True,  password_file=False, username=False, expect_success=True)
-do_test(allow_anonymous=False, password_file=True,  username=True,  expect_success=True)
-do_test(allow_anonymous=False, password_file=True,  username=False, expect_success=False)
-do_test(allow_anonymous=False, password_file=False, username=True,  expect_success=False)
+do_test(allow_anonymous=True, password_file=True, username=True, expect_success=True)
+do_test(allow_anonymous=True, password_file=True, username=False, expect_success=True)
+do_test(allow_anonymous=True, password_file=False, username=True, expect_success=True)
+do_test(allow_anonymous=True, password_file=False, username=False, expect_success=True)
+do_test(allow_anonymous=False, password_file=True, username=True, expect_success=True)
+do_test(allow_anonymous=False, password_file=True, username=False, expect_success=False)
+do_test(allow_anonymous=False, password_file=False, username=True, expect_success=False)
 do_test(allow_anonymous=False, password_file=False, username=False, expect_success=False)
 
 exit(0)

@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/OptionsDialog/SelectedPageId/@EntryValue" value="CppGeneralOptions" type="string" />
+  </component>
+  <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/source/h" />
+      <file path="$PROJECT_DIR$/source/router/audioserver" />
+    </sourceRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/source/router/audioserver/include" />
+      <file path="$PROJECT_DIR$/source/router/audioserver/lib" />
+      <file path="$PROJECT_DIR$/source/router/audioserver/mips_r3000" />
+      <file path="$PROJECT_DIR$/source/router/audioserver/mipsel-openwrt-linux" />
+      <file path="$PROJECT_DIR$/thirdpart" />
+    </excludeRoots>
+  </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MakefileSettings">
     <option name="linkedExternalProjectsSettings">

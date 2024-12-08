@@ -1,0 +1,68 @@
+#ifndef _GAPMIME_H__
+#define _GAPMIME_H__
+
+#include "Base64.h"
+
+class CGAPMime {
+public:
+    CGAPMime();
+    virtual ~CGAPMime();
+
+    BOOL Init(const BYTE* pBody);
+    BOOL Work(long* pnSuccess);
+    BOOL SetBodyLen(LONG nBodyLen);
+    BOOL GetPartCount(LONG* pnCount);
+    BOOL GetPart(int nIndex, int nType, BYTE* pnVal);
+
+    const char* GetSubject() const { return m_szSubject; }
+    const char* GetFrom() const { return m_szFrom; }
+    const char* GetTo() const { return m_szTo; }
+    const char* GetCc() const { return m_szCc; }
+    const char* GetDate() const { return m_szDate; }
+
+private:
+    char m_szCc[1024]{};
+    char m_szTo[1024]{};
+    char m_szFrom[1024]{};
+    char m_szDate[256]{};
+
+    char* GetValueFromKey(const char* szLine, const char* szKey);
+    BOOL GetContentType(int& nContentType, char* pBoundary, int& nEncodingType, char* pFileName);
+    BOOL GetContentType(const char* szBuf, char* szContentType);
+    int GetContentType(const char* szContentType, int& nContentType);
+    BOOL GetLine(char* szBuf);
+    int GetFieldValue(const char* szBuf, int nPos, char* szValue);
+    int GetEncodingType(const char* szBuf, int& nEncodingType);
+
+    int DealWithTheContentType(int nContentType, char* szBoundary, int nEncodingType, char* szFileName);
+    int DealWithMultPart(int nContentType, char* szBoundary, int nEncodingType, char* szFileName);
+    int DealWithSinglePart(int nContentType, char* szBoundary, int nEncodingType, char* szFileName);
+    int GotoBoundary(const char* szBoundary);
+    int DealWithTextPlain(int nContextType, int nEncodingType, const char* szBoundary);
+    int DealWithOct(int nEncodingType, const char* szBoundary, const char* szFileName);
+    int DealWith7BitsPlainText(int nContextType, const char* szBoundary);
+    int DealWithBase64PlainText(const char* szBoundary);
+    int DealWithQP(const char* szBoundary);
+    int RecvBodyAndDecode(const char* szFileName, const char* szBoundary);
+
+    const BYTE* m_pBody{nullptr};
+    int m_nOffset{0};
+    int m_nBodyLen{0};
+    int m_nCurrentAttachmentCount{0};
+    char m_szAttachmentName[128][1024]{};
+
+    LONG m_nPartCount{0};
+    Gap_BodyPart_t m_pBodyPart{nullptr};
+
+    Gap_BodyPart_t BodyContentCreate();
+    Gap_BodyPart_t BodyContentInsert(Gap_BodyPart_t pBodyPart, Gap_BodyPart_t szBodyPart);
+    void BodyContentDestroy(Gap_BodyPart_t* pBodyPart);
+    void BodyContentDestroyAll(Gap_BodyPart_t* pBodyPart);
+    Gap_BodyPart_t BodyContentDelete(Gap_BodyPart_t pBodyPart, int nPart);
+
+    char m_szSubject[1024]{};
+};
+
+extern void ToMakeUpper(char* pStr);
+
+#endif // _GAPMIME_H__

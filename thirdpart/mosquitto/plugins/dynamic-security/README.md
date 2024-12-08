@@ -31,6 +31,7 @@ By default, publishClientSend and subscribe default to deny, and
 publishClientReceive and unsubscribe default to allow.
 
 Command:
+
 ```
 {
 	"commands":[
@@ -48,6 +49,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec setDefaultACLAccess subscribe deny
 ```
@@ -57,6 +59,7 @@ mosquitto_ctrl dynsec setDefaultACLAccess subscribe deny
 Gets the default access behaviour for the different ACL types.
 
 Command:
+
 ```
 {
 	"commands":[
@@ -68,6 +71,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec getDefaultACLAccess
 ```
@@ -75,6 +79,7 @@ mosquitto_ctrl dynsec getDefaultACLAccess
 ## Create Client
 
 Command:
+
 ```
 {
 	"commands":[
@@ -97,6 +102,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec createClient username password
 ```
@@ -104,6 +110,7 @@ mosquitto_ctrl dynsec createClient username password
 ## Delete Client
 
 Command:
+
 ```
 {
 	"commands":[
@@ -116,6 +123,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec deleteClient username
 ```
@@ -123,6 +131,7 @@ mosquitto_ctrl dynsec deleteClient username
 ## Enable Client
 
 Command:
+
 ```
 {
 	"commands":[
@@ -135,6 +144,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec enableClient username
 ```
@@ -145,6 +155,7 @@ Stop a client from being able to log in, and kick any clients with matching
 username that are currently connected.
 
 Command:
+
 ```
 {
 	"commands":[
@@ -157,6 +168,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec disableClient username
 ```
@@ -164,6 +176,7 @@ mosquitto_ctrl dynsec disableClient username
 ## Get Client
 
 Command:
+
 ```
 {
 	"commands":[
@@ -176,6 +189,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec getClient username
 ```
@@ -183,6 +197,7 @@ mosquitto_ctrl dynsec getClient username
 ## List Clients
 
 Command:
+
 ```
 {
 	"commands":[
@@ -197,6 +212,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec listClients 10 20
 ```
@@ -204,6 +220,7 @@ mosquitto_ctrl dynsec listClients 10 20
 ## Modify Existing Client
 
 Command:
+
 ```
 {
 	"commands":[
@@ -230,6 +247,7 @@ Modifying clients isn't currently possible with mosquitto_ctrl.
 ## Set Client id
 
 Command:
+
 ```
 {
 	"commands":[
@@ -243,6 +261,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec setClientPassword username password
 ```
@@ -250,6 +269,7 @@ mosquitto_ctrl dynsec setClientPassword username password
 ## Set Client Password
 
 Command:
+
 ```
 {
 	"commands":[
@@ -263,6 +283,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec setClientPassword username password
 ```
@@ -270,6 +291,7 @@ mosquitto_ctrl dynsec setClientPassword username password
 ## Add Client Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -284,6 +306,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec addClientRole username rolename
 ```
@@ -291,6 +314,7 @@ mosquitto_ctrl dynsec addClientRole username rolename
 ## Remove Client Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -304,6 +328,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec removeClientRole username rolename
 ```
@@ -311,6 +336,7 @@ mosquitto_ctrl dynsec removeClientRole username rolename
 ## Add Client to a Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -325,6 +351,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec addGroupClient groupname username
 ```
@@ -332,6 +359,7 @@ mosquitto_ctrl dynsec addGroupClient groupname username
 ## Create Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -348,6 +376,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec createGroup groupname
 ```
@@ -355,6 +384,7 @@ mosquitto_ctrl dynsec createGroup groupname
 ## Delete Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -367,6 +397,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec deleteGroup groupname
 ```
@@ -374,6 +405,7 @@ mosquitto_ctrl dynsec deleteGroup groupname
 ## Get Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -386,6 +418,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec getGroup groupname
 ```
@@ -393,6 +426,7 @@ mosquitto_ctrl dynsec getGroup groupname
 ## List Groups
 
 Command:
+
 ```
 {
 	"commands":[
@@ -407,6 +441,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec listGroups
 ```
@@ -414,6 +449,7 @@ mosquitto_ctrl dynsec listGroups
 ## Modify Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -439,6 +475,7 @@ Modifying groups isn't currently possible with mosquitto_ctrl.
 ## Remove Client from a Group
 
 Command:
+
 ```
 {
 	"commands":[
@@ -452,6 +489,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec removeGroupClient groupname username
 ```
@@ -459,6 +497,7 @@ mosquitto_ctrl dynsec removeGroupClient groupname username
 ## Add Group Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -473,6 +512,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec addGroupRole groupname rolename
 ```
@@ -480,6 +520,7 @@ mosquitto_ctrl dynsec addGroupRole groupname rolename
 ## Remove Group Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -493,6 +534,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec removeGroupRole groupname rolename
 ```
@@ -500,6 +542,7 @@ mosquitto_ctrl dynsec removeGroupRole groupname rolename
 ## Set Group for Anonymous Clients
 
 Command:
+
 ```
 {
 	"commands":[
@@ -512,6 +555,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec setAnonymousGroup groupname
 ```
@@ -519,6 +563,7 @@ mosquitto_ctrl dynsec setAnonymousGroup groupname
 ## Get Group for Anonymous Clients
 
 Command:
+
 ```
 {
 	"commands":[
@@ -530,6 +575,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec getAnonymousGroup
 ```
@@ -537,6 +583,7 @@ mosquitto_ctrl dynsec getAnonymousGroup
 ## Create Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -554,6 +601,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec createRole rolename
 ```
@@ -561,6 +609,7 @@ mosquitto_ctrl dynsec createRole rolename
 ## Get Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -573,6 +622,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec getRole rolename
 ```
@@ -580,6 +630,7 @@ mosquitto_ctrl dynsec getRole rolename
 ## List Roles
 
 Command:
+
 ```
 {
 	"commands":[
@@ -594,6 +645,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec listRoles
 ```
@@ -601,6 +653,7 @@ mosquitto_ctrl dynsec listRoles
 ## Modify Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -622,6 +675,7 @@ Modifying roles isn't currently possible with mosquitto_ctrl.
 ## Delete Role
 
 Command:
+
 ```
 {
 	"commands":[
@@ -634,6 +688,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec deleteRole rolename
 ```
@@ -641,6 +696,7 @@ mosquitto_ctrl dynsec deleteRole rolename
 ## Add Role ACL
 
 Command:
+
 ```
 {
 	"commands":[
@@ -657,6 +713,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec addRoleACL rolename subscribeLiteral topic/# deny
 ```
@@ -664,6 +721,7 @@ mosquitto_ctrl dynsec addRoleACL rolename subscribeLiteral topic/# deny
 ## Remove Role ACL
 
 Command:
+
 ```
 {
 	"commands":[
@@ -678,6 +736,7 @@ Command:
 ```
 
 mosquitto_ctrl example:
+
 ```
 mosquitto_ctrl dynsec removeRoleACL rolename subscribeLiteral topic/#
 ```

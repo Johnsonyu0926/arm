@@ -2,7 +2,6 @@
 
 # Test whether a client subscribed to a topic receives its own message sent to that topic.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -10,6 +9,7 @@ def write_config(filename, port):
         f.write("allow_anonymous true\n")
         f.write("persistence true\n")
         f.write("persistence_file mosquitto-%d.db\n" % (port))
+
 
 def do_test(proto_ver):
     port = mosq_test.get_port()
@@ -76,4 +76,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-

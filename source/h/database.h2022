@@ -1,0 +1,74 @@
+#ifndef __DATABASE_H
+#define __DATABASE_H
+
+#include <mysql.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
+
+constexpr int DB_CONNECTION_NONE = 0;
+constexpr int DB_CONNECTION_OK = 1;
+constexpr int DB_CONNECTION_BAD = 2;
+
+constexpr int DB_COMMAND_OK = 0;    // OK - command executed
+constexpr int DB_EMPTY_QUERY = 1;   // Query didn't return tuples
+constexpr int DB_TUPLES_OK = 2;     // Query returned tuples
+constexpr int DB_ERROR = 5;
+constexpr int DB_BAD_RESPONSE = 6;
+constexpr int DB_UNEXPECTED = 7;    // This shouldn't ever happen
+
+class DBResult;
+
+class Database {
+private:
+    MYSQL* mysql{nullptr};
+    bool connected{false};
+    char error[100]{};    // Error description
+
+public:
+    Database();
+    ~Database();
+
+    int init();    // Initialize and do basic tests
+    int status() const;    // Return status information
+    const char* errorMessage() const;    // Return current error message
+
+    int connect(const char* host, const char* user, const char* passwd, const char* port, const char* db);    // Connect to db
+    void disconnect();    // Disconnect from database
+    int reset();    // Reset connection
+
+    DBResult* exec(const char* sqlFormat);    // Execute arbitrary SQL cmd
+    void exec(DBResult* res, const char* sqlFormat);    // Same as above, reuse res
+};
+
+class DBResult {
+private:
+    bool haveError{false};
+    MYSQL_RES* result{nullptr};
+    long m_nAffectedRows{0};
+
+public:
+    DBResult();
+    DBResult(MYSQL* mysql, const char* query);
+    ~DBResult();
+
+    void init(MYSQL* mysql, const char* query);
+
+    int status() const;    // Return query status
+
+    int nrTuples() const;    // Number of fetched tuples
+    int nrFields() const;    // Number of fields per tuple
+
+    const char* fieldName(int n) const;    // Name of nth field
+    int fieldSize(int n) const;    // Size of nth field
+    int fieldSize(const char* name) const;    // Size of nth field
+
+    void seekTuple(int tuple);    // Sets internal cursor to tuple
+    char** getTuple();    // Return the next tuple or NULL
+    char** getTuple(int tuple);    // Return tuple
+
+    long GetAffectedRows() const;
+};
+
+#endif // __DATABASE_H

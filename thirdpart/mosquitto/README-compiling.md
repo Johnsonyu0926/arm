@@ -17,7 +17,7 @@ To compile, run "make", but also see the file config.mk for more details on the
 various options that can be compiled in.
 
 Where possible use the Makefiles to compile. This is particularly relevant for
-the client libraries as symbol information will be included.  Use cmake to
+the client libraries as symbol information will be included. Use cmake to
 compile on Windows or Mac.
 
 If you have any questions, problems or suggestions (particularly related to

@@ -3,8 +3,6 @@
 # Test whether sending an Authentication Method produces the correct response
 # when no auth methods are defined.
 
-from mosq_test_helper import *
-
 rc = 1
 keepalive = 10
 props = mqtt5_props.gen_string_prop(mqtt5_props.PROP_AUTHENTICATION_METHOD, "basic")
@@ -28,4 +26,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

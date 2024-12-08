@@ -2,7 +2,6 @@
 
 # Test whether a client message maintains its subscription id when persisted and restored.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -10,6 +9,7 @@ def write_config(filename, port):
         f.write("allow_anonymous true\n")
         f.write("persistence true\n")
         f.write("persistence_file mosquitto-%d.db\n" % (port))
+
 
 port = mosq_test.get_port()
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -33,14 +33,12 @@ mid = 1
 props = mqtt5_props.gen_varint_prop(mqtt5_props.PROP_SUBSCRIPTION_IDENTIFIER, 53)
 publish_packet2 = mosq_test.gen_publish("subpub/qos1", qos=1, mid=mid, payload="message", proto_ver=5, properties=props)
 
-
 helper_connect_packet = mosq_test.gen_connect("helper", keepalive=keepalive, clean_session=True, proto_ver=5)
 helper_connack_packet = mosq_test.gen_connack(rc=0, proto_ver=5)
 
 mid = 1
 helper_publish_packet = mosq_test.gen_publish("subpub/qos1", qos=1, mid=mid, payload="message", proto_ver=5)
 helper_puback_packet = mosq_test.gen_puback(mid, proto_ver=5)
-
 
 if os.path.exists('mosquitto-%d.db' % (port)):
     os.unlink('mosquitto-%d.db' % (port))
@@ -81,6 +79,4 @@ finally:
         os.unlink('mosquitto-%d.db' % (port))
         pass
 
-
 exit(rc)
-

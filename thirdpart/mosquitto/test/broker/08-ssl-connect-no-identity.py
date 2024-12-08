@@ -2,11 +2,10 @@
 
 # Client connects without a certificate to a server that has use_identity_as_username=true. Should be rejected.
 
-from mosq_test_helper import *
-
 if sys.version < '2.7':
     print("WARNING: SSL not supported on Python 2.6")
     exit(0)
+
 
 def write_config(filename, port1, port2):
     with open(filename, 'w') as f:
@@ -18,6 +17,7 @@ def write_config(filename, port1, port2):
         f.write("keyfile ../ssl/server.key\n")
         f.write("\n")
         f.write("use_identity_as_username true\n")
+
 
 (port1, port2) = mosq_test.get_port(2)
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
@@ -54,4 +54,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

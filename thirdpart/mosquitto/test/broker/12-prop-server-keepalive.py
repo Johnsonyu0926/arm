@@ -3,7 +3,6 @@
 # Test whether sending a non zero session expiry interval in DISCONNECT after
 # having sent a zero session expiry interval is treated correctly in MQTT v5.
 
-from mosq_test_helper import *
 
 def write_config(filename, port):
     with open(filename, 'w') as f:
@@ -12,10 +11,10 @@ def write_config(filename, port):
         f.write("\n")
         f.write("max_keepalive 60\n")
 
+
 port = mosq_test.get_port(1)
 conf_file = os.path.basename(__file__).replace('.py', '.conf')
 write_config(conf_file, port)
-
 
 rc = 1
 
@@ -44,4 +43,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

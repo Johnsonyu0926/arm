@@ -1,0 +1,94 @@
+#ifndef __NG_DB_H__
+#define __NG_DB_H__
+
+#include "doorsbase.h"
+
+class IOracleReader : public CDsObject {
+public:
+    // Virtual interface for all other class.
+    virtual int ConnectToOracle(const char* szUserName, const char* szPassword) = 0;
+    // return 1 success, 0 failed.
+    virtual void Disconnect() = 0;
+    virtual int ExecSQL(const char* szSQL) = 0;
+};
+
+class COracleReader : public IOracleReader {
+public:
+    COracleReader() = default;
+    virtual ~COracleReader() = default;
+
+    int ConnectToOracle(const char* szUserName, const char* szPassword) override;
+    void Disconnect() override;
+    int ExecSQL(const char* szSQL) override;
+
+    void SqlError();
+};
+
+class IForbidClient : public CDsObject {
+public:
+    virtual const char* GetClientIp() const = 0;
+};
+
+class IForbidClientReader : public COracleReader {
+public:
+    virtual void OpenRecordset() = 0;
+    virtual void Close() = 0;
+    virtual IForbidClient* ReadNextClient() = 0;
+    virtual int IsEmpty() const = 0;
+};
+
+class IForbidUrl : public CDsObject {
+public:
+    virtual const char* GetUrl() const = 0;
+};
+
+class IForbidUrlReader : public COracleReader {
+public:
+    virtual void OpenRecordset() = 0;
+    virtual void Close() = 0;
+    virtual IForbidUrl* ReadNextUrl() = 0;
+};
+
+class IForbidContent : public CDsObject {
+public:
+    virtual const char* GetContent() const = 0;
+};
+
+class IForbidContentReader : public COracleReader {
+public:
+    virtual void OpenRecordset() = 0;
+    virtual void Close() = 0;
+    virtual IForbidContent* ReadNextContent() = 0;
+};
+
+class IRegClient : public CDsObject {
+public:
+    virtual const char* GetClient() const = 0;
+};
+
+class IRegClientReader : public COracleReader {
+public:
+    virtual void OpenRecordset() = 0;
+    virtual void Close() = 0;
+    virtual IRegClient* ReadNextClient() = 0;
+};
+
+class IDatabaseLoader : public CDsObject {
+public:
+    virtual BOOL Init() = 0;
+    virtual BOOL ExecSQL(const char* szSql) = 0;
+    virtual CDsList* LoadUrl() = 0;
+    virtual CDsList* LoadContent() = 0;
+    virtual CDsList* LoadClientIp() = 0; // This is the ip which should be forbidden.
+    virtual CDsList* LoadRegClient() = 0; // This is the ip which has registered.
+};
+
+extern "C" {
+    int DsCreateForbidClientReader(IForbidClientReader** ppReader);
+    int DsCreateForbidUrlReader(IForbidUrlReader** ppReader);
+    int DsCreateForbidContentReader(IForbidContentReader** ppReader);
+    int DsCreateRegClientReader(IRegClientReader** ppReader);
+    int DsCreateDatabaseLoader(IDatabaseLoader** ppILoader);
+}
+
+#endif // __NG_DB_H__

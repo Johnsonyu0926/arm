@@ -2,7 +2,6 @@
 
 # Test remapping of topic name for incoming message
 
-from mosq_test_helper import *
 
 def write_config(filename, port1, port2, protocol_version):
     with open(filename, 'w') as f:
@@ -20,6 +19,7 @@ def write_config(filename, port1, port2, protocol_version):
         f.write("notifications false\n")
         f.write("restart_timeout 5\n")
         f.write("bridge_protocol_version %s\n" % (protocol_version))
+
 
 connect_packet = None
 connack_packet = None
@@ -94,7 +94,7 @@ def do_test(proto_ver):
 
     if proto_ver == 4:
         bridge_protocol = "mqttv311"
-        proto_ver_connect = 128+4
+        proto_ver_connect = 128 + 4
     else:
         bridge_protocol = "mqttv50"
         proto_ver_connect = 5
@@ -106,9 +106,10 @@ def do_test(proto_ver):
     rc = 1
     keepalive = 60
 
-    client_id = socket.gethostname()+".bridge_sample"
+    client_id = socket.gethostname() + ".bridge_sample"
 
-    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=proto_ver_connect)
+    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False,
+                                           proto_ver=proto_ver_connect)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     client_connect_packet = mosq_test.gen_connect("pub-test", keepalive=keepalive, proto_ver=proto_ver)

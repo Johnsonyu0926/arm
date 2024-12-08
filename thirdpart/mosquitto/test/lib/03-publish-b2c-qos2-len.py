@@ -3,9 +3,8 @@
 # Check whether a v5 client handles a v5 PUBREL with all combinations
 # of with/without reason code and properties.
 
-from mosq_test_helper import *
-
 mid = 56
+
 
 def len_test(test, pubrel_packet):
     port = mosq_test.get_lib_port()
@@ -34,7 +33,7 @@ def len_test(test, pubrel_packet):
         pp = env['PYTHONPATH']
     except KeyError:
         pp = ''
-    env['PYTHONPATH'] = '../../lib/python:'+pp
+    env['PYTHONPATH'] = '../../lib/python:' + pp
 
     client = mosq_test.start_client(filename=sys.argv[1].replace('/', '-'), cmd=client_args, env=env, port=port)
 

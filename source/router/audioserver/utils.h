@@ -1,5 +1,7 @@
-#pragma once
+#ifndef __UTILS_H__
+#define __UTILS_H__
 
+#include <spdlog/spdlog.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -10,7 +12,6 @@
 #include <termios.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <sys/statfs.h>
 #include <string>
 #include <dirent.h>
 #include <cstring>
@@ -23,327 +24,41 @@
 #include <chrono>
 #include <thread>
 #include <future>
+#include <net/if.h>
+#include <map>
+#include <sstream>
 #include "public.hpp"
 #include "audiocfg.hpp"
 #include "doorsbase.h"
 
-static int m_rs485{-1};
-static int m_rsTty{1};
+namespace utils {
 
-class Rs485 {
+    std::string to_hex(const std::vector<unsigned char>& data);
+    std::vector<unsigned char> from_hex(const std::string& hex);
+
+} // namespace utils
+
+class Singleton {
 public:
-    const int MAX_SEND = 12;
-
-    void set_send_dir() const {
-        system("echo 1 > /sys/class/gpio/gpio3/value");
-        DS_TRACE("set send dir! gpio is 1\n");
-    }
-
-    void set_receive_dir() const {
-        system("echo 0 > /sys/class/gpio/gpio3/value");
-        DS_TRACE("set receive dir! gpio is 0\n");
-    }
-
-    int _uart_read(char *pcBuf, int iBufLen) {
-        set_receive_dir();
-        int iFd = m_rs485, iLen = 0;
-        int i;
-
-        *pcBuf = '\0';
-        DS_TRACE("reading... from fd:" << iFd);
-        iLen = read(iFd, pcBuf, iBufLen);
-        if (iLen < 0) {
-            close(iFd);
-            m_rs485 = -1;
-            DS_TRACE("error read from fd " << iFd);
-            return iLen;
-        }
-
-        //ignore 0x0
-        while (iLen == 1 && pcBuf[0] == 0x0) {
-            DS_TRACE("ignore the 0x0 .\n");
-            iLen = read(iFd, pcBuf, iBufLen);
-        }
-
-        DS_TRACE("read success: iLen= %d , hex dump: " << iLen);
-        for (i = 0; i < iLen; i++) {
-            printf("%02x ", pcBuf[i]);
-        }
-        DS_TRACE("\nhex dump end.\n");
-
-        while (1) {
-            if ((iLen > 5) &&
-                ('B' == pcBuf[iLen - 5]) &&
-                ('B' == pcBuf[iLen - 4]) &&
-                (' ' == pcBuf[iLen - 3]) &&
-                ('E' == pcBuf[iLen - 2]) &&
-                ('F' == pcBuf[iLen - 1])) {
-                DS_TRACE("receive completed.\n");
-                break;
-            }
-
-            DS_TRACE("continue to read...\n");
-            int next = read(iFd, pcBuf + iLen, iBufLen - iLen);
-            iLen += next;
-            DS_TRACE("read next :" << next << ", iLen: " << iLen << ", buf:" << pcBuf);
-
-        }
-        DS_TRACE("total len = " << iLen);
-
-        for (i = 0; i < iLen; i++) {
-            printf("%02x ", pcBuf[i]);
-        }
-        DS_TRACE("\nhex dump end.\n");
-        return iLen;
-    }
-
-    int _uart_open(void) {
-        int iFd = -1;
-        struct termios opt;
-        asns::CAudioCfgBusiness cfg;
-        cfg.load();
-        int iBdVal = cfg.business[0].iBdVal;
-
-        system("echo 3 > /sys/class/gpio/export");
-        system("echo out > /sys/class/gpio/gpio3/direction");
-
-        char name[32];
-        sprintf(name, "/dev/ttyS%d", m_rsTty);
-
-        iFd = open(name, O_RDWR | O_NOCTTY);  /* 读写方式打开串口 */
-
-        if (iFd < 0) {
-            return -1;
-        }
-
-        tcgetattr(iFd, &opt);
-        cfmakeraw(&opt);
-
-        cfsetispeed(&opt, iBdVal);
-        cfsetospeed(&opt, iBdVal);
-
-        tcsetattr(iFd, TCSANOW, &opt);
-        char cmd[64];
-        sprintf(cmd, "stty -F /dev/ttyS%d %d", m_rsTty, iBdVal);
-        system(cmd);
-        m_rs485 = iFd;
-        return iFd;
-    }
-
-    /* Write data to uart dev, return 0 means OK */
-    int _uart_write(const char *pcData, int iLen) {
-        set_send_dir();
-        int iFd = m_rs485;
-        int iRet = -1;
-        int len = 0;
-        DS_TRACE("to write :" << pcData << ", len:" << iLen);
-        int count = iLen / MAX_SEND;
-        if (iLen % MAX_SEND) {
-            count++;
-        }
-        int offset = 0;
-        DS_TRACE("count=" << count);
-        for (int i = 0; i < count; i++) {
-            if ((i + 1) * MAX_SEND > iLen) {
-                len = iLen - i * MAX_SEND;
-            } else {
-                len = MAX_SEND;
-            }
-            DS_TRACE("no." << i << ": offset:" << offset << " len:" << len);
-            const char *data = pcData + offset;
-            for (int j = 0; j < len; j++) {
-                printf("%02x ", data[j]);
-            }
-            iRet = write(iFd, data, len);
-            if (iRet < 0) {
-                close(iFd);
-                m_rs485 = -1;
-                DS_TRACE("error write " << iFd << " , len:" << len);
-            } else {
-                DS_TRACE("no." << i << ": write len:" << len << " success, iRet:" << iRet);
-            }
-
-            offset += MAX_SEND;
-
-            usleep(100 * 1000);
-        }
-        return iRet;
-    }
-
-    int _uart_work(const char *buf, int len) {
-        int fd = _uart_open();
-        if (fd < 0) {
-            DS_TRACE("failed to open ttyS%d to read write." << m_rsTty);
-            return 0;
-        }
-        m_rs485 = fd;
-        _uart_write(buf, len);
-        set_receive_dir();
-        return 1;
-    }
-
-
-    int SendTrue() {
-        std::string res = "01 E1";
-        return _uart_write(res.c_str(), res.length());
-    }
-
-    int SendFast(const std::string &err_code) {
-        std::string buf = "01 " + err_code;
-        return _uart_write(buf.c_str(), buf.length());
-    }
-};
-
-
-class PlayStatus {
-public:
-    PlayStatus(const PlayStatus &) = delete;
-
-    PlayStatus &operator=(const PlayStatus &) = delete;
-
-    static PlayStatus &getInstance() {
-        static PlayStatus instance;
+    ~Singleton() = default;
+    Singleton(const Singleton &) = delete;
+    Singleton &operator=(const Singleton &) = delete;
+    static Singleton &getInstance() {
+        static Singleton instance;
         return instance;
     }
-
-    void init() {
-        m_playId = asns::STOP_TASK_PLAYING;
-        m_priority = asns::STOP_TASK_PLAYING;
-        m_pId = asns::STOP_TASK_PLAYING;
+    std::string getConnIp() const {
+        return m_connIp;
     }
-
-    int getPlayState() const {
-        return m_playId != asns::STOP_TASK_PLAYING;
-    }
-
-    int getPlayId() const {
-        return m_playId;
-    }
-
-    void setPlayId(const int id) {
-        m_playId = id;
-    }
-
-    int getPriority() const {
-        return m_priority;
-    }
-
-    void setPriority(const int id) {
-        m_priority = id;
-    }
-
-    pid_t getProcessId() const {
-        return m_pId;
-    }
-
-    void setProcessId(pid_t id) {
-        m_pId = id;
-    }
-
-    ~PlayStatus() = default;
-
 private:
-    PlayStatus() = default;
-
-private:
-    int m_playId{-1};
-    int m_priority{-1};
-    pid_t m_pId{-1};
-};
-
-
-class CGpio {
+    Singleton() = default;
 public:
-    ~CGpio() = default;
-
-    CGpio(const CGpio &) = delete;
-
-    CGpio &operator=(const CGpio &) = delete;
-
-    static CGpio &getInstance() {
-        static CGpio instance;
-        return instance;
-    }
-
-    int saveToJson() {
-        json j;
-        j["gpioStatus"] = state;
-        j["gpioModel"] = gpioModel;
-        std::ofstream o(filePath);
-        o << std::setw(4) << j << std::endl;
-        o.close();
-        return 0;
-    }
-
-    int load() {
-        std::ifstream i(filePath);
-        if (!i) {
-            DS_TRACE("no gpio file , use default gpio. file name is:" << filePath.c_str());
-            return 0;
-        }
-        json j;
-        try {
-            i >> j;
-            state = j.at("gpioStatus");
-            gpioModel = j.at("gpioModel");
-        }
-        catch (json::parse_error &ex) {
-            std::cerr << "parse error at byte " << ex.byte << std::endl;
-            i.close();
-            return -1;
-        }
-        i.close();
-    }
-
-    int getGpioStatus() const {
-        return gpioStatus;
-    }
-
-    void set_gpio_on() {
-        system("echo 1 > /sys/class/gpio/gpio16/value");
-        gpioStatus = 1;
-    }
-
-    void set_gpio_off() {
-        system("echo 0 > /sys/class/gpio/gpio16/value");
-        gpioStatus = 0;
-    }
-
-    void setGpioModel(const int model) {
-        gpioModel = model;
-    }
-
-    int getGpioModel() const {
-        return gpioModel;
-    }
-
-    void setState(const int state) {
-        this->state = state;
-    }
-
-    int getState() const {
-        return state;
-    }
-
-    const std::string GPIO_JSON_FILE = "/cfg/gpio.json";
-private:
-    std::string filePath;
-
-    CGpio() : gpioModel(0), gpioStatus(0) {
-        asns::CAudioCfgBusiness business;
-        business.load();
-        filePath = business.business[0].savePrefix + GPIO_JSON_FILE;
-    }
-
-private:
-    int gpioStatus;
-    int gpioModel;
-    int state;
+    std::string m_connIp;
 };
 
 class CUtils {
 private:
-    char m_lan[1024];
+    char m_lan[1024]{};
     std::map<std::string, std::string> m_month = {{"Jan", "01"},
                                                   {"Feb", "02"},
                                                   {"Mar", "03"},
@@ -357,36 +72,10 @@ private:
                                                   {"Nov", "11"},
                                                   {"Dec", "12"}};
 public:
-
-    int uart_write(const std::string &cmd) {
-        Rs485 rs;
-        return rs._uart_work(cmd.c_str(), cmd.length());
-    }
-
-    int get_play_state() const {
-        return PlayStatus::getInstance().getPlayState();
-    }
-
-    int get_gpio_state() const {
-        return CGpio::getInstance().getGpioStatus();
-    }
-
-    int get_gpio_model() const {
-        return CGpio::getInstance().getGpioModel();
-    }
-
-    void set_gpio_on() {
-        CGpio::getInstance().set_gpio_on();
-    }
-
-    void set_gpio_off() {
-        CGpio::getInstance().set_gpio_off();
-    }
-
-    size_t get_file_size(const std::string &path) {
+    int get_file_size(const std::string &path) {
         int fd = open(path.c_str(), O_RDWR);
         if (fd < 0) {
-            DS_TRACE("open fail !" << path.c_str());
+            spdlog::error("open fail ! {}", path);
             return -1;
         }
         struct stat st;
@@ -394,58 +83,40 @@ public:
         close(fd);
         return st.st_size;
     }
-
+};
     void get_dir_file_names(const std::string &path, std::vector<std::string> &files) {
         DIR *pDir;
         dirent *ptr;
         if (!(pDir = opendir(path.c_str()))) return;
-        while ((ptr = readdir(pDir)) != 0) {
+        while ((ptr = readdir(pDir)) != nullptr) {
             if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
-                files.push_back(ptr->d_name);
+                files.emplace_back(ptr->d_name);
             }
         }
         closedir(pDir);
     }
-
     bool find_dir_file_exists(const std::string &path, const std::string &name) {
         std::vector<std::string> files_name;
         get_dir_file_names(path, files_name);
-        for (auto iter = files_name.cbegin(); iter != files_name.cend(); ++iter) {
-            std::cout << *iter << " ";
-            if (name == *iter) {
+        for (const auto &iter : files_name) {
+            spdlog::debug("{}", iter);
+            if (name == iter) {
                 return true;
             }
         }
         return false;
     }
-
     bool str_is_all_num(const std::string &str) {
-        for (const char &c: str) {
-            if (std::isdigit(c) == 0)
-                return false;
-        }
-        return true;
+        return std::all_of(str.begin(), str.end(), ::isdigit);
     }
-
-    unsigned long long get_available_Disk(const std::string &path) {
+    static unsigned long long get_available_Disk(const std::string &path) {
         struct statfs diskInfo;
         statfs(path.c_str(), &diskInfo);
-
-        unsigned long long block_size = diskInfo.f_bsize;                       //每个block里包含的字节数
-        unsigned long long total_size = block_size * diskInfo.f_blocks;         //总的字节数，f_blocks为block的数目
-        unsigned long long free_disk = diskInfo.f_bfree * block_size;           //剩余空间的大小
-        unsigned long long available_disk = diskInfo.f_bavail * block_size;     //可用空间大小
-        return (available_disk >> 10);                                         // 返回可用大小 kb
-        /*printf("Total_size = %llu B = %llu KB = %llu MB = %llu GB\n", total_size, total_size >> 10, total_size >> 20,
-               total_size >> 30);
-        printf("Disk_free = %llu MB = %llu GB\nDisk_available = %llu MB = %llu GB\n",
-               free_disk >> 20, free_disk >> 30, available_disk >> 20, available_disk >> 30);*/
+        unsigned long long block_size = diskInfo.f_bsize;
+        unsigned long long available_disk = diskInfo.f_bavail * block_size;
+        return (available_disk >> 10);
     }
-
-    /* 1, process exist.
-     * 0, not exist
-     */
-    int get_process_status(char *cmd) {
+    static int get_process_status(const char *cmd) {
         FILE *fp;
         char buf[256] = {0};
         char tmp[1024] = {0};
@@ -457,138 +128,169 @@ public:
             if (nread > 0) {
                 exist = 1;
             }
-            fclose(fp);
+            pclose(fp);
         }
         return exist;
     }
-
+    int isIpWL() {
+        std::string lanIp = get_by_cmd_res("ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+        std::string wanIp = get_by_cmd_res("ip addr show dev eth1 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+        std::string connIp = Singleton::getInstance().getConnIp();
+        if (connIp.empty()) {
+            return 1;
+        }
+        connIp = connIp.substr(0, connIp.find_last_of('.'));
+        if (connIp == lanIp.substr(0, lanIp.find_last_of('.'))) {
+            return 0;
+        } else if (connIp == wanIp.substr(0, wanIp.find_last_of('.'))) {
+            return 1;
+        } else {
+            return 1;
+        }
+    }
     int is_ros_platform() {
         std::ifstream i("/bin/cm");
-        if (!i.is_open()) {
-            return 0;
-        }
-        i.close();
-        return 1;
+        return i.is_open() ? 1 : 0;
     }
-
     char *get_ros_addr() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 ipaddress|tail -1");
+        if (isIpWL() == 0) {
+            strcpy(cmd, "ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+        } else {
+            strcpy(cmd, "ip addr show dev eth1 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+        }
         get_addr_by_cmd(cmd);
         return m_lan;
     }
-
     char *get_ros_gateway() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 gateway|tail -1");
+        if (isIpWL() == 0) {
+            strcpy(cmd, "ip route show default | grep 'default' | awk '{print $3}'");
+        } else {
+            strcpy(cmd, "ip route show default | grep 'default' | awk '{print $3}'");
+        }
         get_addr_by_cmd(cmd);
         return m_lan;
     }
-
     char *get_ros_netmask() {
         char cmd[64] = {0};
-        strcpy(cmd, "cm get_val WAN1 ipmask|tail -1");
+        if (isIpWL() == 0) {
+            strcpy(cmd, "ifconfig eth0 | grep 'Mask' | awk '{print $4}' | cut -d: -f2");
+        } else {
+            strcpy(cmd, "ifconfig eth1 | grep 'Mask' | awk '{print $4}' | cut -d: -f2");
+        }
         get_addr_by_cmd(cmd);
         return m_lan;
     }
-
-    char *get_lan_gateway() {
-        if (is_ros_platform()) {
-            get_ros_gateway();
-        } else {
-            char cmd[64] = {0};
-            strcpy(cmd, "uci get network.lan.gateway");
-            get_addr_by_cmd(cmd);
-        }
-        DS_TRACE("gateway = " << m_lan);
-        return m_lan;
+    char *get_gateway() {
+        return get_ros_gateway();
     }
-
-    char *get_lan_netmask() {
-        if (is_ros_platform()) {
-            get_ros_netmask();
-        } else {
-            char cmd[64] = {};
-            strcpy(cmd, "uci get network.lan.netmask");
-            get_addr_by_cmd(cmd);
-        }
-        DS_TRACE("netmask = " << m_lan);
-        return m_lan;
+    char *get_netmask() {
+        return get_ros_netmask();
     }
-
-    char *get_lan_addr() {
-        if (is_ros_platform()) {
-            get_ros_addr();
-        } else {
-            char cmd[64] = {0};
-            strcpy(cmd, "uci get network.lan.ipaddr");
-            get_addr_by_cmd(cmd);
-        }
-        DS_TRACE("address = " << m_lan);
-        return m_lan;
+    char *get_addr() {
+        return get_ros_addr();
     }
-
+    std::string get_lan_ip() {
+        return get_by_cmd_res("ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+    }
+    std::string get_lan_netmask() {
+        return get_by_cmd_res("ifconfig eth0 | grep 'Mask' | awk '{print $4}' | cut -d: -f2");
+    }
+    std::string get_lan_gateway() {
+        return get_by_cmd_res("ip route show default | grep 'default' | awk '{print $3}'");
+    }
+    std::string get_wan_ip() {
+        return get_by_cmd_res("ip addr show dev eth1 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1");
+    }
+    std::string get_wan_netmask() {
+        return get_by_cmd_res("ifconfig eth1 | grep 'Mask' | awk '{print $4}' | cut -d: -f2");
+    }
+    std::string get_wan_gateway() {
+        return get_by_cmd_res("ip route show default | grep 'default' | awk '{print $3}'");
+    }
     std::string get_doupload_result(const std::string &url, const std::string &imei) {
         char cmd[1024] = {0};
-        sprintf(cmd,
-                "curl --location --request POST '%s' \\\n"
-                "--form 'FormDataUploadFile=@\"/tmp/record.mp3\"' \\\n"
-                "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
-        DS_TRACE("cmd:" << cmd);
+        snprintf(cmd, sizeof(cmd),
+                 "curl --location --request POST '%s' \\\n"
+                 "--form 'FormDataUploadFile=@\"/tmp/record.mp3\"' \\\n"
+                 "--form 'imei=\"%s\"'", url.c_str(), imei.c_str());
+        spdlog::info("cmd: {}", cmd);
         return get_by_cmd_res(cmd);
     }
-
-    std::string get_by_cmd_res(char *cmd) {
+    std::string get_by_cmd_res(const char *cmd) {
         FILE *fp = nullptr;
-        char buf[1024];
+        char buf[1024] = {0};
         std::string res;
         if ((fp = popen(cmd, "r")) != nullptr) {
             while (fgets(buf, sizeof(buf), fp) != nullptr) {
                 res += buf;
             }
             pclose(fp);
-            fp = nullptr;
         }
         return res;
     }
-
-    char *get_doupload_by_cmd(char *cmd) {
-        FILE *fp;
-        fp = popen(cmd, "r");
-        if (fp) {
-            int nread = fread(m_lan, 1, sizeof(m_lan), fp);
-            if (nread < 0) {
-                DS_TRACE("error\n");
-                fclose(fp);
-                return m_lan;
-            }
-        }
-        return m_lan;
-    }
-
-    //curl是将消息写入到stderr,所以popen获取不到，需要把stderr重定向stdout 2>&1
-    char *get_upload_result(const std::string &url, const std::string &path, const std::string &name) {
+    std::string get_upload_result(const std::string &url, const std::string &path, const std::string &name) {
         char cmd[1024] = {0};
-        sprintf(cmd, "curl --location --request GET %s -f --output %s%s 2>&1", url.c_str(), path.c_str(), name.c_str());
-        DS_TRACE("cmd: " << cmd);
-        get_doupload_by_cmd(cmd);
-        return m_lan;
+        snprintf(cmd, sizeof(cmd), "curl --location --request GET %s -f --output %s%s 2>&1", url.c_str(), path.c_str(), name.c_str());
+        spdlog::info("cmd: {}", cmd);
+        std::string res = get_by_cmd_res(cmd);
+        spdlog::info("res: {}", res);
+        if (res.empty()) {
+            return "file upload fail";
+        } else if (res.find("error") != std::string::npos) {
+            return "Connection unreachable";
+        } else if (res.find("Connection refused") != std::string::npos) {
+            return "Connection refused";
+        } else if (res.find("No route to host") != std::string::npos) {
+            return "No route to host";
+        } else if (res.find("Host is unreachable") != std::string::npos) {
+            return "Host is unreachable";
+        } else if (res.find("Failed to connect") != std::string::npos) {
+            return "Failed to connect";
+        } else if (res.find("Couldn't connect to server") != std::string::npos) {
+            return "Couldn't connect to server";
+        } else if (get_file_size(path + name) > 0) {
+            return "success";
+        } else {
+            return "file upload fail";
+        }
     }
-
-    char *get_addr_by_cmd(char *cmd) {
+    std::string get_res_by_cmd(const std::string &cmd) {
+        char buf[1024] = {0};
+        FILE *fp = nullptr;
+        fp = popen(cmd.c_str(), "r");
+        if (fp) {
+            int nread = fread(buf, 1, sizeof(buf), fp);
+            if (nread < 0) {
+                spdlog::warn("get_res_by_cmd fread error");
+                pclose(fp);
+                return buf;
+            }
+            char *p = strchr(buf, '\n');
+            if (p) {
+                *p = '\0';
+            }
+            p = strchr(buf, '\r');
+            if (p) {
+                *p = '\0';
+            }
+            pclose(fp);
+        }
+        return buf;
+    }
+    char *get_addr_by_cmd(const char *cmd) {
         memset(m_lan, 0, sizeof m_lan);
         FILE *fp;
         fp = popen(cmd, "r");
         if (fp) {
             int nread = fread(m_lan, 1, sizeof(m_lan), fp);
             if (nread < 0) {
-                DS_TRACE("error\n");
-                fclose(fp);
+                spdlog::warn("fread err");
+                pclose(fp);
                 return m_lan;
             }
-
             if (strchr(m_lan, '.')) {
-                DS_TRACE("ok address is: " << m_lan);
                 char *p = strchr(m_lan, '\n');
                 if (p) {
                     *p = '\0';
@@ -600,20 +302,17 @@ public:
             } else {
                 memset(m_lan, 0, sizeof(m_lan));
             }
-            fclose(fp);
+            pclose(fp);
         }
         return m_lan;
     }
-
     float get_size(const char *prefix, const char *filename) {
-
-        char full[256];
-        sprintf(full, "%s%s", prefix, filename);
-
-        DS_TRACE("full name: " << full);
+        char full[256] = {0};
+        snprintf(full, sizeof(full), "%s%s", prefix, filename);
+        spdlog::info("full name: {}", full);
         int fd = open(full, O_RDWR);
         if (fd < 0) {
-            DS_TRACE("open fail " << full);
+            spdlog::warn("open fail {}", full);
             return -1;
         }
         struct stat st;
@@ -621,81 +320,81 @@ public:
         close(fd);
         return st.st_size;
     }
-
-
-    int clean_audio_server_file(const char *prefix) {
-        char cmd[128];
-        sprintf(cmd, "rm %s/audiodata/*", prefix);
+    void clean_audio_server_file(const char *prefix) {
+        char cmd[128] = {0};
+        snprintf(cmd, sizeof(cmd), "rm %s/audiodata/*", prefix);
         system(cmd);
-        sprintf(cmd, "rm %s/cfg/*.json", prefix);
+        snprintf(cmd, sizeof(cmd), "rm %s/cfg/*.json", prefix);
         system(cmd);
     }
-
-    int openwrt_restore_network() {
+    void openwrt_restore_network() {
         char uci[128] = {0};
-        sprintf(uci, "uci set network.lan.ipaddr=%s", "192.168.1.100");
+        snprintf(uci, sizeof(uci), "ip addr add 192.168.1.100/24 dev eth0");
         system(uci);
-        sprintf(uci, "uci set network.lan.gateway=%s", "192.168.1.1");
+        snprintf(uci, sizeof(uci), "ip route add default via 192.168.1.1");
         system(uci);
-        sprintf(uci, "uci set network.lan.netmask=%s", "255.255.255.0");
-        system(uci);
-        sprintf(uci, "uci commit network");
-        system(uci);
-        sprintf(uci, "/etc/init.d/network reload");
+        snprintf(uci, sizeof(uci), "ifconfig eth0 netmask 255.255.255.0");
         system(uci);
     }
-
     std::string hex_to_string(const std::string &str) {
         std::string result;
-        //十六进制两个字符为原始字符一个字符
         for (size_t i = 0; i < str.length(); i += 2) {
-            //每次切两个字符
             std::string byte = str.substr(i, 2);
-            //将十六进制的string转成long再强转成int再转成char
-            result.push_back(
-                    static_cast<char>(static_cast<int>(std::strtol(byte.c_str(), nullptr, 16))));//将处理完的字符压入result中
+            result.push_back(static_cast<char>(std::strtol(byte.c_str(), nullptr, 16)));
         }
         return result;
     }
-
-    void udp_multicast_send(const std::string &ip, uint16_t port, const std::string &msg) {
-        // 1. 创建通信的套接字
-        int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-        if (fd == -1) {
-            perror("socket");
+    std::string string_to_hex(const std::string &input) {
+        static const char *const lut = "0123456789ABCDEF";
+        size_t len = input.length();
+        std::string output;
+        output.reserve(2 * len);
+        for (size_t i = 0; i < len; ++i) {
+            const unsigned char c = input[i];
+            output.push_back(lut[c >> 4]);
+            output.push_back(lut[c & 15]);
         }
-        // 2. 设置组播属性
-        struct in_addr opt;
-        // 将组播地址初始化到这个结构体成员中即可
-        inet_pton(AF_INET, ip.c_str(), &opt.s_addr);
-        setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &opt, sizeof(opt));
-
-        struct sockaddr_in cliaddr;
-        cliaddr.sin_family = AF_INET;
-        cliaddr.sin_port = htons(port);
-        // 发送组播消息, 需要使用组播地址, 和设置组播属性使用的组播地址一致就可以
-        inet_pton(AF_INET, ip.c_str(), &cliaddr.sin_addr.s_addr);
-        sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
-        DS_TRACE(ip.c_str() << " " << port << " udp_multicast_send: " << msg.c_str());
-        close(fd);
+        return output;
     }
-
-    void cmd_system(const std::string &cmd) {
+    static std::string ustr_to_hex(const unsigned char ch[], const int len) {
+        const std::string hex = "0123456789ABCDEF";
+        std::stringstream ss;
+        for (int i = 0; i < len; ++i) {
+            ss << hex[ch[i] >> 4] << hex[ch[i] & 0xf];
+        }
+        return ss.str();
+    }
+    void udp_multicast_send(const std::string &ip, uint16_t port, const std::string &msg) {
+        struct sockaddr_in server{};
+        struct ip_mreqn group{};
+        int sock = socket(AF_INET, SOCK_DGRAM, 0);
+        bzero(&server, sizeof(server));
+        server.sin_family = AF_INET;
+        inet_pton(AF_INET, get_ros_addr(), &server.sin_addr.s_addr);
+        server.sin_port = htons(port);
+        ::bind(sock, (struct sockaddr *) &server, sizeof(server));
+        inet_pton(AF_INET, ip.c_str(), &group.imr_multiaddr.s_addr);
+        inet_pton(AF_INET, "0.0.0.0", &group.imr_address);
+        if (isIpWL() == 0) {
+            group.imr_ifindex = if_nametoindex("eth0");
+        } else {
+            group.imr_ifindex = if_nametoindex("eth1");
+        }
+        setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, &group.imr_multiaddr.s_addr, sizeof(group.imr_multiaddr.s_addr));
+        struct sockaddr_in client{};
+        bzero(&client, sizeof(client));
+        client.sin_family = AF_INET;
+        inet_pton(AF_INET, ip.c_str(), &client.sin_addr.s_addr);
+        client.sin_port = htons(port);
+        sendto(sock, msg.c_str(), msg.length(), 0, (struct sockaddr *) &client, sizeof(client));
+        spdlog::info("udp_multicast_send: {} {} {}", ip, port, msg);
+        close(sock);
+    }
+    static void cmd_system(const std::string &cmd) {
         system(cmd.c_str());
     }
-
-    /**
-     * 异步定时任务
-     * @tparam callable
-     * @tparam arguments
-     * @param count 执行次数, 0 循环执行
-     * @param after 定时执行, 单位秒，过after秒后执行 0 立即执行
-     * @param interval 间隔时间, 单位秒, 每次执行间隔多长  0 不间隔
-     * @param f
-     * @param args
-     */
     template<typename callable, class... arguments>
-    void async_wait(const size_t count, const size_t after, const size_t interval, callable &&f, arguments &&... args) {
+    static void async_wait(const size_t count, const size_t after, const size_t interval, callable &&f, arguments &&... args) {
         std::function<typename std::result_of<callable(arguments...)>::type()> task
                 (std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
         std::thread([after, task, count, interval]() {
@@ -715,13 +414,7 @@ public:
         }).detach();
     }
 
-    /**
-    * 字符串切片
-    * @param str_v
-    * @param del_ims
-    * @return
-    */
-    std::vector<std::string> string_split(std::string str_v, std::string del_ims = " ") {
+    std::vector<std::string> string_split(const std::string &str_v, const std::string &del_ims = " ") {
         std::vector<std::string> output;
         size_t first = 0;
         while (first < str_v.size()) {
@@ -738,34 +431,23 @@ public:
     }
 
     bool check(const unsigned char c) {
-        //通过字节码进行判断
         return c >= 0x80;
     }
 
     int statistical_character_count(const std::string &str) {
-        int LowerCase, UpperCase; //大写，小写
-        int space = 0;
-        int digit, character; //数字，字符
-        int chinese = 0; //中文
-        digit = character = LowerCase = UpperCase = 0;
-        for (int i = 0; i < str.length(); i++) {
-            if (str[i] >= 'a' && str[i] <= 'z') {
-                DS_TRACE(str[i] << " ");
+        int LowerCase = 0, UpperCase = 0, space = 0, digit = 0, character = 0, chinese = 0;
+        for (const char &ch : str) {
+            if (std::islower(ch)) {
                 LowerCase++;
-            } else if (str[i] >= 'A' && str[i] <= 'Z') {
-                DS_TRACE(str[i] << " ");
+            } else if (std::isupper(ch)) {
                 UpperCase++;
-            } else if (str[i] >= '0' && str[i] <= '9') {
-                DS_TRACE(str[i] << " ");
+            } else if (std::isdigit(ch)) {
                 digit++;
-            } else if (check(str[i])) {
-                DS_TRACE("chinese" << str[i] << " ");
+            } else if (check(ch)) {
                 chinese++;
-            } else if (str[i] == ' ') {
-                DS_TRACE(str[i] << " ");
+            } else if (ch == ' ') {
                 space++;
             } else {
-                DS_TRACE(str[i] << " ");
                 character++;
             }
         }
@@ -780,17 +462,18 @@ public:
             snprintf(buf, sizeof(buf), "cm set_val sys serverpassword %s", password);
             system(buf);
         }
+        return 1;
     }
 
     void bit_rate_32_to_48(const std::string &path) {
         std::string cmd = "conv.sh " + path;
-        DS_TRACE("cmd : " << cmd.c_str());
+        spdlog::info("cmd : {}", cmd);
         system(cmd.c_str());
     }
 
     void volume_gain(const std::string &path, const std::string &suffix) {
         std::string cmd = "vol.sh " + path + " " + suffix;
-        DS_TRACE("cmd : " << cmd.c_str());
+        spdlog::info("cmd : {}", cmd);
         system(cmd.c_str());
     }
 
@@ -802,199 +485,7 @@ public:
         system("rm /tmp/new_mp3");
     }
 
-    void audio_stop() {
-        PlayStatus::getInstance().init();
-        system("killall -9 ffplay");
-        system("killall -9 ffmpeg");
-        system("killall -9 madplay");
-        system("killall -9 aplay");
-    }
-
-    void tts_loop_play(const std::string &txt, const bool async = false, const int speed = 50, const int gender = 0) {
-        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
-        switch (gender) {
-            case 0:
-                cmd += " -l xiaoyan ";
-                break;
-            case 1:
-                cmd += " -l xiaofeng ";
-                break;
-            default:
-                break;
-        }
-        cmd += "2>&1 >/dev/null";
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    if(!get_process_status("ffplay")){
-                        cmd_system(cmd);
-                    }
-                    usleep(1000 * 100);
-                }
-            });
-        } else {
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                if(!get_process_status("ffplay")){
-                    cmd_system(cmd);
-                }
-                usleep(1000 * 100);
-            }
-        }
-    }
-
-    void tts_num_play(const int num, const std::string &txt, const bool async = false, const int speed = 50,
-                      const int gender = 0) {
-        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
-        switch (gender) {
-            case 0:
-                cmd += " -l xiaoyan ";
-                break;
-            case 1:
-                cmd += " -l xiaofeng ";
-                break;
-            default:
-                break;
-        }
-        cmd += "2>&1 >/dev/null";
-        std::cout << "tts_num_play cmd :" << cmd << std::endl;
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                for (int i = 0; i < num; ++i) {
-                    while(get_process_status("ffplay")){
-                        usleep(1000 * 100);
-                    }
-                    cmd_system(cmd);
-                    if (!PlayStatus::getInstance().getPlayState()) {
-                        break;
-                    }
-                }
-                PlayStatus::getInstance().init();
-            });
-        } else {
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            for (int i = 0; i < num; ++i) {
-                while(get_process_status("ffplay")){
-                    usleep(1000 * 100);
-                }
-                cmd_system(cmd);
-                if (!PlayStatus::getInstance().getPlayState()) {
-                    break;
-                }
-            }
-            PlayStatus::getInstance().init();
-        }
-    }
-
-    void tts_time_play(const int time, const std::string &txt, const bool async = false, const int speed = 50,
-                       const int gender = 0) {
-        std::string cmd = "tts -t " + txt + " -p " + std::to_string(speed);
-        switch (gender) {
-            case 0:
-                cmd += " -l xiaoyan ";
-                break;
-            case 1:
-                cmd += " -l xiaofeng ";
-                break;
-            default:
-                break;
-        }
-        cmd += "2>&1 >/dev/null";
-        std::cout << "tts_time_play cmd :" << cmd << std::endl;
-        async_wait(1, time, 0, [&] {
-            cmd_system("killall -9 ffplay");
-            PlayStatus::getInstance().init();
-        });
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                    if(!get_process_status("ffplay")){
-                        cmd_system(cmd);
-                    }
-                    usleep(1000 * 100);
-                }
-            });
-        } else {
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            while (PlayStatus::getInstance().getPlayId() == asns::AUDIO_TASK_PLAYING) {
-                if(!get_process_status("ffplay")){
-                    cmd_system(cmd);
-                }
-                usleep(1000 * 100);
-            }
-        }
-    }
-
-    void audio_loop_play(const std::string &path, const bool async = false) {
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                std::string cmd = "madplay " + path + " -r";
-                DS_TRACE("cmd : " << cmd.c_str());
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                system(cmd.c_str());
-                PlayStatus::getInstance().init();
-            });
-        } else {
-            std::string cmd = "madplay " + path + " -r";
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            system(cmd.c_str());
-            PlayStatus::getInstance().init();
-        }
-    }
-
-    void audio_num_play(const int num, const std::string &path, const bool async = false) {
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                std::string cmd = "madplay ";
-                for (int i = 0; i < num; ++i) {
-                    cmd += path + ' ';
-                }
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                DS_TRACE("cmd : " << cmd.c_str());
-                system(cmd.c_str());
-                PlayStatus::getInstance().init();
-            });
-        } else {
-            std::string cmd = "madplay ";
-            for (int i = 0; i < num; ++i) {
-                cmd += path + ' ';
-            }
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            DS_TRACE("cmd : " << cmd.c_str());
-            system(cmd.c_str());
-            PlayStatus::getInstance().init();
-        }
-
-    }
-
-    void audio_time_play(const int time, const std::string &path, const bool async = false) {
-        int d = time / (3600 * 24);
-        int t = time % (3600 * 24) / 3600;
-        int m = time % (3600 * 24) % 3600 / 60;
-        int s = time % (3600 * 24) % 3600 % 60;
-        char buf[64] = {0};
-        char cmd[128] = {0};
-        sprintf(buf, "%d:%d:%d:%d", d, t, m, s);
-        sprintf(cmd, "madplay %s -r -t %s", path.c_str(), buf);
-        if (async) {
-            async_wait(1, 0, 0, [=] {
-                PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-                DS_TRACE("cmd : " << cmd);
-                system(cmd);
-                PlayStatus::getInstance().init();
-            });
-        } else {
-            PlayStatus::getInstance().setPlayId(asns::AUDIO_TASK_PLAYING);
-            DS_TRACE("cmd : " << cmd);
-            system(cmd);
-            PlayStatus::getInstance().init();
-        }
-    }
-
-    void reboot() {
+    static void reboot() {
         system("reboot");
     }
 
@@ -1019,7 +510,7 @@ public:
                 break;
             }
         }
-        DS_TRACE("killall ffmpeg record write to flash time : " << time << "00 ms");
+        spdlog::info("killall ffmpeg record write to flash time : {}00 ms", time);
     }
 
     std::string record_upload(const int time, const std::string &url, const std::string &imei) {
@@ -1029,46 +520,6 @@ public:
         std::string res = get_doupload_result(url, imei);
         cmd_system("rm /tmp/record.mp3");
         return res;
-    }
-
-    void set_gpio_model(const int model, const int status = asns::GPIO_CLOSE) {
-        CGpio::getInstance().setGpioModel(model);
-        CGpio::getInstance().setState(status);
-        CGpio::getInstance().saveToJson();
-        switch (model) {
-            case asns::GPIO_CUSTOM_MODE:
-                if (status == asns::GPIO_CLOSE) {
-                    CGpio::getInstance().set_gpio_off();
-                } else if (status == asns::GPIO_OPEN) {
-                    CGpio::getInstance().set_gpio_on();
-                }
-                break;
-            case asns::GPIO_PLAY_MODE:
-                if (status == asns::GPIO_CLOSE) {
-                    CGpio::getInstance().set_gpio_off();
-                } else if (status == asns::GPIO_OPEN) {
-                    async_wait(1, 0, 0, [&] {
-                        while (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
-                               CGpio::getInstance().getState() == asns::GPIO_OPEN) {
-                            if (get_process_status("madplay") || get_process_status("aplay")) {
-                                if (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
-                                    CGpio::getInstance().getState() == asns::GPIO_OPEN) {
-                                    CGpio::getInstance().set_gpio_on();
-                                }
-                            } else {
-                                if (CGpio::getInstance().getGpioModel() == asns::GPIO_PLAY_MODE &&
-                                    CGpio::getInstance().getState() == asns::GPIO_OPEN) {
-                                    CGpio::getInstance().set_gpio_off();
-                                }
-                            }
-                            sleep(1);
-                        }
-                    });
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     void restore(const std::string &path = "") {
@@ -1087,24 +538,20 @@ public:
     void network_set(const std::string &gateway, const std::string &ipAddress, const std::string &netMask) {
         if (is_ros_platform()) {
             char cm[128] = {0};
-            sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
+            snprintf(cm, sizeof(cm), "cm set_val WAN1 gateway %s", gateway.c_str());
             system(cm);
-            sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
+            snprintf(cm, sizeof(cm), "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
             system(cm);
-            sprintf(cm, "cm set_val WAN1 ipmask %s", netMask.c_str());
+            snprintf(cm, sizeof(cm), "cm set_val WAN1 ipmask %s", netMask.c_str());
             system(cm);
             system("reboot");
         } else {
             char uci[128] = {0};
-            sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
+            snprintf(uci, sizeof(uci), "ip addr add %s/24 dev eth0", ipAddress.c_str());
             system(uci);
-            sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
+            snprintf(uci, sizeof(uci), "ip route add default via %s", gateway.c_str());
             system(uci);
-            sprintf(uci, "uci set network.lan.netmask=%s", netMask.c_str());
-            system(uci);
-            sprintf(uci, "uci commit network");
-            system(uci);
-            sprintf(uci, "/etc/init.d/network reload &");
+            snprintf(uci, sizeof(uci), "ifconfig eth0 netmask %s", netMask.c_str());
             system(uci);
         }
     }
@@ -1112,20 +559,16 @@ public:
     void network_set(const std::string &gateway, const std::string &ipAddress) {
         if (is_ros_platform()) {
             char cm[128] = {0};
-            sprintf(cm, "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
+            snprintf(cm, sizeof(cm), "cm set_val WAN1 ipaddress %s", ipAddress.c_str());
             system(cm);
-            sprintf(cm, "cm set_val WAN1 gateway %s", gateway.c_str());
+            snprintf(cm, sizeof(cm), "cm set_val WAN1 gateway %s", gateway.c_str());
             system(cm);
             system("reboot");
         } else {
             char uci[128] = {0};
-            sprintf(uci, "uci set network.lan.ipaddr=%s", ipAddress.c_str());
+            snprintf(uci, sizeof(uci), "ip addr add %s/24 dev eth0", ipAddress.c_str());
             system(uci);
-            sprintf(uci, "uci set network.lan.gateway=%s", gateway.c_str());
-            system(uci);
-            sprintf(uci, "uci commit network");
-            system(uci);
-            sprintf(uci, "/etc/init.d/network reload");
+            snprintf(uci, sizeof(uci), "ip route add default via %s", gateway.c_str());
             system(uci);
         }
     }
@@ -1146,16 +589,37 @@ public:
 
         std::string year = vecName[10].substr(vecName[10].length() - 2, 2);
         std::string month = m_month[vecName[6]];
-        int day = std::atoi(vecName[7].c_str());
-        int hour = std::atoi(vecTime[0].c_str());
-        int min = std::atoi(vecTime[1].c_str());
-        int sec = std::atoi(vecTime[2].c_str());
+        int day = std::stoi(vecName[7]);
+        int hour = std::stoi(vecTime[0]);
+        int min = std::stoi(vecTime[1]);
+        int sec = std::stoi(vecTime[2]);
         char buf[32] = {0};
-        sprintf(buf, "%02d_%02d%02d%02d", day, hour, min, sec);
+        snprintf(buf, sizeof(buf), "%02d_%02d%02d%02d", day, hour, min, sec);
         return vn + '_' + v + '_' + year + month + buf;
     }
 
     void heart_beat(const std::string &path) {
         cmd_system("echo $(date +\"%s\") > " + path);
+    }
+
+    static uint16_t crc16(const uint8_t *data, uint16_t length) {
+        uint16_t crc = 0xffff;
+        while (length--) {
+            crc ^= *data++;
+            for (uint8_t i = 0; i < 8; ++i) {
+                if (crc & 1) {
+                    crc = (crc >> 1) ^ 0xA001;
+                } else {
+                    crc = (crc >> 1);
+                }
+            }
+        }
+        return crc;
+    }
+
+    static std::string fmt_float_to_str(const double val) {
+        char buf[16] = {0};
+        snprintf(buf, sizeof(buf), "%.01f", val);
+        return buf;
     }
 };

@@ -2,9 +2,9 @@
 
 # Test whether a PUBLISH to $ topics QoS 1 results in the expected PUBACK packet.
 
-from mosq_test_helper import *
-
 mid = 1
+
+
 def helper(topic, reason_code):
     global mid
 
@@ -14,7 +14,7 @@ def helper(topic, reason_code):
     else:
         puback_packet = mosq_test.gen_puback(mid, proto_ver=5, reason_code=reason_code)
     sock = mosq_test.do_client_connect(connect_packet, connack_packet, port=port)
-    mosq_test.do_send_receive(sock, publish_packet, puback_packet, "puback%d"%(mid))
+    mosq_test.do_send_receive(sock, publish_packet, puback_packet, "puback%d" % (mid))
 
 
 rc = 1
@@ -45,4 +45,3 @@ finally:
         print(stde.decode('utf-8'))
 
 exit(rc)
-

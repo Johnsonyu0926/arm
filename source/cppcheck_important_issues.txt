@@ -1,0 +1,299 @@
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/audiocfg.hpp:34:9: error: There is an unknown macro here somewhere. Configuration is required. If NLOHMANN_JSON_EXPAND is a macro then please configure it. [unknownMacro]
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(CAudioCfgData, iBdVal, serverType, codeVersion, server, port, deviceID, password,
+        ^
+/Users/johnson.yu/Desktop/audioserver/source/h/easylogging++.h:1972:9: error: syntax error [syntaxError]
+        ELPP_INTERNAL_ERROR("Unable to get configuration [" << confName << "] for level ["
+        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/AudioPlayStatus.hpp:55:17: performance: Function 'getPlayConten()' should return member 'playConten' by const reference. [returnByReference]
+    std::string getPlayConten() const {
+                ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/MqttConfig.hpp:5:17: performance: Function 'get_request_topic()' should return member 'request_topic' by const reference. [returnByReference]
+    std::string get_request_topic() const {
+                ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/MqttConfig.hpp:13:17: performance: Function 'get_publish_topic()' should return member 'publish_topic' by const reference. [returnByReference]
+    std::string get_publish_topic() const {
+                ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/TimedRestart.hpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:21117:13: error: Found an exit path from function with non-void return type that has missing return statement [missingReturn]
+            }
+            ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:21140:13: error: Found an exit path from function with non-void return type that has missing return statement [missingReturn]
+            }
+            ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:5831:5: style: Class 'byte_container_with_subtype' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    byte_container_with_subtype(const container_type& b) noexcept(noexcept(container_type(b)))
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:5836:5: style: Class 'byte_container_with_subtype' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    byte_container_with_subtype(container_type&& b) noexcept(noexcept(container_type(std::move(b))))
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:6373:5: style: Class 'wide_string_input_adapter' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    wide_string_input_adapter(BaseInputAdapter base)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:14700:5: style: Class 'json_ref' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    json_ref(value_type&& value)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:14704:5: style: Class 'json_ref' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    json_ref(const value_type& value)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:14916:5: style: Class 'output_adapter' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    output_adapter(std::vector<CharType, AllocatorType>& vec)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:14920:5: style: Class 'output_adapter' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    output_adapter(std::basic_ostream<CharType>& s)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:14924:5: style: Class 'output_adapter' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    output_adapter(StringType& s)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:19983:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(const value_t v)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:19991:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(std::nullptr_t = nullptr) noexcept // NOLINT(bugprone-exception-escape)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:20003:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(CompatibleType && val) noexcept(noexcept( // NOLINT(bugprone-forwarding-reference-overload,bugprone-exception-escape)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:20017:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(const BasicJsonType& val)
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:20070:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(initializer_list_t init,
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:20308:5: style: Class 'basic_json' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    basic_json(const JsonRef& ref) : basic_json(ref.moved_or_copied()) {}
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:8741:26: performance: Function 'get_position()' should return member 'position' by const reference. [returnByReference]
+    constexpr position_t get_position() const noexcept
+                         ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17373:26: style: The comparison 'kAlpha >= -60' is always true. [knownConditionTrueFalse]
+    static_assert(kAlpha >= -60, "internal error");
+                         ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17094:25: note: 'kAlpha' is assigned value '-60' here.
+constexpr int kAlpha = -60;
+                        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17373:26: note: The comparison 'kAlpha >= -60' is always true.
+    static_assert(kAlpha >= -60, "internal error");
+                         ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17374:26: style: The comparison 'kGamma <= -32' is always true. [knownConditionTrueFalse]
+    static_assert(kGamma <= -32, "internal error");
+                         ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17095:25: note: 'kGamma' is assigned value '-32' here.
+constexpr int kGamma = -32;
+                        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:17374:26: note: The comparison 'kGamma <= -32' is always true.
+    static_assert(kGamma <= -32, "internal error");
+                         ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18727:27: style: The comparison 'thousands_sep != '\0'' is always false because 'thousands_sep' and ''\0'' represent the same value. [knownConditionTrueFalse]
+        if (thousands_sep != '\0')
+                          ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18855:32: note: 'thousands_sep' is assigned value ''\0'' here.
+    const char thousands_sep = '\0';
+                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18727:27: note: The comparison 'thousands_sep != '\0'' is always false because 'thousands_sep' and ''\0'' represent the same value.
+        if (thousands_sep != '\0')
+                          ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18737:27: style: The comparison 'decimal_point != '\0'' is always false because 'decimal_point' and ''\0'' represent the same value. [knownConditionTrueFalse]
+        if (decimal_point != '\0' && decimal_point != '.')
+                          ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18857:32: note: 'decimal_point' is assigned value ''\0'' here.
+    const char decimal_point = '\0';
+                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:18737:27: note: The comparison 'decimal_point != '\0'' is always false because 'decimal_point' and ''\0'' represent the same value.
+        if (decimal_point != '\0' && decimal_point != '.')
+                          ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:15881:13: style: Statements following noreturn function 'abort()' will never be executed. [unreachableCode]
+            static_cast<void>(j);
+            ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:48: warning: Access of moved variable 'first'. [accessMoved]
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:38: note: Calling std::move(first)
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:48: note: Access of moved variable 'first'.
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:66: warning: Access of moved variable 'last'. [accessMoved]
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                                                 ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:56: note: Calling std::move(last)
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                                       ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23207:66: note: Access of moved variable 'last'.
+        parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+                                                                 ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23515:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23515:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23515:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23531:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23531:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23531:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23558:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23558:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23558:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::cbor).sax_parse(input_format_t::cbor, &sdp, strict, tag_handler);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23573:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23573:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23573:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23588:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23588:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23588:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23612:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23612:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23612:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::msgpack).sax_parse(input_format_t::msgpack, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23627:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23627:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23627:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23642:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23642:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23642:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23666:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23666:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23666:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::ubjson).sax_parse(input_format_t::ubjson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23682:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23682:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23682:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23697:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23697:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23697:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bjdata).sax_parse(input_format_t::bjdata, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23712:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23712:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23712:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23727:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23727:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23727:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23751:64: warning: Access of moved variable 'ia'. [accessMoved]
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23751:54: note: Calling std::move(ia)
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:23751:64: note: Access of moved variable 'ia'.
+        const bool res = binary_reader<decltype(ia)>(std::move(ia), input_format_t::bson).sax_parse(input_format_t::bson, &sdp, strict);
+                                                               ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:5984:22: style: Consider using std::accumulate algorithm instead of a raw loop. [useStlAlgorithm]
+                seed = combine(seed, hash(element));
+                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:6027:22: style: Consider using std::accumulate algorithm instead of a raw loop. [useStlAlgorithm]
+                seed = combine(seed, std::hash<std::uint8_t> {}(byte));
+                     ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:11247:25: style: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+                        {
+                        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:16551:17: style: Consider using std::accumulate algorithm instead of a raw loop. [useStlAlgorithm]
+            len *= static_cast<std::size_t>(el.m_value.number_unsigned);
+                ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:19750:31: style: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+                        stack.push_back(std::move(it.second));
+                              ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:19772:35: style: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+                            stack.push_back(std::move(it.second));
+                                  ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:19095:27: style: Variable 'offset' is assigned a value that is never used. [unreadVariable]
+        const auto offset = std::distance(Container::begin(), first);
+                          ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:2958:5: error: syntax error [syntaxError]
+    JSON_ASSERT(!f.empty());
+    ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:21113:13: error: syntax error [syntaxError]
+            JSON_CATCH (std::out_of_range&)
+            ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:3966:14: style: struct member 'two::x' is never used. [unusedStructMember]
+        char x[2]; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+             ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/json.hpp:245:1: error: syntax error [syntaxError]
+NLOHMANN_JSON_NAMESPACE_BEGIN
+^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/mqtt_reTemp.hpp:33:9: error: There is an unknown macro here somewhere. Configuration is required. If NLOHMANN_JSON_EXPAND is a macro then please configure it. [unknownMacro]
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CResult, result, resultId, imei, topic, cmd, publishId, data)
+        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/mqtt_planPlay.hpp:13:9: error: There is an unknown macro here somewhere. Configuration is required. If NLOHMANN_JSON_EXPAND is a macro then please configure it. [unknownMacro]
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(CPlanPlayResultData, null)
+        ^
+/Users/johnson.yu/Desktop/audioserver/source/router/audioserver/unsupport.hpp:19:3: error: There is an unknown macro here somewhere. Configuration is required. If NLOHMANN_JSON_EXPAND is a macro then please configure it. [unknownMacro]
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(CUnsupport, cmd, resultId, msg)
+  ^
+nofile:0:0: information: Too many #ifdef configurations - cppcheck only checks 12 configurations. Use --force to check all configurations. For more details, use --enable=information. [toomanyconfigs]
+

@@ -1,3 +1,3 @@
 {
-  "ffmpegCmd": "ffplay -fflags nobuffer -nodisp %s"
+  "ffmpegCmd": "ffplay -fflags nobuffer -nodisp %s &"
 }

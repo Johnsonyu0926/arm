@@ -2,7 +2,7 @@
 
 This content is produced and maintained by the Eclipse Mosquitto project.
 
- * Project home: https://projects.eclipse.org/projects/iot.mosquitto
+* Project home: https://projects.eclipse.org/projects/iot.mosquitto
 
 ## Trademarks
 
@@ -27,7 +27,7 @@ SPDX-License-Identifier: EPL-2.0 or BSD-3-Clause
 
 The project maintains the following source code repositories:
 
- * https://github.com/eclipse/mosquitto
+* https://github.com/eclipse/mosquitto
 
 ## Third-party Content
 

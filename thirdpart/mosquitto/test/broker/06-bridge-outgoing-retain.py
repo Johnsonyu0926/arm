@@ -3,7 +3,6 @@
 # Does a bridge with bridge_outgoing_retain set to false not set the retain bit
 # on outgoing messages?
 
-from mosq_test_helper import *
 
 def write_config(filename, port1, port2, protocol_version, outgoing_retain):
     with open(filename, 'w') as f:
@@ -15,13 +14,14 @@ def write_config(filename, port1, port2, protocol_version, outgoing_retain):
         f.write("topic bridge/# both 1\n")
         f.write("notifications false\n")
         f.write("restart_timeout 5\n")
-        f.write("bridge_protocol_version %s\n" %(protocol_version))
-        f.write("bridge_outgoing_retain %s\n" %(outgoing_retain))
+        f.write("bridge_protocol_version %s\n" % (protocol_version))
+        f.write("bridge_outgoing_retain %s\n" % (outgoing_retain))
+
 
 def do_test(proto_ver, outgoing_retain):
     if proto_ver == 4:
         bridge_protocol = "mqttv311"
-        proto_ver_connect = 128+4
+        proto_ver_connect = 128 + 4
     else:
         bridge_protocol = "mqttv50"
         proto_ver_connect = 5
@@ -32,8 +32,9 @@ def do_test(proto_ver, outgoing_retain):
 
     rc = 1
     keepalive = 60
-    client_id = socket.gethostname()+".bridge_sample"
-    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False, proto_ver=proto_ver_connect)
+    client_id = socket.gethostname() + ".bridge_sample"
+    connect_packet = mosq_test.gen_connect(client_id, keepalive=keepalive, clean_session=False,
+                                           proto_ver=proto_ver_connect)
     connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
 
     mid = 1
@@ -46,15 +47,17 @@ def do_test(proto_ver, outgoing_retain):
     suback_packet = mosq_test.gen_suback(mid, 1, proto_ver=proto_ver)
 
     if outgoing_retain == "true":
-        publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=True, payload="message", proto_ver=proto_ver)
+        publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=True, payload="message",
+                                               proto_ver=proto_ver)
     else:
-        publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=False, payload="message", proto_ver=proto_ver)
+        publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=False, payload="message",
+                                               proto_ver=proto_ver)
 
-
-    helper_connect_packet = mosq_test.gen_connect("helper", keepalive=keepalive, clean_session=True, proto_ver=proto_ver)
+    helper_connect_packet = mosq_test.gen_connect("helper", keepalive=keepalive, clean_session=True,
+                                                  proto_ver=proto_ver)
     helper_connack_packet = mosq_test.gen_connack(rc=0, proto_ver=proto_ver)
-    helper_publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=True, payload="message", proto_ver=proto_ver)
-
+    helper_publish_packet = mosq_test.gen_publish("bridge/retain/test", qos=0, retain=True, payload="message",
+                                                  proto_ver=proto_ver)
 
     ssock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ssock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -101,6 +104,7 @@ def do_test(proto_ver, outgoing_retain):
         if rc:
             print(stde.decode('utf-8'))
             exit(rc)
+
 
 do_test(proto_ver=4, outgoing_retain="true")
 do_test(proto_ver=4, outgoing_retain="false")

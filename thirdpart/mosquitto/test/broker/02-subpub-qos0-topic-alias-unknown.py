@@ -3,7 +3,6 @@
 # Test whether "topic alias" works to the broker
 # MQTT v5
 
-from mosq_test_helper import *
 
 def do_test():
     rc = 1

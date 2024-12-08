@@ -2,7 +2,6 @@
 
 # Test whether a PUBLISH to a topic with QoS 1 results in the correct PUBACK packet.
 
-from mosq_test_helper import *
 
 def do_test(proto_ver):
     rc = 1
@@ -13,7 +12,8 @@ def do_test(proto_ver):
 
     publish_packet = mosq_test.gen_publish("pub/qos1/test", qos=1, mid=mid, payload="message", proto_ver=proto_ver)
     if proto_ver == 5:
-        puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver, reason_code=mqtt5_rc.MQTT_RC_NO_MATCHING_SUBSCRIBERS)
+        puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver,
+                                             reason_code=mqtt5_rc.MQTT_RC_NO_MATCHING_SUBSCRIBERS)
     else:
         puback_packet = mosq_test.gen_puback(mid, proto_ver=proto_ver)
 
@@ -43,4 +43,3 @@ def do_test(proto_ver):
 do_test(proto_ver=4)
 do_test(proto_ver=5)
 exit(0)
-
